@@ -1,3 +1,12 @@
+
+# 📱 FairShare Project
+> [ **Main README** ] &nbsp; | &nbsp; [ [Walkthrough](./walkthrough_fairshare_first_design.md) ] &nbsp; | &nbsp; [ [Implementation Plan](./implementation_plan_fairshare.md) ]
+---
+
+
+## Project Overview
+(Your existing README content goes here...)
+
 # FairShare-android-app
 repository for Fairshare android app
 
@@ -19,7 +28,30 @@ If you have already created a repository on GitHub (e.g., `FairShare-android-app
 * **Add Remote**: Go to `Git` > `Manage Remotes...`.
 * **Link URL**: Click **+**, name it `origin`, and paste the repository URL: `https://github.com/hexafia/FairShare-android-app.git`.
 
-## 3. Managing Branches (UI Correction)
+
+
+### 3. Tracking and Pushing the Code
+Now that the remote is linked, you need to tell Git which files to actually "track."
+
+1. **Add Files to Git:** - In the **Project** window (left side), right-click the top-level **FairShare** folder.
+   - Select **Git > Add**.
+   - *Result:* The file names should change from **Red** to **Green**.
+
+2. **Commit Your Changes:**
+   - Go to **Git > Commit...** (or press `Ctrl + K`).
+   - In the commit window, check the box for **Unversioned Files**.
+   - **IMPORTANT:** Uncheck `local.properties`. This file contains your specific computer's path to the Android SDK and will cause errors if shared with the team.
+   - Type a commit message: `Initial project setup and development guide`.
+   - Click the arrow on the **Commit** button and select **Commit and Push**.
+
+3. **Push to GitHub:**
+   - A dialog will appear showing the commits to be pushed.
+   - Ensure the destination branch is `main`.
+   - Click **Push**.
+
+*Once the blue progress bar at the bottom finishes, your files are live on GitHub and will appear as "normal" (white/black text) in Android Studio.*
+
+## 4. Managing Branches (UI Correction)
 > **Note**: In newer versions of Android Studio, the Branch Widget has moved from the **bottom right** of the status bar to the **top left** of the main toolbar.
 
 ### Creating a New Branch
@@ -28,7 +60,7 @@ To avoid committing directly to `main` (e.g., when testing OCR features):
 2.  **Important**: If `+ New Branch...` is grayed out, you must perform at least one local **Commit** first.
 3.  Once enabled, select **+ New Branch...** and enter a descriptive name (e.g., `ocr-prototype`).
 
-## 4. The Development Workflow
+## 5. The Development Workflow
 To keep the repository organized, follow this "Commit and Push" cycle:
 
 * **Commit (Ctrl + K)**: Select your files, write a clear message, and click **Commit** (not Commit and Push yet).
