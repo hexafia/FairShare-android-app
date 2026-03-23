@@ -1,6 +1,6 @@
 
 # 🎨 Walkthrough: First Design
-> [ [Main README](./README.md) ] &nbsp; | &nbsp; [ **Walkthrough** ] &nbsp; | &nbsp; [ [Implementation Plan](./implementation_plan_fairshare.md) ]
+> [ [Main README](./README.md) ] &nbsp; | &nbsp; [ **Walkthrough** ] &nbsp; | &nbsp; [ [Implementation Plan](./implementation_plan_fairshare.md) ]  &nbsp; | &nbsp; [ [Development Guide](./Repo_Cloning.md) ]
 ---
 
 # FairShare Expense Tracker — Walkthrough
