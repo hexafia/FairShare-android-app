@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">FairShare</string>
+    <string name="add_transaction">Add Transaction</string>
+    <string name="title_hint">Title (e.g. Groceries)</string>
+    <string name="amount_hint">Amount</string>
+    <string name="select_category">Select category</string>
+    <string name="type_expense">Expense</string>
+    <string name="type_income">Income</string>
+    <string name="save">Save</string>
+    <string name="cancel">Cancel</string>
+    <string name="total_balance">Total Balance</string>
+    <string name="income_label">Income</string>
+    <string name="expense_label">Expenses</string>
+    <string name="no_transactions">No transactions yet.\nTap + to add one!</string>
+    <string name="delete_confirm_title">Delete transaction?</string>
+    <string name="delete_confirm_msg">This action cannot be undone.</string>
+    <string name="delete">Delete</string>
+
+    <!-- Categories -->
+    <string-array name="categories">
+        <item>Food</item>
+        <item>Transport</item>
+        <item>Shopping</item>
+        <item>Bills</item>
+        <item>Salary</item>
+        <item>Other</item>
+    </string-array>
+</resources>
