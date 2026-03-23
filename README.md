@@ -5,10 +5,9 @@
 
 
 ## Project Overview
-(Your existing README content goes here...)
-
+Main now contains a working logic of the simple personal tracker. The design was just basic for now, left it up to Gemini to design. The personal tracker will use Firstore so it will sync in the cloud, but the data will persist even when used in an offline environment. read the walkthrough plss thanks. =^_^=
 # FairShare-android-app
-repository for Fairshare android app
+repository for Fairshare Android app
 
 # GitHub and Android Studio Integration Guide: FairShare Project
 
