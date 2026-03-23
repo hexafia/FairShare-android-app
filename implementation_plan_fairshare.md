@@ -1,3 +1,8 @@
+
+# 📝 Implementation Plan
+> [ [Main README](./README.md) ] &nbsp; | &nbsp; [ [Walkthrough](./walkthrough_fairshare_first_design.md) ] &nbsp; | &nbsp; [ **Implementation Plan** ]
+---
+
 # Expense Tracker Implementation Plan
 
 ## Goal Description
