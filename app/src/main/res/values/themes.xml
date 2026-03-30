@@ -1,0 +1,27 @@
+<resources xmlns:tools="http://schemas.android.com/tools">
+    <!-- Base application theme. -->
+    <style name="Base.Theme.FairSharefrontend" parent="Theme.Material3.DayNight.NoActionBar">
+        <item name="colorPrimary">@color/teal</item>
+        <item name="colorOnPrimary">@color/white</item>
+        <item name="colorSecondary">@color/orange</item>
+        <item name="android:windowBackground">@color/off_white</item>
+        <item name="android:statusBarColor">@color/teal</item>
+    </style>
+
+    <style name="Theme.FairSharefrontend" parent="Base.Theme.FairSharefrontend" />
+
+    <!-- FirebaseUI Theme -->
+    <style name="Theme.FairSharefrontend.Auth" parent="FirebaseUI">
+        <item name="colorPrimary">@color/teal</item>
+        <item name="colorPrimaryDark">@color/off_black</item>
+        <item name="colorAccent">@color/orange</item>
+        <item name="android:windowBackground">@color/off_white</item>
+        <item name="fontFamily">@font/roboto_regular</item>
+    </style>
+
+    <!-- Bottom Nav Indicator Style -->
+    <style name="App.Custom.Indicator" parent="Widget.Material3.BottomNavigationView.ActiveIndicator">
+        <item name="android:color">@color/teal</item>
+    </style>
+
+</resources>

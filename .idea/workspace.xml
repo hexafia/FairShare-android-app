@@ -59,93 +59,8 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="fd3626dd-a673-4349-9156-78d5dffa8147" name="Changes" comment="Fix Profile tab and refine">
-      <change afterPath="$PROJECT_DIR$/.gitignore" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.idea/.gitignore" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.idea/.name" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.idea/AndroidProjectSystem.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.idea/compiler.xml" afterDir="false" />
+      <changelist_data name="althea-aeryn-delacruz" email="delacruz.althea.aeryn@gmail.com" automatic="false" />
       <change afterPath="$PROJECT_DIR$/.idea/deploymentTargetSelector.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.idea/deviceManager.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.idea/gradle.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.idea/migrations.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.idea/misc.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.idea/runConfigurations.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.idea/vcs.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/FairShare-android-app-Ledger/.gitignore" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/FairShare-android-app-Ledger/.idea/.gitignore" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/FairShare-android-app-Ledger/.idea/AndroidProjectSystem.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/FairShare-android-app-Ledger/.idea/compiler.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/FairShare-android-app-Ledger/.idea/deploymentTargetSelector.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/FairShare-android-app-Ledger/.idea/deviceManager.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/FairShare-android-app-Ledger/.idea/gradle.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/FairShare-android-app-Ledger/.idea/migrations.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/FairShare-android-app-Ledger/.idea/misc.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/FairShare-android-app-Ledger/.idea/runConfigurations.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/FairShare-android-app-Ledger/.idea/vcs.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/FairShare-android-app-Ledger/app/.gitignore" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/FairShare-android-app-Ledger/app/build.gradle.kts" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/FairShare-android-app-Ledger/app/proguard-rules.pro" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/FairShare-android-app-Ledger/app/src/androidTest/java/com/example/loginsignup/ExampleInstrumentedTest.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/FairShare-android-app-Ledger/app/src/main/AndroidManifest.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/FairShare-android-app-Ledger/app/src/main/java/com/example/loginsignup/AddExpenseActivity.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/FairShare-android-app-Ledger/app/src/main/java/com/example/loginsignup/Expense.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/FairShare-android-app-Ledger/app/src/main/java/com/example/loginsignup/ExpenseAdapter.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/FairShare-android-app-Ledger/app/src/main/java/com/example/loginsignup/LoginActivity.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/FairShare-android-app-Ledger/app/src/main/java/com/example/loginsignup/MainActivity.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/FairShare-android-app-Ledger/app/src/main/java/com/example/loginsignup/NotificationActivity.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/FairShare-android-app-Ledger/app/src/main/java/com/example/loginsignup/OcrScannerActivity.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/FairShare-android-app-Ledger/app/src/main/java/com/example/loginsignup/SettingsActivity.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/FairShare-android-app-Ledger/app/src/main/java/com/example/loginsignup/SignupActivity.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/FairShare-android-app-Ledger/app/src/main/res/drawable/ic_add.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/FairShare-android-app-Ledger/app/src/main/res/drawable/ic_arrow_back.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/FairShare-android-app-Ledger/app/src/main/res/drawable/ic_email.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/FairShare-android-app-Ledger/app/src/main/res/drawable/ic_history.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/FairShare-android-app-Ledger/app/src/main/res/drawable/ic_launcher_background.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/FairShare-android-app-Ledger/app/src/main/res/drawable/ic_launcher_foreground.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/FairShare-android-app-Ledger/app/src/main/res/drawable/ic_lock.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/FairShare-android-app-Ledger/app/src/main/res/drawable/ic_more_horiz.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/FairShare-android-app-Ledger/app/src/main/res/drawable/ic_notifications.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/FairShare-android-app-Ledger/app/src/main/res/drawable/ic_person.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/FairShare-android-app-Ledger/app/src/main/res/drawable/ic_scan.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/FairShare-android-app-Ledger/app/src/main/res/drawable/ic_settings.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/FairShare-android-app-Ledger/app/src/main/res/drawable/rounded_container.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/FairShare-android-app-Ledger/app/src/main/res/layout/activity_add_expense.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/FairShare-android-app-Ledger/app/src/main/res/layout/activity_login.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/FairShare-android-app-Ledger/app/src/main/res/layout/activity_main.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/FairShare-android-app-Ledger/app/src/main/res/layout/activity_notification.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/FairShare-android-app-Ledger/app/src/main/res/layout/activity_ocr_scanner.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/FairShare-android-app-Ledger/app/src/main/res/layout/activity_settings.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/FairShare-android-app-Ledger/app/src/main/res/layout/activity_signup.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/FairShare-android-app-Ledger/app/src/main/res/layout/item_ledger.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/FairShare-android-app-Ledger/app/src/main/res/layout/item_notification.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/FairShare-android-app-Ledger/app/src/main/res/mipmap-anydpi/ic_launcher.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/FairShare-android-app-Ledger/app/src/main/res/mipmap-anydpi/ic_launcher_round.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/FairShare-android-app-Ledger/app/src/main/res/mipmap-hdpi/ic_launcher.webp" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/FairShare-android-app-Ledger/app/src/main/res/mipmap-hdpi/ic_launcher_round.webp" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/FairShare-android-app-Ledger/app/src/main/res/mipmap-mdpi/ic_launcher.webp" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/FairShare-android-app-Ledger/app/src/main/res/mipmap-mdpi/ic_launcher_round.webp" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/FairShare-android-app-Ledger/app/src/main/res/mipmap-xhdpi/ic_launcher.webp" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/FairShare-android-app-Ledger/app/src/main/res/mipmap-xhdpi/ic_launcher_round.webp" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/FairShare-android-app-Ledger/app/src/main/res/mipmap-xxhdpi/ic_launcher.webp" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/FairShare-android-app-Ledger/app/src/main/res/mipmap-xxhdpi/ic_launcher_round.webp" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/FairShare-android-app-Ledger/app/src/main/res/mipmap-xxxhdpi/ic_launcher.webp" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/FairShare-android-app-Ledger/app/src/main/res/mipmap-xxxhdpi/ic_launcher_round.webp" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/FairShare-android-app-Ledger/app/src/main/res/values-night/themes.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/FairShare-android-app-Ledger/app/src/main/res/values/colors.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/FairShare-android-app-Ledger/app/src/main/res/values/strings.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/FairShare-android-app-Ledger/app/src/main/res/values/themes.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/FairShare-android-app-Ledger/app/src/main/res/xml/backup_rules.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/FairShare-android-app-Ledger/app/src/main/res/xml/data_extraction_rules.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/FairShare-android-app-Ledger/app/src/test/java/com/example/loginsignup/ExampleUnitTest.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/FairShare-android-app-Ledger/build.gradle.kts" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/FairShare-android-app-Ledger/gradle.properties" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/FairShare-android-app-Ledger/gradle/gradle-daemon-jvm.properties" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/FairShare-android-app-Ledger/gradle/libs.versions.toml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/FairShare-android-app-Ledger/gradle/wrapper/gradle-wrapper.jar" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/FairShare-android-app-Ledger/gradle/wrapper/gradle-wrapper.properties" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/FairShare-android-app-Ledger/gradlew" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/FairShare-android-app-Ledger/gradlew.bat" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/FairShare-android-app-Ledger/settings.gradle.kts" afterDir="false" />
       <change afterPath="$PROJECT_DIR$/app/.gitignore" afterDir="false" />
       <change afterPath="$PROJECT_DIR$/app/build.gradle.kts" afterDir="false" />
       <change afterPath="$PROJECT_DIR$/app/google-services.json" afterDir="false" />
@@ -208,14 +123,7 @@
       <change afterPath="$PROJECT_DIR$/app/src/main/res/xml/backup_rules.xml" afterDir="false" />
       <change afterPath="$PROJECT_DIR$/app/src/main/res/xml/data_extraction_rules.xml" afterDir="false" />
       <change afterPath="$PROJECT_DIR$/app/src/test/java/com/example/fairshare_frontend/ExampleUnitTest.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/build.gradle.kts" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/gradle.properties" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/gradle/libs.versions.toml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/gradle/wrapper/gradle-wrapper.jar" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/gradle/wrapper/gradle-wrapper.properties" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/gradlew" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/gradlew.bat" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/settings.gradle.kts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -225,7 +133,7 @@
   <component name="ClangdSettings">
     <option name="formatViaClangd" value="false" />
   </component>
-  <component name="ExecutionTargetManager" SELECTED_TARGET="device_and_snapshot_combo_box_target[DeviceId(pluginId=LocalEmulator, isTemplate=false, identifier=path=C:\Users\gerry\.android\avd\Medium_Phone.avd)]" />
+  <component name="ExecutionTargetManager" SELECTED_TARGET="device_and_snapshot_combo_box_target[]" />
   <component name="ExternalProjectsData">
     <projectState path="$PROJECT_DIR$">
       <ProjectState />
@@ -281,18 +189,18 @@
     </option>
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
   </component>
-  <component name="GitHubPullRequestSearchHistory"><![CDATA[{
-  "lastFilter": {
-    "state": "OPEN",
-    "assignee": "althea-aeryn-delacruz"
+  <component name="GitHubPullRequestSearchHistory">{
+  &quot;lastFilter&quot;: {
+    &quot;state&quot;: &quot;OPEN&quot;,
+    &quot;assignee&quot;: &quot;althea-aeryn-delacruz&quot;
   }
-}]]></component>
-  <component name="GithubPullRequestsUISettings"><![CDATA[{
-  "selectedUrlAndAccountId": {
-    "url": "https://github.com/hexafia/FairShare-android-app.git",
-    "accountId": "70dd90bf-ff89-4e64-9067-d77673130e45"
+}</component>
+  <component name="GithubPullRequestsUISettings">{
+  &quot;selectedUrlAndAccountId&quot;: {
+    &quot;url&quot;: &quot;https://github.com/hexafia/FairShare-android-app.git&quot;,
+    &quot;accountId&quot;: &quot;70dd90bf-ff89-4e64-9067-d77673130e45&quot;
   }
-}]]></component>
+}</component>
   <component name="GradleScriptDefinitionsStorage" workingDir="$PROJECT_DIR$" gradleHome="C:\Users\gerry\.gradle\wrapper\dists\gradle-8.13-bin\5xuhj0ry160q40clulazy9h7d\gradle-8.13" javaHome="C:\Program Files\Android\Android Studio1\jbr" gradleVersion="8.13" />
   <component name="ProjectColorInfo">{
   &quot;associatedIndex&quot;: 8
@@ -313,6 +221,7 @@
     "RunOnceActivity.TerminalTabsStorage.copyFrom.TerminalArrangementManager.252": "true",
     "RunOnceActivity.cidr.known.project.marker": "true",
     "RunOnceActivity.readMode.enableVisualFormatting": "true",
+    "SHARE_PROJECT_CONFIGURATION_FILES": "true",
     "cf.first.check.clang-format": "false",
     "cidr.known.project.marker": "true",
     "com.google.services.firebase.aqiPopupShown": "true",
@@ -447,7 +356,15 @@
       <option name="project" value="LOCAL" />
       <updated>1774894326766</updated>
     </task>
-    <option name="localTasksCounter" value="5" />
+    <task id="LOCAL-00005" summary="Fix Profile tab and refine">
+      <option name="closed" value="true" />
+      <created>1774894804723</created>
+      <option name="number" value="00005" />
+      <option name="presentableId" value="LOCAL-00005" />
+      <option name="project" value="LOCAL" />
+      <updated>1774894804723</updated>
+    </task>
+    <option name="localTasksCounter" value="6" />
     <servers />
   </component>
   <component name="Vcs.Log.Tabs.Properties">

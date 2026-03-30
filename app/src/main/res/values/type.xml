@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <style name="TextAppearance.MyApp.Heading1" parent="TextAppearance.MaterialComponents.Headline4">
+        <item name="android:fontFamily">@font/montserrat_bold</item>
+        <item name="android:textSize">24sp</item>
+        <item name="android:textStyle">bold</item>
+        <item name="android:textColor">@color/off_black</item>
+    </style>
+
+    <style name="TextAppearance.MyApp.Heading2" parent="TextAppearance.MaterialComponents.Headline4">
+        <item name="android:fontFamily">@font/montserrat_bold</item>
+        <item name="android:textSize">20sp</item>
+        <item name="android:textStyle">bold</item>
+        <item name="android:textColor">@color/off_black</item>
+    </style>
+
+    <style name="TextAppearance.MyApp.Heading3" parent="TextAppearance.MaterialComponents.Headline4">
+        <item name="android:fontFamily">@font/montserrat_bold</item>
+        <item name="android:textSize">18sp</item>
+        <item name="android:textStyle">bold</item>
+        <item name="android:textColor">@color/off_black</item>
+    </style>
+
+    <style name="TextAppearance.MyApp.BodyLarge" parent="TextAppearance.MaterialComponents.Body1">
+        <item name="android:fontFamily">@font/roboto_regular</item>
+        <item name="android:textSize">18sp</item>
+    </style>
+
+    <style name="TextAppearance.MyApp.BodyNormal" parent="TextAppearance.MaterialComponents.Body1">
+        <item name="android:fontFamily">@font/roboto_regular</item>
+        <item name="android:textSize">14sp</item>
+    </style>
+
+    <style name="TextAppearance.MyApp.BodySmall" parent="TextAppearance.MaterialComponents.Body1">
+        <item name="android:fontFamily">@font/roboto_regular</item>
+        <item name="android:textSize">12sp</item>
+    </style>
+
+    <style name="TextAppearance.MyApp.BodySmaller" parent="TextAppearance.MaterialComponents.Body1">
+        <item name="android:fontFamily">@font/roboto_regular</item>
+        <item name="android:textSize">10sp</item>
+    </style>
+</resources>

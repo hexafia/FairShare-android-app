@@ -1,0 +1,47 @@
+{
+  "project_info": {
+    "project_number": "329855430141",
+    "project_id": "fairshare-frontend",
+    "storage_bucket": "fairshare-frontend.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:329855430141:android:52917e7fc7b7c49388fd94",
+        "android_client_info": {
+          "package_name": "com.example.fairshare_frontend"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "329855430141-2hhscspfaua11kijrqj0o7jv2u0i0n5t.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.fairshare_frontend",
+            "certificate_hash": "7d79293fc276f83c242f1da0c58dad7855e2b45e"
+          }
+        },
+        {
+          "client_id": "329855430141-93pm0hqgi81d8t0jno7ii81tefc1peao.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBUHfstzwPOP8aTjs99CC8PLks98kBbkxo"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "329855430141-93pm0hqgi81d8t0jno7ii81tefc1peao.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
