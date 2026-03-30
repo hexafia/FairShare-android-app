@@ -3,25 +3,26 @@
     <color name="white">#FFFFFFFF</color>
     <color name="black">#FF000000</color>
 
-    <!-- Primary palette -->
-    <color name="primary">#6C63FF</color>
-    <color name="primary_dark">#5A52D5</color>
-    <color name="primary_light">#8F88FF</color>
-    <color name="accent">#FF6584</color>
+    <!-- Primary palette (Teal from design) -->
+    <color name="primary">#2CB4A5</color>
+    <color name="primary_dark">#239A8D</color>
+    <color name="primary_light">#5AD4C6</color>
+    <color name="accent">#FF9F1C</color>
 
-    <!-- Background -->
-    <color name="bg_dark">#1A1A2E</color>
-    <color name="bg_card">#16213E</color>
-    <color name="bg_surface">#0F3460</color>
-    <color name="bg_input">#223355</color>
+    <!-- Background (Light) -->
+    <color name="bg_dark">#F2F2F2</color>
+    <color name="bg_card">#FFFFFF</color>
+    <color name="bg_surface">#FFFFFF</color>
+    <color name="bg_input">#F0F0F0</color>
 
-    <!-- Text -->
-    <color name="text_primary">#EAEAEA</color>
-    <color name="text_secondary">#A0A0B0</color>
+    <!-- Text (Light) -->
+    <color name="text_primary">#1A1A2E</color>
+    <color name="text_secondary">#777788</color>
+    <color name="text_on_primary">#FFFFFF</color>
 
     <!-- Transaction colors -->
-    <color name="income_green">#00C897</color>
-    <color name="expense_red">#FF6B6B</color>
+    <color name="income_green">#2CB4A5</color>
+    <color name="expense_red">#EE5B5B</color>
 
     <!-- Category indicators -->
     <color name="cat_food">#FF9F43</color>
@@ -29,9 +30,15 @@
     <color name="cat_shopping">#FF6B81</color>
     <color name="cat_bills">#FECA57</color>
     <color name="cat_salary">#1DD1A1</color>
-    <color name="cat_other">#C8D6E5</color>
+    <color name="cat_other">#B0BEC5</color>
 
     <!-- FAB -->
-    <color name="fab_bg">#6C63FF</color>
+    <color name="fab_bg">#2CB4A5</color>
     <color name="fab_icon">#FFFFFF</color>
+
+    <!-- Profile page specific -->
+    <color name="profile_header_bg">#2CB4A5</color>
+    <color name="avatar_bg">#D6EBE8</color>
+    <color name="avatar_badge_bg">#FF9F1C</color>
+    <color name="stat_card_border">#2CB4A5</color>
 </resources>

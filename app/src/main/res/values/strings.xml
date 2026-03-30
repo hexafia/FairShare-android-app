@@ -17,6 +17,35 @@
     <string name="delete_confirm_msg">This action cannot be undone.</string>
     <string name="delete">Delete</string>
 
+    <!-- Profile Page -->
+    <string name="profile_title">Profile</string>
+    <string name="profile_subtitle">Manage personal details</string>
+    <string name="edit_profile">Edit Profile</string>
+    <string name="label_name">Name</string>
+    <string name="label_email">Email</string>
+    <string name="label_phone">Phone</string>
+    <string name="label_location">Location</string>
+    <string name="default_user_name">User Name</string>
+    <string name="default_user_email">user@email.com</string>
+    <string name="default_user_phone">+63 912 345 6789</string>
+    <string name="default_user_location">Manila, Philippines</string>
+    <string name="total_income_label">Total Income</string>
+    <string name="total_expenses_label">Total Expenses</string>
+    <string name="active_groups_label">Active Groups</string>
+    <string name="settled_ious_label">Settled IOUs</string>
+
+    <!-- Settings -->
+    <string name="settings_title">Settings</string>
+    <string name="dark_mode">Dark Mode</string>
+    <string name="dark_mode_summary">Switch between light and dark theme</string>
+
+    <!-- Bottom Nav -->
+    <string name="nav_personal">Personal</string>
+    <string name="nav_group">Group</string>
+    <string name="nav_home">Home</string>
+    <string name="nav_notifs">Notifs</string>
+    <string name="nav_profile">Profile</string>
+
     <!-- Categories -->
     <string-array name="categories">
         <item>Food</item>
