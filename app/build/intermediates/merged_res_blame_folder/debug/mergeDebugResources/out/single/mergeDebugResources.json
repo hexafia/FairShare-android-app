@@ -1,0 +1,214 @@
+[
+    {
+        "merged": "C:\\Users\\gerry\\.gradle\\daemon\\8.13\\com.example.fairshare_frontend.app-debug-53:\\mipmap-mdpi_ic_launcher.webp.flat",
+        "source": "C:\\Users\\gerry\\.gradle\\daemon\\8.13\\com.example.fairshare_frontend.app-main-55:\\mipmap-mdpi\\ic_launcher.webp"
+    },
+    {
+        "merged": "C:\\Users\\gerry\\.gradle\\daemon\\8.13\\com.example.fairshare_frontend.app-debug-53:\\drawable_ic_qcr.xml.flat",
+        "source": "C:\\Users\\gerry\\.gradle\\daemon\\8.13\\com.example.fairshare_frontend.app-main-55:\\drawable\\ic_qcr.xml"
+    },
+    {
+        "merged": "C:\\Users\\gerry\\.gradle\\daemon\\8.13\\com.example.fairshare_frontend.app-debug-53:\\font_montserrat_thin.ttf.flat",
+        "source": "C:\\Users\\gerry\\.gradle\\daemon\\8.13\\com.example.fairshare_frontend.app-main-55:\\font\\montserrat_thin.ttf"
+    },
+    {
+        "merged": "C:\\Users\\gerry\\.gradle\\daemon\\8.13\\com.example.fairshare_frontend.app-debug-53:\\xml_backup_rules.xml.flat",
+        "source": "C:\\Users\\gerry\\.gradle\\daemon\\8.13\\com.example.fairshare_frontend.app-main-55:\\xml\\backup_rules.xml"
+    },
+    {
+        "merged": "C:\\Users\\gerry\\.gradle\\daemon\\8.13\\com.example.fairshare_frontend.app-debug-53:\\font_roboto_regular.ttf.flat",
+        "source": "C:\\Users\\gerry\\.gradle\\daemon\\8.13\\com.example.fairshare_frontend.app-main-55:\\font\\roboto_regular.ttf"
+    },
+    {
+        "merged": "C:\\Users\\gerry\\.gradle\\daemon\\8.13\\com.example.fairshare_frontend.app-debug-53:\\xml_data_extraction_rules.xml.flat",
+        "source": "C:\\Users\\gerry\\.gradle\\daemon\\8.13\\com.example.fairshare_frontend.app-main-55:\\xml\\data_extraction_rules.xml"
+    },
+    {
+        "merged": "C:\\Users\\gerry\\.gradle\\daemon\\8.13\\com.example.fairshare_frontend.app-debug-53:\\layout_dashboard.xml.flat",
+        "source": "C:\\Users\\gerry\\.gradle\\daemon\\8.13\\com.example.fairshare_frontend.app-main-55:\\layout\\dashboard.xml"
+    },
+    {
+        "merged": "C:\\Users\\gerry\\.gradle\\daemon\\8.13\\com.example.fairshare_frontend.app-debug-53:\\drawable_ic_logout.xml.flat",
+        "source": "C:\\Users\\gerry\\.gradle\\daemon\\8.13\\com.example.fairshare_frontend.app-main-55:\\drawable\\ic_logout.xml"
+    },
+    {
+        "merged": "C:\\Users\\gerry\\.gradle\\daemon\\8.13\\com.example.fairshare_frontend.app-debug-53:\\drawable_ic_settings.xml.flat",
+        "source": "C:\\Users\\gerry\\.gradle\\daemon\\8.13\\com.example.fairshare_frontend.app-main-55:\\drawable\\ic_settings.xml"
+    },
+    {
+        "merged": "C:\\Users\\gerry\\.gradle\\daemon\\8.13\\com.example.fairshare_frontend.app-debug-53:\\layout_layout_bottom_navigation.xml.flat",
+        "source": "C:\\Users\\gerry\\.gradle\\daemon\\8.13\\com.example.fairshare_frontend.app-main-55:\\layout\\layout_bottom_navigation.xml"
+    },
+    {
+        "merged": "C:\\Users\\gerry\\.gradle\\daemon\\8.13\\com.example.fairshare_frontend.app-debug-53:\\drawable_ic_lock.xml.flat",
+        "source": "C:\\Users\\gerry\\.gradle\\daemon\\8.13\\com.example.fairshare_frontend.app-main-55:\\drawable\\ic_lock.xml"
+    },
+    {
+        "merged": "com.example.fairshare_frontend.app-debug-53:/layout_personal_expenses.xml.flat",
+        "source": "com.example.fairshare_frontend.app-main-55:/layout/personal_expenses.xml"
+    },
+    {
+        "merged": "C:\\Users\\gerry\\.gradle\\daemon\\8.13\\com.example.fairshare_frontend.app-debug-53:\\mipmap-xxxhdpi_ic_launcher_round.webp.flat",
+        "source": "C:\\Users\\gerry\\.gradle\\daemon\\8.13\\com.example.fairshare_frontend.app-main-55:\\mipmap-xxxhdpi\\ic_launcher_round.webp"
+    },
+    {
+        "merged": "C:\\Users\\gerry\\.gradle\\daemon\\8.13\\com.example.fairshare_frontend.app-debug-53:\\layout_item_notification.xml.flat",
+        "source": "C:\\Users\\gerry\\.gradle\\daemon\\8.13\\com.example.fairshare_frontend.app-main-55:\\layout\\item_notification.xml"
+    },
+    {
+        "merged": "C:\\Users\\gerry\\.gradle\\daemon\\8.13\\com.example.fairshare_frontend.app-debug-53:\\drawable_ic_notifications.xml.flat",
+        "source": "C:\\Users\\gerry\\.gradle\\daemon\\8.13\\com.example.fairshare_frontend.app-main-55:\\drawable\\ic_notifications.xml"
+    },
+    {
+        "merged": "C:\\Users\\gerry\\.gradle\\daemon\\8.13\\com.example.fairshare_frontend.app-debug-53:\\mipmap-xhdpi_ic_launcher_round.webp.flat",
+        "source": "C:\\Users\\gerry\\.gradle\\daemon\\8.13\\com.example.fairshare_frontend.app-main-55:\\mipmap-xhdpi\\ic_launcher_round.webp"
+    },
+    {
+        "merged": "C:\\Users\\gerry\\.gradle\\daemon\\8.13\\com.example.fairshare_frontend.app-debug-53:\\layout_profile.xml.flat",
+        "source": "C:\\Users\\gerry\\.gradle\\daemon\\8.13\\com.example.fairshare_frontend.app-main-55:\\layout\\profile.xml"
+    },
+    {
+        "merged": "C:\\Users\\gerry\\.gradle\\daemon\\8.13\\com.example.fairshare_frontend.app-debug-53:\\drawable_bg_dashboard_content.xml.flat",
+        "source": "C:\\Users\\gerry\\.gradle\\daemon\\8.13\\com.example.fairshare_frontend.app-main-55:\\drawable\\bg_dashboard_content.xml"
+    },
+    {
+        "merged": "C:\\Users\\gerry\\.gradle\\daemon\\8.13\\com.example.fairshare_frontend.app-debug-53:\\mipmap-hdpi_ic_launcher_round.webp.flat",
+        "source": "C:\\Users\\gerry\\.gradle\\daemon\\8.13\\com.example.fairshare_frontend.app-main-55:\\mipmap-hdpi\\ic_launcher_round.webp"
+    },
+    {
+        "merged": "C:\\Users\\gerry\\.gradle\\daemon\\8.13\\com.example.fairshare_frontend.app-debug-53:\\drawable_ic_home.xml.flat",
+        "source": "C:\\Users\\gerry\\.gradle\\daemon\\8.13\\com.example.fairshare_frontend.app-main-55:\\drawable\\ic_home.xml"
+    },
+    {
+        "merged": "C:\\Users\\gerry\\.gradle\\daemon\\8.13\\com.example.fairshare_frontend.app-debug-53:\\menu_bottom_nav_menu.xml.flat",
+        "source": "C:\\Users\\gerry\\.gradle\\daemon\\8.13\\com.example.fairshare_frontend.app-main-55:\\menu\\bottom_nav_menu.xml"
+    },
+    {
+        "merged": "C:\\Users\\gerry\\.gradle\\daemon\\8.13\\com.example.fairshare_frontend.app-debug-53:\\layout_item_group_dashboard.xml.flat",
+        "source": "C:\\Users\\gerry\\.gradle\\daemon\\8.13\\com.example.fairshare_frontend.app-main-55:\\layout\\item_group_dashboard.xml"
+    },
+    {
+        "merged": "C:\\Users\\gerry\\.gradle\\daemon\\8.13\\com.example.fairshare_frontend.app-debug-53:\\mipmap-anydpi-v26_ic_launcher.xml.flat",
+        "source": "C:\\Users\\gerry\\.gradle\\daemon\\8.13\\com.example.fairshare_frontend.app-main-55:\\mipmap-anydpi-v26\\ic_launcher.xml"
+    },
+    {
+        "merged": "C:\\Users\\gerry\\.gradle\\daemon\\8.13\\com.example.fairshare_frontend.app-debug-53:\\layout_group_mode_finance_tracker.xml.flat",
+        "source": "C:\\Users\\gerry\\.gradle\\daemon\\8.13\\com.example.fairshare_frontend.app-main-55:\\layout\\group_mode_finance_tracker.xml"
+    },
+    {
+        "merged": "C:\\Users\\gerry\\.gradle\\daemon\\8.13\\com.example.fairshare_frontend.app-debug-53:\\mipmap-anydpi-v26_ic_launcher_round.xml.flat",
+        "source": "C:\\Users\\gerry\\.gradle\\daemon\\8.13\\com.example.fairshare_frontend.app-main-55:\\mipmap-anydpi-v26\\ic_launcher_round.xml"
+    },
+    {
+        "merged": "com.example.fairshare_frontend.app-debug-53:/layout_profile.xml.flat",
+        "source": "com.example.fairshare_frontend.app-main-55:/layout/profile.xml"
+    },
+    {
+        "merged": "C:\\Users\\gerry\\.gradle\\daemon\\8.13\\com.example.fairshare_frontend.app-debug-53:\\mipmap-hdpi_ic_launcher.webp.flat",
+        "source": "C:\\Users\\gerry\\.gradle\\daemon\\8.13\\com.example.fairshare_frontend.app-main-55:\\mipmap-hdpi\\ic_launcher.webp"
+    },
+    {
+        "merged": "C:\\Users\\gerry\\.gradle\\daemon\\8.13\\com.example.fairshare_frontend.app-debug-53:\\drawable_ic_email.xml.flat",
+        "source": "C:\\Users\\gerry\\.gradle\\daemon\\8.13\\com.example.fairshare_frontend.app-main-55:\\drawable\\ic_email.xml"
+    },
+    {
+        "merged": "C:\\Users\\gerry\\.gradle\\daemon\\8.13\\com.example.fairshare_frontend.app-debug-53:\\drawable_ic_profile.xml.flat",
+        "source": "C:\\Users\\gerry\\.gradle\\daemon\\8.13\\com.example.fairshare_frontend.app-main-55:\\drawable\\ic_profile.xml"
+    },
+    {
+        "merged": "C:\\Users\\gerry\\.gradle\\daemon\\8.13\\com.example.fairshare_frontend.app-debug-53:\\drawable_ic_back.xml.flat",
+        "source": "C:\\Users\\gerry\\.gradle\\daemon\\8.13\\com.example.fairshare_frontend.app-main-55:\\drawable\\ic_back.xml"
+    },
+    {
+        "merged": "C:\\Users\\gerry\\.gradle\\daemon\\8.13\\com.example.fairshare_frontend.app-debug-53:\\layout_settings.xml.flat",
+        "source": "C:\\Users\\gerry\\.gradle\\daemon\\8.13\\com.example.fairshare_frontend.app-main-55:\\layout\\settings.xml"
+    },
+    {
+        "merged": "C:\\Users\\gerry\\.gradle\\daemon\\8.13\\com.example.fairshare_frontend.app-debug-53:\\drawable_ic_personal.xml.flat",
+        "source": "C:\\Users\\gerry\\.gradle\\daemon\\8.13\\com.example.fairshare_frontend.app-main-55:\\drawable\\ic_personal.xml"
+    },
+    {
+        "merged": "C:\\Users\\gerry\\.gradle\\daemon\\8.13\\com.example.fairshare_frontend.app-debug-53:\\drawable_ic_location.xml.flat",
+        "source": "C:\\Users\\gerry\\.gradle\\daemon\\8.13\\com.example.fairshare_frontend.app-main-55:\\drawable\\ic_location.xml"
+    },
+    {
+        "merged": "C:\\Users\\gerry\\.gradle\\daemon\\8.13\\com.example.fairshare_frontend.app-debug-53:\\drawable_ic_phone.xml.flat",
+        "source": "C:\\Users\\gerry\\.gradle\\daemon\\8.13\\com.example.fairshare_frontend.app-main-55:\\drawable\\ic_phone.xml"
+    },
+    {
+        "merged": "com.example.fairshare_frontend.app-debug-53:/layout_notifications.xml.flat",
+        "source": "com.example.fairshare_frontend.app-main-55:/layout/notifications.xml"
+    },
+    {
+        "merged": "C:\\Users\\gerry\\.gradle\\daemon\\8.13\\com.example.fairshare_frontend.app-debug-53:\\font_montserrat_bold.ttf.flat",
+        "source": "C:\\Users\\gerry\\.gradle\\daemon\\8.13\\com.example.fairshare_frontend.app-main-55:\\font\\montserrat_bold.ttf"
+    },
+    {
+        "merged": "C:\\Users\\gerry\\.gradle\\daemon\\8.13\\com.example.fairshare_frontend.app-debug-53:\\drawable_ic_launcher_background.xml.flat",
+        "source": "C:\\Users\\gerry\\.gradle\\daemon\\8.13\\com.example.fairshare_frontend.app-main-55:\\drawable\\ic_launcher_background.xml"
+    },
+    {
+        "merged": "C:\\Users\\gerry\\.gradle\\daemon\\8.13\\com.example.fairshare_frontend.app-debug-53:\\layout_layout_custom_auth.xml.flat",
+        "source": "C:\\Users\\gerry\\.gradle\\daemon\\8.13\\com.example.fairshare_frontend.app-main-55:\\layout\\layout_custom_auth.xml"
+    },
+    {
+        "merged": "C:\\Users\\gerry\\.gradle\\daemon\\8.13\\com.example.fairshare_frontend.app-debug-53:\\drawable_ic_scan.xml.flat",
+        "source": "C:\\Users\\gerry\\.gradle\\daemon\\8.13\\com.example.fairshare_frontend.app-main-55:\\drawable\\ic_scan.xml"
+    },
+    {
+        "merged": "C:\\Users\\gerry\\.gradle\\daemon\\8.13\\com.example.fairshare_frontend.app-debug-53:\\drawable_ic_launcher_foreground.xml.flat",
+        "source": "C:\\Users\\gerry\\.gradle\\daemon\\8.13\\com.example.fairshare_frontend.app-main-55:\\drawable\\ic_launcher_foreground.xml"
+    },
+    {
+        "merged": "C:\\Users\\gerry\\.gradle\\daemon\\8.13\\com.example.fairshare_frontend.app-debug-53:\\layout_item_personal_expense.xml.flat",
+        "source": "C:\\Users\\gerry\\.gradle\\daemon\\8.13\\com.example.fairshare_frontend.app-main-55:\\layout\\item_personal_expense.xml"
+    },
+    {
+        "merged": "C:\\Users\\gerry\\.gradle\\daemon\\8.13\\com.example.fairshare_frontend.app-debug-53:\\layout_notifications.xml.flat",
+        "source": "C:\\Users\\gerry\\.gradle\\daemon\\8.13\\com.example.fairshare_frontend.app-main-55:\\layout\\notifications.xml"
+    },
+    {
+        "merged": "C:\\Users\\gerry\\.gradle\\daemon\\8.13\\com.example.fairshare_frontend.app-debug-53:\\mipmap-xxhdpi_ic_launcher.webp.flat",
+        "source": "C:\\Users\\gerry\\.gradle\\daemon\\8.13\\com.example.fairshare_frontend.app-main-55:\\mipmap-xxhdpi\\ic_launcher.webp"
+    },
+    {
+        "merged": "C:\\Users\\gerry\\.gradle\\daemon\\8.13\\com.example.fairshare_frontend.app-debug-53:\\mipmap-xxhdpi_ic_launcher_round.webp.flat",
+        "source": "C:\\Users\\gerry\\.gradle\\daemon\\8.13\\com.example.fairshare_frontend.app-main-55:\\mipmap-xxhdpi\\ic_launcher_round.webp"
+    },
+    {
+        "merged": "C:\\Users\\gerry\\.gradle\\daemon\\8.13\\com.example.fairshare_frontend.app-debug-53:\\drawable_bg_group_icon.xml.flat",
+        "source": "C:\\Users\\gerry\\.gradle\\daemon\\8.13\\com.example.fairshare_frontend.app-main-55:\\drawable\\bg_group_icon.xml"
+    },
+    {
+        "merged": "C:\\Users\\gerry\\.gradle\\daemon\\8.13\\com.example.fairshare_frontend.app-debug-53:\\mipmap-xxxhdpi_ic_launcher.webp.flat",
+        "source": "C:\\Users\\gerry\\.gradle\\daemon\\8.13\\com.example.fairshare_frontend.app-main-55:\\mipmap-xxxhdpi\\ic_launcher.webp"
+    },
+    {
+        "merged": "C:\\Users\\gerry\\.gradle\\daemon\\8.13\\com.example.fairshare_frontend.app-debug-53:\\layout_personal_expenses.xml.flat",
+        "source": "C:\\Users\\gerry\\.gradle\\daemon\\8.13\\com.example.fairshare_frontend.app-main-55:\\layout\\personal_expenses.xml"
+    },
+    {
+        "merged": "C:\\Users\\gerry\\.gradle\\daemon\\8.13\\com.example.fairshare_frontend.app-debug-53:\\mipmap-mdpi_ic_launcher_round.webp.flat",
+        "source": "C:\\Users\\gerry\\.gradle\\daemon\\8.13\\com.example.fairshare_frontend.app-main-55:\\mipmap-mdpi\\ic_launcher_round.webp"
+    },
+    {
+        "merged": "C:\\Users\\gerry\\.gradle\\daemon\\8.13\\com.example.fairshare_frontend.app-debug-53:\\layout_activity_main.xml.flat",
+        "source": "C:\\Users\\gerry\\.gradle\\daemon\\8.13\\com.example.fairshare_frontend.app-main-55:\\layout\\activity_main.xml"
+    },
+    {
+        "merged": "C:\\Users\\gerry\\.gradle\\daemon\\8.13\\com.example.fairshare_frontend.app-debug-53:\\drawable_ic_edit.xml.flat",
+        "source": "C:\\Users\\gerry\\.gradle\\daemon\\8.13\\com.example.fairshare_frontend.app-main-55:\\drawable\\ic_edit.xml"
+    },
+    {
+        "merged": "C:\\Users\\gerry\\.gradle\\daemon\\8.13\\com.example.fairshare_frontend.app-debug-53:\\drawable_ic_chevron_right.xml.flat",
+        "source": "C:\\Users\\gerry\\.gradle\\daemon\\8.13\\com.example.fairshare_frontend.app-main-55:\\drawable\\ic_chevron_right.xml"
+    },
+    {
+        "merged": "C:\\Users\\gerry\\.gradle\\daemon\\8.13\\com.example.fairshare_frontend.app-debug-53:\\drawable_ic_group.xml.flat",
+        "source": "C:\\Users\\gerry\\.gradle\\daemon\\8.13\\com.example.fairshare_frontend.app-main-55:\\drawable\\ic_group.xml"
+    },
+    {
+        "merged": "C:\\Users\\gerry\\.gradle\\daemon\\8.13\\com.example.fairshare_frontend.app-debug-53:\\mipmap-xhdpi_ic_launcher.webp.flat",
+        "source": "C:\\Users\\gerry\\.gradle\\daemon\\8.13\\com.example.fairshare_frontend.app-main-55:\\mipmap-xhdpi\\ic_launcher.webp"
+    }
+]

@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="black">#FF000000</color>
+    <color name="gray">#6D6E78</color>
+    <color name="light_orange">#FFBF69</color>
+    <color name="light_teal">#CBF3F0</color>
+    <color name="off_black">#272B40</color>
+    <color name="off_white">#E8FFFD</color>
+    <color name="orange">#FF9F1C</color>
+    <color name="teal">#2EC4B6</color>
+    <color name="white">#FFFFFFFF</color>
+    <string name="app_name">FairShare-frontend</string>
+    <string name="default_web_client_id" translatable="false">329855430141-93pm0hqgi81d8t0jno7ii81tefc1peao.apps.googleusercontent.com</string>
+    <string name="gcm_defaultSenderId" translatable="false">329855430141</string>
+    <string name="google_api_key" translatable="false">AIzaSyBUHfstzwPOP8aTjs99CC8PLks98kBbkxo</string>
+    <string name="google_app_id" translatable="false">1:329855430141:android:52917e7fc7b7c49388fd94</string>
+    <string name="google_crash_reporting_api_key" translatable="false">AIzaSyBUHfstzwPOP8aTjs99CC8PLks98kBbkxo</string>
+    <string name="google_storage_bucket" translatable="false">fairshare-frontend.firebasestorage.app</string>
+    <string name="project_id" translatable="false">fairshare-frontend</string>
+    <style name="App.Custom.Indicator" parent="Widget.Material3.BottomNavigationView.ActiveIndicator">
+        <item name="android:color">@color/teal</item>
+    </style>
+    <style name="Base.Theme.FairSharefrontend" parent="Theme.Material3.DayNight.NoActionBar">
+        <item name="colorPrimary">@color/teal</item>
+        <item name="colorOnPrimary">@color/white</item>
+        <item name="colorSecondary">@color/orange</item>
+        <item name="android:windowBackground">@color/off_white</item>
+        <item name="android:statusBarColor">@color/teal</item>
+    </style>
+    <style name="TextAppearance.MyApp.BodyLarge" parent="TextAppearance.MaterialComponents.Body1">
+        <item name="android:fontFamily">@font/roboto_regular</item>
+        <item name="android:textSize">18sp</item>
+    </style>
+    <style name="TextAppearance.MyApp.BodyNormal" parent="TextAppearance.MaterialComponents.Body1">
+        <item name="android:fontFamily">@font/roboto_regular</item>
+        <item name="android:textSize">14sp</item>
+    </style>
+    <style name="TextAppearance.MyApp.BodySmall" parent="TextAppearance.MaterialComponents.Body1">
+        <item name="android:fontFamily">@font/roboto_regular</item>
+        <item name="android:textSize">12sp</item>
+    </style>
+    <style name="TextAppearance.MyApp.BodySmaller" parent="TextAppearance.MaterialComponents.Body1">
+        <item name="android:fontFamily">@font/roboto_regular</item>
+        <item name="android:textSize">10sp</item>
+    </style>
+    <style name="TextAppearance.MyApp.Heading1" parent="TextAppearance.MaterialComponents.Headline4">
+        <item name="android:fontFamily">@font/montserrat_bold</item>
+        <item name="android:textSize">24sp</item>
+        <item name="android:textStyle">bold</item>
+        <item name="android:textColor">@color/off_black</item>
+    </style>
+    <style name="TextAppearance.MyApp.Heading2" parent="TextAppearance.MaterialComponents.Headline4">
+        <item name="android:fontFamily">@font/montserrat_bold</item>
+        <item name="android:textSize">20sp</item>
+        <item name="android:textStyle">bold</item>
+        <item name="android:textColor">@color/off_black</item>
+    </style>
+    <style name="TextAppearance.MyApp.Heading3" parent="TextAppearance.MaterialComponents.Headline4">
+        <item name="android:fontFamily">@font/montserrat_bold</item>
+        <item name="android:textSize">18sp</item>
+        <item name="android:textStyle">bold</item>
+        <item name="android:textColor">@color/off_black</item>
+    </style>
+    <style name="Theme.FairSharefrontend" parent="Base.Theme.FairSharefrontend"/>
+    <style name="Theme.FairSharefrontend.Auth" parent="FirebaseUI">
+        <item name="colorPrimary">@color/teal</item>
+        <item name="colorPrimaryDark">@color/off_black</item>
+        <item name="colorAccent">@color/orange</item>
+        <item name="android:windowBackground">@color/off_white</item>
+        <item name="fontFamily">@font/roboto_regular</item>
+    </style>
+</resources>

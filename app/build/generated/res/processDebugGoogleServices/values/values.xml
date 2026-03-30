@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="default_web_client_id" translatable="false">329855430141-93pm0hqgi81d8t0jno7ii81tefc1peao.apps.googleusercontent.com</string>
+    <string name="gcm_defaultSenderId" translatable="false">329855430141</string>
+    <string name="google_api_key" translatable="false">AIzaSyBUHfstzwPOP8aTjs99CC8PLks98kBbkxo</string>
+    <string name="google_app_id" translatable="false">1:329855430141:android:52917e7fc7b7c49388fd94</string>
+    <string name="google_crash_reporting_api_key" translatable="false">AIzaSyBUHfstzwPOP8aTjs99CC8PLks98kBbkxo</string>
+    <string name="google_storage_bucket" translatable="false">fairshare-frontend.firebasestorage.app</string>
+    <string name="project_id" translatable="false">fairshare-frontend</string>
+</resources>
