@@ -17,6 +17,7 @@ public class Transaction {
     private double amount;
     private String category;
     private String type; // "expense" or "income"
+    private String uid;  // ID of the user who owns this transaction
 
     @ServerTimestamp
     private Date date;
@@ -30,6 +31,9 @@ public class Transaction {
         this.amount = amount;
         this.category = category;
         this.type = type;
+        // Provide a local timestamp so it instantly appears in the UI
+        // Firestore's @ServerTimestamp will overwrite this with the true server time upon sync.
+        this.date = new Date();
     }
 
     // --- Getters & Setters ---
@@ -72,6 +76,14 @@ public class Transaction {
 
     public void setType(String type) {
         this.type = type;
+    }
+
+    public String getUid() {
+        return uid;
+    }
+
+    public void setUid(String uid) {
+        this.uid = uid;
     }
 
     public Date getDate() {

@@ -1,3 +1,61 @@
+# Changes Log — April 02, 2026
+
+## Overview
+Implemented the **Shared Expense Lobby** for real-time group finance tracking, added an **Animated Splash Screen**, and integrated **Firebase Realtime Database (RTDB)** for low-latency collaboration.
+
+---
+
+## 1. Feature: Shared Expense Lobby (Real-Time)
+
+### Real-Time Synchronization (RTDB)
+- **`ui/groups/GroupLobbyActivity.java`** — [NEW] Core activity for managing group expenses and viewing debt settlements.
+- **`GroupRepository.java`** — [NEW] Handles RTDB operations for groups and group expenses.
+- **Node Structure**:
+    - `/groups/{groupId}`: Stores metadata (name, shareCode, members).
+    - `/group_expenses/{groupId}`: Stores chronological list of expenses.
+
+### Settlement Logic (Debt Simplification)
+- **`DebtSimplifier.java`** — [NEW] Implements the **Minimum Debt Path** algorithm.
+- **Mechanism**:
+    1. **Net Balance**: Calculates `Paid - Owed` for every member across all group expenses.
+    2. **Matching**: Greedily matches members with negative balances (debtors) to those with positive balances (creditors).
+    3. **Optimization**: Minimizes the number of actual transactions needed to settle the group ledger.
+
+---
+
+## 2. Feature: Animated Splash Screen
+
+- **`ui/splash/SplashActivity.java`** — [NEW] Initial entry point with a fade-in animation and automated transition to Login/Main.
+- **`res/layout/activity_splash.xml`** — [NEW] Layout with linear gradient background.
+- **`AndroidManifest.xml`** — [MODIFIED] Updated `SplashActivity` as the new `LAUNCHER` activity.
+
+---
+
+## 3. Firebase Infrastructure & Security
+
+- **`UserRepository.java`** — [NEW] Firestore-backed repository for user profile management.
+- **`FairShareApp.java`** — [MODIFIED] Global Firebase initialization and state management.
+- **`AndroidManifest.xml`** — [MODIFIED] Added `INTERNET` and `ACCESS_NETWORK_STATE` permissions.
+
+---
+
+## 4. UI Components & New Layouts
+
+| Component | Files | Description |
+|-----------|-------|-------------|
+| Adapters | `ui/groups/GroupAdapter.java`, `ui/groups/GroupExpenseAdapter.java`, `ui/groups/DebtAdapter.java` | Recycler view logic for groups, individual expenses, and debt settlements. |
+| Dialogs | `dialog_add_group_expense.xml`, `dialog_create_group.xml`, `dialog_join_group.xml` | Functional popups for group interactions. |
+| Models | `Group.java`, `GroupExpense.java`, `UserProfile.java` | Refactored models for standard serialization. |
+
+---
+
+## Build Status
+✅ **BUILD SUCCESSFUL**
+- All Firebase nodes (Firestore/RTDB) verified and operational.
+- Real-time updates tested for group expense additions.
+
+---
+
 # Changes Log — March 30, 2026
 
 ## Overview

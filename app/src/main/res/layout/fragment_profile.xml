@@ -102,13 +102,16 @@
                         android:layout_height="100dp"
                         android:layout_marginBottom="20dp">
 
+                        <!-- Fallback: initial letter -->
                         <FrameLayout
+                            android:id="@+id/flAvatarFallback"
                             android:layout_width="100dp"
                             android:layout_height="100dp"
                             android:background="@drawable/ic_launcher_background"
                             android:backgroundTint="@color/avatar_bg">
 
                             <TextView
+                                android:id="@+id/tvAvatarInitial"
                                 android:layout_width="match_parent"
                                 android:layout_height="match_parent"
                                 android:gravity="center"
@@ -118,6 +121,15 @@
                                 android:textStyle="bold" />
 
                         </FrameLayout>
+
+                        <!-- Google profile photo (hidden by default) -->
+                        <ImageView
+                            android:id="@+id/ivAvatar"
+                            android:layout_width="100dp"
+                            android:layout_height="100dp"
+                            android:scaleType="centerCrop"
+                            android:visibility="gone"
+                            android:contentDescription="Profile photo" />
 
                         <!-- Camera badge -->
                         <ImageView
@@ -132,24 +144,33 @@
 
                     </FrameLayout>
 
-                    <!-- Name -->
-                    <TextView
+                    <!-- Username#Tagline display -->
+                    <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:text="@string/label_name"
-                        android:textColor="@color/text_secondary"
-                        android:textSize="12sp"
-                        android:layout_marginBottom="2dp" />
+                        android:orientation="horizontal"
+                        android:gravity="center_vertical"
+                        android:layout_marginBottom="16dp">
 
-                    <TextView
-                        android:id="@+id/tvUserName"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:text="@string/default_user_name"
-                        android:textColor="@color/text_primary"
-                        android:textSize="16sp"
-                        android:textStyle="bold"
-                        android:layout_marginBottom="16dp" />
+                        <TextView
+                            android:id="@+id/tvDisplayName"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="User"
+                            android:textColor="@color/text_primary"
+                            android:textSize="20sp"
+                            android:textStyle="bold" />
+
+                        <TextView
+                            android:id="@+id/tvTagline"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="#0000"
+                            android:textColor="@color/text_secondary"
+                            android:textSize="16sp"
+                            android:layout_marginStart="2dp" />
+
+                    </LinearLayout>
 
                     <!-- Email -->
                     <LinearLayout

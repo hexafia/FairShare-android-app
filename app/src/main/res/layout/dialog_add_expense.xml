@@ -90,6 +90,13 @@
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:text="@string/type_expense"
+            android:textSize="13sp"
+            android:paddingStart="4dp"
+            android:paddingEnd="4dp"
+            android:insetTop="0dp"
+            android:insetBottom="0dp"
+            android:maxLines="1"
+            android:ellipsize="end"
             style="?attr/materialButtonOutlinedStyle" />
 
         <com.google.android.material.button.MaterialButton
@@ -98,6 +105,13 @@
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:text="@string/type_income"
+            android:textSize="13sp"
+            android:paddingStart="4dp"
+            android:paddingEnd="4dp"
+            android:insetTop="0dp"
+            android:insetBottom="0dp"
+            android:maxLines="1"
+            android:ellipsize="end"
             style="?attr/materialButtonOutlinedStyle" />
 
     </com.google.android.material.button.MaterialButtonToggleGroup>
@@ -114,6 +128,8 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="@string/cancel"
+            android:maxLines="1"
+            android:minWidth="80dp"
             style="?attr/materialButtonOutlinedStyle"
             android:layout_marginEnd="12dp" />
 
@@ -122,6 +138,10 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="@string/save"
+            android:maxLines="1"
+            android:minWidth="80dp"
+            android:paddingStart="16dp"
+            android:paddingEnd="16dp"
             app:backgroundTint="@color/primary" />
 
     </LinearLayout>

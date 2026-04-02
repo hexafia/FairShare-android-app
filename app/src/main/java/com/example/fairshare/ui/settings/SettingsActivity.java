@@ -6,8 +6,13 @@ import android.os.Bundle;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.app.AppCompatDelegate;
 
+import android.content.Intent;
 import com.example.fairshare.R;
+import com.example.fairshare.ui.login.LoginActivity;
+import com.google.android.gms.auth.api.signin.GoogleSignIn;
+import com.google.android.gms.auth.api.signin.GoogleSignInOptions;
 import com.google.android.material.switchmaterial.SwitchMaterial;
+import com.google.firebase.auth.FirebaseAuth;
 
 public class SettingsActivity extends AppCompatActivity {
 
@@ -39,6 +44,24 @@ public class SettingsActivity extends AppCompatActivity {
             } else {
                 AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO);
             }
+        });
+
+        // Logout action
+        findViewById(R.id.cvLogout).setOnClickListener(v -> {
+            // Sign out from Firebase
+            FirebaseAuth.getInstance().signOut();
+
+            // Sign out from Google Client
+            GoogleSignInOptions gso = new GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN).build();
+            GoogleSignIn.getClient(SettingsActivity.this, gso).signOut().addOnCompleteListener(task -> {
+                // Clear any legacy persistent flag
+                prefs.edit().putBoolean("isLoggedIn", false).apply();
+
+                Intent intent = new Intent(SettingsActivity.this, LoginActivity.class);
+                intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+                startActivity(intent);
+                finish();
+            });
         });
     }
 }

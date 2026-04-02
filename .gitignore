@@ -38,3 +38,4 @@ rules.ninja
 .DS_Store
 Thumbs.db
 .vscode/
+context_docs/

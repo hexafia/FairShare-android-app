@@ -5,6 +5,7 @@ import android.util.Log;
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
 
+import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.CollectionReference;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.ListenerRegistration;
@@ -39,7 +40,9 @@ public class ExpenseRepository {
      */
     public LiveData<List<Transaction>> getExpenses() {
         if (listenerRegistration == null) {
+            String uid = FirebaseAuth.getInstance().getCurrentUser().getUid();
             listenerRegistration = expensesRef
+                    .whereEqualTo("uid", uid)
                     .orderBy("date", Query.Direction.DESCENDING)
                     .addSnapshotListener((snapshots, error) -> {
                         if (error != null) {
@@ -64,6 +67,9 @@ public class ExpenseRepository {
      * Works offline thanks to persistent cache.
      */
     public void addExpense(Transaction transaction) {
+        if (FirebaseAuth.getInstance().getCurrentUser() != null) {
+            transaction.setUid(FirebaseAuth.getInstance().getCurrentUser().getUid());
+        }
         expensesRef.add(transaction)
                 .addOnSuccessListener(docRef -> Log.d(TAG, "Added with ID: " + docRef.getId()))
                 .addOnFailureListener(e -> Log.w(TAG, "Error adding document", e));

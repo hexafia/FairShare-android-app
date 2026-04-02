@@ -55,4 +55,26 @@
         <item>Salary</item>
         <item>Other</item>
     </string-array>
+
+    <!-- Groups -->
+    <string name="my_groups">My Groups</string>
+    <string name="no_groups_yet">No groups yet.\nTap + to create or join one!</string>
+    <string name="add_group">Add Group</string>
+    <string name="create_group">Create Group</string>
+    <string name="join_group">Join Group</string>
+    <string name="join_group_subtitle">Enter the 6-character code shared by a group member</string>
+    <string name="group_name_hint">Group Name (e.g. Boracay Trip)</string>
+    <string name="share_code_hint">Share Code</string>
+    <string name="create">Create</string>
+    <string name="join">Join</string>
+    <string name="group_total">Group Total</string>
+    <string name="members_label">Members</string>
+    <string name="my_balance">My Balance</string>
+    <string name="tab_ledger">Ledger</string>
+    <string name="tab_settle_up">Settle Up</string>
+    <string name="no_group_expenses">No expenses yet.\nTap + to add a shared expense!</string>
+    <string name="all_settled">All settled up! 🎉</string>
+    <string name="add_shared_expense">Add Shared Expense</string>
+    <string name="expense_title_hint">What was this expense for?</string>
+    <string name="split_equally_info">This will be split equally among all group members</string>
 </resources>

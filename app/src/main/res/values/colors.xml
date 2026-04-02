@@ -41,4 +41,10 @@
     <color name="avatar_bg">#D6EBE8</color>
     <color name="avatar_badge_bg">#FF9F1C</color>
     <color name="stat_card_border">#2CB4A5</color>
+
+    <!-- Splash screen gradient -->
+    <color name="splash_gradient_1">#fdb86b</color>
+    <color name="splash_gradient_2">#c7f0ec</color>
+    <color name="splash_gradient_3">#f8d7ad</color>
+    <color name="splash_gradient_4">#7bd4c9</color>
 </resources>
