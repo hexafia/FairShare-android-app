@@ -25,7 +25,7 @@ import androidx.core.view.WindowInsetsCompat;
 
 import com.example.fairshare.MainActivity;
 import com.example.fairshare.R;
-import com.example.fairshare.ui.login.LoginActivity;
+import com.example.fairshare.ui.login.WelcomeActivity;
 import com.google.firebase.auth.FirebaseAuth;
 
 public class SplashActivity extends AppCompatActivity {
@@ -71,7 +71,7 @@ public class SplashActivity extends AppCompatActivity {
                         if (FirebaseAuth.getInstance().getCurrentUser() != null) {
                             intent = new Intent(SplashActivity.this, MainActivity.class);
                         } else {
-                            intent = new Intent(SplashActivity.this, LoginActivity.class);
+                            intent = new Intent(SplashActivity.this, WelcomeActivity.class);
                         }
                         startActivity(intent);
                         overridePendingTransition(android.R.anim.fade_in, android.R.anim.fade_out);

@@ -1,163 +1,210 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:orientation="vertical"
-    android:background="@color/bg_dark"
+    android:background="@color/off_white"
     tools:context=".ui.settings.SettingsActivity">
 
-    <!-- Toolbar-style header -->
-    <LinearLayout
+    <!-- Teal Header -->
+    <View
+        android:id="@+id/headerBackground"
         android:layout_width="match_parent"
-        android:layout_height="56dp"
-        android:background="@color/primary"
-        android:gravity="center_vertical"
-        android:orientation="horizontal"
-        android:paddingStart="8dp"
-        android:paddingEnd="16dp">
+        android:layout_height="220dp"
+        android:background="@color/teal"
+        app:layout_constraintTop_toTopOf="parent" />
 
-        <ImageButton
-            android:id="@+id/btnBack"
-            android:layout_width="40dp"
-            android:layout_height="40dp"
-            android:background="?attr/selectableItemBackgroundBorderless"
-            android:contentDescription="Go back"
-            android:src="@android:drawable/ic_menu_revert"
-            app:tint="@color/white" />
+    <ImageView
+        android:id="@+id/btnBack"
+        android:layout_width="32dp"
+        android:layout_height="32dp"
+        android:layout_marginStart="24dp"
+        android:layout_marginTop="48dp"
+        android:background="@drawable/bg_group_icon"
+        android:padding="6dp"
+        android:src="@drawable/ic_back"
+        app:tint="@color/white"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
 
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="@string/settings_title"
-            android:textColor="@color/white"
-            android:textSize="20sp"
-            android:textStyle="bold"
-            android:layout_marginStart="12dp" />
+    <TextView
+        android:id="@+id/tvHeaderTitle"
+        style="@style/TextAppearance.MyApp.Heading1"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="12dp"
+        android:text="@string/settings_title"
+        android:textColor="@color/white"
+        app:layout_constraintBottom_toBottomOf="@id/btnBack"
+        app:layout_constraintStart_toEndOf="@id/btnBack"
+        app:layout_constraintTop_toTopOf="@id/btnBack" />
 
-    </LinearLayout>
+    <TextView
+        android:id="@+id/tvHeaderSubtitle"
+        style="@style/TextAppearance.MyApp.BodyNormal"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="24dp"
+        android:text="Manage preferences"
+        android:textColor="@color/white"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/tvHeaderTitle" />
 
-    <!-- Settings Content -->
+    <!-- Main Content Area with Rounded Corners -->
     <androidx.core.widget.NestedScrollView
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:padding="16dp">
+        android:layout_height="0dp"
+        android:layout_marginTop="24dp"
+        android:background="@drawable/bg_dashboard_content"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/tvHeaderSubtitle">
 
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="vertical">
+            android:orientation="vertical"
+            android:padding="24dp">
 
-            <!-- Appearance Section -->
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Appearance"
-                android:textColor="@color/primary"
-                android:textSize="14sp"
-                android:textStyle="bold"
-                android:layout_marginBottom="12dp"
-                android:layout_marginTop="8dp" />
-
-            <!-- Dark Mode Toggle -->
+            <!-- Appearance Card with Dark Mode Toggle -->
             <com.google.android.material.card.MaterialCardView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                app:cardCornerRadius="14dp"
-                app:cardElevation="2dp"
-                app:cardBackgroundColor="@color/bg_card"
-                android:layout_marginBottom="16dp">
-
-                <LinearLayout
+                app:cardCornerRadius="16dp"
+                app:cardElevation="0dp">
+                <RelativeLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:orientation="horizontal"
-                    android:gravity="center_vertical"
-                    android:padding="16dp">
-
+                    android:padding="20dp">
+                    <ImageView
+                        android:id="@+id/ivApp"
+                        android:layout_width="24dp"
+                        android:layout_height="24dp"
+                        android:src="@drawable/ic_home"
+                        app:tint="@color/teal" />
                     <LinearLayout
-                        android:layout_width="0dp"
+                        android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:layout_weight="1"
+                        android:layout_marginStart="12dp"
+                        android:layout_toEndOf="@id/ivApp"
                         android:orientation="vertical">
-
                         <TextView
+                            style="@style/TextAppearance.MyApp.BodyNormal"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:text="@string/dark_mode"
-                            android:textColor="@color/text_primary"
-                            android:textSize="16sp"
                             android:textStyle="bold" />
-
                         <TextView
+                            style="@style/TextAppearance.MyApp.BodySmaller"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:text="@string/dark_mode_summary"
-                            android:textColor="@color/text_secondary"
-                            android:textSize="13sp"
-                            android:layout_marginTop="2dp" />
-
+                            android:textColor="@color/gray" />
                     </LinearLayout>
-
                     <com.google.android.material.switchmaterial.SwitchMaterial
                         android:id="@+id/switchDarkMode"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        app:thumbTint="@color/primary"
-                        app:trackTint="@color/bg_input" />
-
-                </LinearLayout>
-
+                        android:layout_alignParentEnd="true"
+                        android:layout_centerVertical="true"
+                        app:thumbTint="@color/teal"
+                        app:trackTint="@color/light_teal" />
+                </RelativeLayout>
             </com.google.android.material.card.MaterialCardView>
 
-            <!-- Placeholder for future settings -->
-            <TextView
-                android:layout_width="wrap_content"
+            <!-- Notifications Card -->
+            <com.google.android.material.card.MaterialCardView
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="Account"
-                android:textColor="@color/primary"
-                android:textSize="14sp"
-                android:textStyle="bold"
-                android:layout_marginBottom="12dp" />
+                android:layout_marginTop="16dp"
+                app:cardCornerRadius="16dp"
+                app:cardElevation="0dp">
+                <RelativeLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:padding="20dp">
+                    <ImageView
+                        android:id="@+id/ivNotif"
+                        android:layout_width="24dp"
+                        android:layout_height="24dp"
+                        android:src="@drawable/ic_notifications"
+                        app:tint="@color/teal" />
+                    <TextView
+                        style="@style/TextAppearance.MyApp.BodyNormal"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="12dp"
+                        android:layout_toEndOf="@id/ivNotif"
+                        android:text="Notifications" />
+                    <com.google.android.material.switchmaterial.SwitchMaterial
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_alignParentEnd="true"
+                        android:layout_centerVertical="true"
+                        android:checked="true"
+                        app:thumbTint="@color/teal"
+                        app:trackTint="@color/light_teal" />
+                </RelativeLayout>
+            </com.google.android.material.card.MaterialCardView>
 
+            <!-- Language Card -->
+            <com.google.android.material.card.MaterialCardView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="16dp"
+                app:cardCornerRadius="16dp"
+                app:cardElevation="0dp">
+                <RelativeLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:padding="20dp">
+                    <ImageView
+                        android:id="@+id/ivLang"
+                        android:layout_width="24dp"
+                        android:layout_height="24dp"
+                        android:src="@drawable/ic_personal"
+                        app:tint="@color/teal" />
+                    <TextView
+                        style="@style/TextAppearance.MyApp.BodyNormal"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="12dp"
+                        android:layout_toEndOf="@id/ivLang"
+                        android:text="Language" />
+                </RelativeLayout>
+            </com.google.android.material.card.MaterialCardView>
+
+            <!-- Log Out -->
             <com.google.android.material.card.MaterialCardView
                 android:id="@+id/cvLogout"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                app:cardCornerRadius="14dp"
-                app:cardElevation="2dp"
-                app:cardBackgroundColor="@color/bg_card"
-                android:layout_marginBottom="16dp">
-
+                android:layout_marginTop="24dp"
+                app:cardCornerRadius="16dp"
+                app:cardElevation="0dp">
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:orientation="vertical"
-                    android:padding="16dp">
-
+                    android:gravity="center"
+                    android:padding="20dp"
+                    android:orientation="horizontal">
+                    <ImageView
+                        android:layout_width="24dp"
+                        android:layout_height="24dp"
+                        android:src="@drawable/ic_logout"
+                        app:tint="@color/orange" />
                     <TextView
+                        style="@style/TextAppearance.MyApp.BodyNormal"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="Logout"
-                        android:textColor="@color/expense_red"
-                        android:textSize="16sp"
+                        android:layout_marginStart="12dp"
+                        android:text="Log Out"
+                        android:textColor="@color/orange"
                         android:textStyle="bold" />
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="Sign out from your account"
-                        android:textColor="@color/text_secondary"
-                        android:textSize="13sp"
-                        android:layout_marginTop="2dp" />
-
                 </LinearLayout>
-
             </com.google.android.material.card.MaterialCardView>
 
         </LinearLayout>
-
     </androidx.core.widget.NestedScrollView>
 
-</LinearLayout>
+</androidx.constraintlayout.widget.ConstraintLayout>

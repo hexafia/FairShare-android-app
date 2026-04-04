@@ -47,4 +47,13 @@
     <color name="splash_gradient_2">#c7f0ec</color>
     <color name="splash_gradient_3">#f8d7ad</color>
     <color name="splash_gradient_4">#7bd4c9</color>
+
+    <!-- Frontend design palette -->
+    <color name="teal">#2EC4B6</color>
+    <color name="light_teal">#CBF3F0</color>
+    <color name="orange">#FF9F1C</color>
+    <color name="light_orange">#FFBF69</color>
+    <color name="off_white">#E8FFFD</color>
+    <color name="off_black">#272B40</color>
+    <color name="gray">#6D6E78</color>
 </resources>

@@ -2,6 +2,65 @@
 > [ Main README ](./README.md) &nbsp; | &nbsp; [ **Recent Changes** ] &nbsp; | &nbsp; [ [Walkthrough](./walkthrough_fairshare_first_design.md) ] &nbsp; | &nbsp; [ [Implementation Plan](./implementation_plan_fairshare.md) ]  &nbsp; | &nbsp; [ [Development Guide](./Repo_Cloning.md) ]
 ---
 
+# Changes Log — April 05, 2026
+
+## Overview
+Successfully migrated the entire frontend UI design from the standalone preview project (`FairShare-frontend-preview`) into the main FairShare application. This includes a complete visual overhaul with new fonts, colors, and layouts while preserving all existing Java logic.
+
+---
+
+## 1. UI Design Migration
+
+### Global Styling & Resources
+- **Fonts (`res/font/`)** — [NEW] Integrated **Montserrat** (Bold, Thin) and **Roboto** (Regular) as the primary typefaces.
+- **Colors (`res/values/colors.xml`)** — [MODIFIED] Added the new design palette: `teal`, `light_teal`, `orange`, `light_orange`, `off_white`, `off_black`, `gray`.
+- **Typography (`res/values/type.xml`)** — [NEW] Defined `TextAppearance.MyApp` standard styles for Headings and Body text.
+- **Themes (`res/values/themes.xml`)** — [MODIFIED] Added `App.Custom.Indicator` for the bottom navigation and updated status bar styling.
+
+---
+
+## 2. Layout Overhaul (ID Preservation)
+
+Updated all major layout files to match the new design while ensuring `android:id` attributes match existing `ViewBinding` and `findViewById` calls in the Java controller classes.
+
+| Layout File | Design Source | Notes |
+|-------------|---------------|-------|
+| `activity_main.xml` | Custom | Restyled NavHost container with tinted Bottom Navigation. |
+| `activity_welcome.xml` | `activity_main.xml` (Preview) | [NEW] Landing/Welcome page as the new launcher destination. |
+| `activity_login.xml` | `layout_custom_auth.xml` | Ported teal-background login/signup screen. |
+| `fragment_dashboard.xml` | `dashboard.xml` | Teal header with rounded content card; preserved all summary IDs. |
+| `fragment_profile.xml` | `profile.xml` | Card-based profile layout with avatar support and stat grids. |
+| `fragment_groups.xml` | `group_mode_finance_tracker.xml` | Modernized group list view. |
+| `fragment_ledger.xml` | `personal_expenses.xml` | Redesigned personal ledger view. |
+| `fragment_notifications.xml` | `notifications.xml` | Sleek notification list layout. |
+| `activity_settings.xml` | `settings.xml` | Ported full settings page design. |
+
+---
+
+## 3. Navigation & Flow Updates
+
+- **`WelcomeActivity.java`** — [NEW] Initial entry point for logged-out users to choose Login or Register.
+- **`SplashActivity.java`** — [MODIFIED] Updated navigation logic to point to `WelcomeActivity` instead of `LoginActivity`.
+- **Drawables (`res/drawable/`)** — [NEW/MODIFIED] Migrated 10+ new vector assets (ic_back, ic_logout, bg_dashboard_content, etc.).
+- **Menus (`res/menu/bottom_nav_menu.xml`)** — [MODIFIED] Updated icons to the new sleek design while keeping existing `R.id` values.
+
+---
+
+## 4. RecyclerView Item Layouts
+
+- **`item_expense.xml`** — [MODIFIED] Modern card design with dynamic category color indicator.
+- **`item_group.xml`** — [MODIFIED] Rounded group card with member count and share code display.
+- **`item_notification.xml`** — [MODIFIED] Profile-focused notification item design.
+
+---
+
+## Build Status
+✅ **BUILD SUCCESSFUL** (`assembleDebug`)
+- All XML resources resolve correctly.
+- Layout IDs verified against Java source code bindings.
+
+---
+
 # Changes Log — April 02, 2026
 
 ## Overview

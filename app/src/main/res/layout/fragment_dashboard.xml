@@ -6,41 +6,59 @@
     android:id="@+id/dashboard_root"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/bg_dark"
+    android:background="@color/off_white"
     tools:context=".ui.dashboard.DashboardFragment">
 
-    <!-- Scrollable content -->
+    <!-- Teal Header -->
+    <View
+        android:id="@+id/headerBackground"
+        android:layout_width="match_parent"
+        android:layout_height="220dp"
+        android:background="@color/teal" />
+
+    <TextView
+        android:id="@+id/tvHeaderTitle"
+        style="@style/TextAppearance.MyApp.Heading1"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="24dp"
+        android:layout_marginTop="48dp"
+        android:text="Dashboard"
+        android:textColor="@color/white" />
+
+    <TextView
+        android:id="@+id/tvHeaderSubtitle"
+        style="@style/TextAppearance.MyApp.BodyNormal"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="24dp"
+        android:layout_marginTop="80dp"
+        android:text="Welcome back, User!"
+        android:textColor="@color/white" />
+
+    <!-- Main Content Area with Rounded Corners -->
     <androidx.core.widget.NestedScrollView
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        app:layout_behavior="@string/appbar_scrolling_view_behavior"
+        android:layout_marginTop="120dp"
+        android:background="@drawable/bg_dashboard_content"
         android:clipToPadding="false"
-        android:paddingBottom="88dp">
+        android:paddingBottom="88dp"
+        app:layout_behavior="@string/appbar_scrolling_view_behavior">
 
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical"
-            android:padding="16dp">
+            android:padding="24dp">
 
-            <!-- Header -->
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="@string/app_name"
-                android:textColor="@color/text_primary"
-                android:textSize="28sp"
-                android:textStyle="bold"
-                android:layout_marginBottom="20dp" />
-
-            <!-- Balance Card -->
+            <!-- Monthly Total Expense Card -->
             <com.google.android.material.card.MaterialCardView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                app:cardCornerRadius="20dp"
-                app:cardElevation="8dp"
-                app:cardBackgroundColor="@color/bg_surface"
-                android:layout_marginBottom="16dp">
+                app:cardCornerRadius="24dp"
+                app:cardElevation="0dp"
+                app:strokeWidth="0dp">
 
                 <LinearLayout
                     android:layout_width="match_parent"
@@ -49,97 +67,93 @@
                     android:padding="24dp">
 
                     <TextView
+                        style="@style/TextAppearance.MyApp.BodyNormal"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="@string/total_balance"
-                        android:textColor="@color/text_secondary"
-                        android:textSize="14sp"
-                        android:layout_marginBottom="4dp" />
+                        android:textColor="@color/gray" />
 
                     <TextView
                         android:id="@+id/tvBalance"
+                        style="@style/TextAppearance.MyApp.Heading1"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:textColor="@color/text_primary"
-                        android:textSize="36sp"
-                        android:textStyle="bold"
-                        tools:text="$1,250.00"
-                        android:layout_marginBottom="20dp" />
+                        android:layout_marginTop="8dp"
+                        android:textColor="@color/off_black"
+                        android:textSize="32sp"
+                        tools:text="Php 9,023.42" />
 
-                    <!-- Income / Expense row -->
                     <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:orientation="horizontal"
-                        android:baselineAligned="false">
+                        android:layout_marginTop="16dp"
+                        android:orientation="horizontal">
 
-                        <!-- Income -->
                         <LinearLayout
                             android:layout_width="0dp"
                             android:layout_height="wrap_content"
                             android:layout_weight="1"
                             android:orientation="vertical">
-
                             <TextView
+                                style="@style/TextAppearance.MyApp.BodySmall"
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
                                 android:text="@string/income_label"
-                                android:textColor="@color/text_secondary"
-                                android:textSize="12sp"
-                                android:layout_marginBottom="2dp" />
-
+                                android:textColor="@color/gray" />
                             <TextView
                                 android:id="@+id/tvIncome"
+                                style="@style/TextAppearance.MyApp.BodyNormal"
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
-                                android:textColor="@color/income_green"
-                                android:textSize="18sp"
+                                android:textColor="@color/teal"
                                 android:textStyle="bold"
-                                tools:text="+ $3,000.00" />
+                                tools:text="+ Php 3,000.00" />
                         </LinearLayout>
 
-                        <!-- Expense -->
                         <LinearLayout
                             android:layout_width="0dp"
                             android:layout_height="wrap_content"
                             android:layout_weight="1"
-                            android:orientation="vertical"
-                            android:gravity="end">
-
+                            android:orientation="vertical">
                             <TextView
+                                style="@style/TextAppearance.MyApp.BodySmall"
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
                                 android:text="@string/expense_label"
-                                android:textColor="@color/text_secondary"
-                                android:textSize="12sp"
-                                android:layout_marginBottom="2dp" />
-
+                                android:textColor="@color/gray" />
                             <TextView
                                 android:id="@+id/tvExpense"
+                                style="@style/TextAppearance.MyApp.BodyNormal"
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
-                                android:textColor="@color/expense_red"
-                                android:textSize="18sp"
+                                android:textColor="@color/orange"
                                 android:textStyle="bold"
-                                tools:text="- $1,750.00" />
+                                tools:text="- Php 1,750.00" />
                         </LinearLayout>
-
                     </LinearLayout>
-
                 </LinearLayout>
-
             </com.google.android.material.card.MaterialCardView>
 
-            <!-- Recent Transactions header -->
-            <TextView
-                android:layout_width="wrap_content"
+            <!-- Recent Transactions -->
+            <RelativeLayout
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="Recent Transactions"
-                android:textColor="@color/text_primary"
-                android:textSize="18sp"
-                android:textStyle="bold"
-                android:layout_marginTop="8dp"
-                android:layout_marginBottom="12dp" />
+                android:layout_marginTop="24dp">
+                <TextView
+                    style="@style/TextAppearance.MyApp.Heading3"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Recent Transactions" />
+                <TextView
+                    style="@style/TextAppearance.MyApp.BodySmaller"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_alignParentEnd="true"
+                    android:text="View all"
+                    android:textColor="@color/teal"
+                    android:layout_centerVertical="true"
+                    android:textStyle="bold" />
+            </RelativeLayout>
 
             <!-- Empty state -->
             <TextView
@@ -147,7 +161,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:text="@string/no_transactions"
-                android:textColor="@color/text_secondary"
+                android:textColor="@color/gray"
                 android:textSize="16sp"
                 android:gravity="center"
                 android:paddingTop="48dp"
@@ -176,8 +190,8 @@
         android:layout_margin="24dp"
         android:contentDescription="@string/add_transaction"
         android:src="@android:drawable/ic_input_add"
-        app:backgroundTint="@color/fab_bg"
-        app:tint="@color/fab_icon"
+        app:backgroundTint="@color/teal"
+        app:tint="@color/white"
         app:fabSize="normal" />
 
 </androidx.coordinatorlayout.widget.CoordinatorLayout>
