@@ -1,7 +1,8 @@
 
-# 📝 Implementation Plan
-> [ [Main README](./README.md) ] &nbsp; | &nbsp; [ [Walkthrough](./walkthrough_fairshare_first_design.md) ] &nbsp; | &nbsp; [ **Implementation Plan** ]  &nbsp; | &nbsp; [ [Development Guide](./Repo_Cloning.md) ]
+# 📱 FairShare Project
+> [ [ Main README ](./README.md) ] &nbsp; | &nbsp; [ [Recent Changes](./chnages.md) ] &nbsp; | &nbsp; [ [Walkthrough](./walkthrough_fairshare_first_design.md) ] &nbsp; | &nbsp; [ **Implementation Plan** ] &nbsp; | &nbsp; [ [Development Guide](./Repo_Cloning.md) ]
 ---
+
 
 # Expense Tracker Implementation Plan
 
