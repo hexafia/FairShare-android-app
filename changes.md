@@ -1,5 +1,5 @@
 # 📱 FairShare Project
-> [ Main README ](./README.md) &nbsp; | &nbsp; [ [ **Recent Changes** ] ] &nbsp; | &nbsp; [ [Walkthrough](./walkthrough_fairshare_first_design.md) ] &nbsp; | &nbsp; [ [Implementation Plan](./implementation_plan_fairshare.md) ]  &nbsp; | &nbsp; [ [Development Guide](./Repo_Cloning.md) ]
+> [ Main README ](./README.md) &nbsp; | &nbsp; [ **Recent Changes** ] &nbsp; | &nbsp; [ [Walkthrough](./walkthrough_fairshare_first_design.md) ] &nbsp; | &nbsp; [ [Implementation Plan](./implementation_plan_fairshare.md) ]  &nbsp; | &nbsp; [ [Development Guide](./Repo_Cloning.md) ]
 ---
 
 # Changes Log — April 02, 2026
