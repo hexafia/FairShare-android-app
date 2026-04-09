@@ -1,0 +1,41 @@
+# Built artifacts
+/build
+/*/build
+
+# Gradle
+.gradle/
+build/
+
+# Local configuration file (SDK path, etc)
+local.properties
+
+# Log Files
+*.log
+
+# Android Studio / IntelliJ project files
+*.iml
+.idea/
+*.ipr
+*.iws
+.idea/workspace.xml
+.idea/libraries
+.idea/shelf
+.idea/navEditor.xml
+.idea/assetWizardSettings.xml
+.idea/modules.xml
+.idea/caches
+
+# External native build artifacts
+.externalNativeBuild
+.cxx
+cmake_install.cmake
+CMakeCache.txt
+CMakeFiles/
+Makefile
+rules.ninja
+
+# OS-specific files
+.DS_Store
+Thumbs.db
+.vscode/
+context_docs/

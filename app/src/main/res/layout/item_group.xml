@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="utf-8"?>
+<com.google.android.material.card.MaterialCardView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginBottom="12dp"
+    app:cardCornerRadius="16dp"
+    app:cardElevation="2dp"
+    app:strokeColor="@color/light_orange"
+    app:strokeWidth="1dp">
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:padding="16dp">
+
+        <!-- Group Icon Background -->
+        <View
+            android:id="@+id/groupIconBg"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:background="@drawable/bg_group_icon"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
+
+        <TextView
+            android:id="@+id/tvGroupInitial"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="T"
+            android:textColor="@color/teal"
+            android:textSize="20sp"
+            android:textStyle="bold"
+            app:layout_constraintBottom_toBottomOf="@id/groupIconBg"
+            app:layout_constraintEnd_toEndOf="@id/groupIconBg"
+            app:layout_constraintStart_toStartOf="@id/groupIconBg"
+            app:layout_constraintTop_toTopOf="@id/groupIconBg" />
+
+        <TextView
+            android:id="@+id/tvGroupName"
+            style="@style/TextAppearance.MyApp.Heading3"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="12dp"
+            android:text="Group"
+            app:layout_constraintStart_toEndOf="@id/groupIconBg"
+            app:layout_constraintTop_toTopOf="@id/groupIconBg" />
+
+        <TextView
+            android:id="@+id/tvMemberCount"
+            style="@style/TextAppearance.MyApp.BodySmaller"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="4 members"
+            android:textColor="@color/gray"
+            app:layout_constraintStart_toStartOf="@id/tvGroupName"
+            app:layout_constraintTop_toBottomOf="@id/tvGroupName" />
+
+        <TextView
+            android:id="@+id/tvShareCode"
+            style="@style/TextAppearance.MyApp.BodySmaller"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="8dp"
+            android:text="ABC123"
+            android:textColor="@color/teal"
+            android:textStyle="bold"
+            app:layout_constraintStart_toEndOf="@id/tvMemberCount"
+            app:layout_constraintTop_toTopOf="@id/tvMemberCount" />
+
+        <ImageView
+            android:layout_width="24dp"
+            android:layout_height="24dp"
+            android:src="@drawable/ic_chevron_right"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            app:tint="@color/off_black" />
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
+</com.google.android.material.card.MaterialCardView>
