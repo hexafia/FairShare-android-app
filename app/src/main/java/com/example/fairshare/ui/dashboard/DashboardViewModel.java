@@ -4,6 +4,7 @@ import androidx.lifecycle.LiveData;
 import androidx.lifecycle.ViewModel;
 
 import com.example.fairshare.ExpenseRepository;
+import com.example.fairshare.Group;
 import com.example.fairshare.GroupExpense;
 import com.example.fairshare.GroupRepository;
 import com.example.fairshare.Transaction;
