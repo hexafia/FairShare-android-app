@@ -263,7 +263,7 @@ public class GroupLobbyActivity extends AppCompatActivity {
             if (user == null) return;
 
             String payerName = memberNames.getOrDefault(user.getUid(), "You");
-            GroupExpense expense = new GroupExpense(title, user.getUid(), payerName, amount);
+            GroupExpense expense = new GroupExpense(groupId, title, user.getUid(), payerName, amount);
 
             // Add all current group members as participants
             for (String uid : memberNames.keySet()) {
