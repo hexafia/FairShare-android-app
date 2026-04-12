@@ -191,7 +191,6 @@ public class DashboardFragment extends Fragment {
         TextInputEditText etTitle = dialogView.findViewById(R.id.etTitle);
         TextInputEditText etAmount = dialogView.findViewById(R.id.etAmount);
         Spinner spinnerCategory = dialogView.findViewById(R.id.spinnerCategory);
-        MaterialButtonToggleGroup toggleType = dialogView.findViewById(R.id.toggleType);
         MaterialButton btnSave = dialogView.findViewById(R.id.btnSave);
         MaterialButton btnCancel = dialogView.findViewById(R.id.btnCancel);
 
@@ -199,8 +198,6 @@ public class DashboardFragment extends Fragment {
                 requireContext(), R.array.categories, android.R.layout.simple_spinner_item);
         categoryAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         spinnerCategory.setAdapter(categoryAdapter);
-
-        toggleType.check(R.id.btnExpense);
 
         Dialog dialog = new Dialog(requireContext(), R.style.Theme_FairShare_Dialog);
         dialog.setContentView(dialogView);
@@ -230,7 +227,7 @@ public class DashboardFragment extends Fragment {
             }
 
             String category = spinnerCategory.getSelectedItem().toString();
-            String type = toggleType.getCheckedButtonId() == R.id.btnIncome ? "income" : "expense";
+            String type = "expense"; // Hardcoded since we removed income tracking
 
             Transaction transaction = new Transaction(title, amount, category, type);
             viewModel.addPersonalExpense(transaction);
