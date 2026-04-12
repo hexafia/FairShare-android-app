@@ -156,17 +156,32 @@ public class DashboardFragment extends Fragment {
     }
 
     private void showTransactionTypeDialog() {
-        CharSequence[] options = new CharSequence[]{"Personal Expense", "Group Expense"};
-        new AlertDialog.Builder(requireContext(), R.style.Theme_FairShare_Dialog)
-                .setTitle("Select type of transaction")
-                .setItems(options, (dialog, which) -> {
-                    if (which == 0) {
-                        showAddDialog();
-                    } else {
-                        showAddGroupExpenseDialog();
-                    }
-                })
-                .show();
+        Dialog dialog = new Dialog(requireContext(), R.style.Theme_FairShare_Dialog);
+        View dialogView = LayoutInflater.from(requireContext()).inflate(R.layout.dialog_select_list, null);
+        dialog.setContentView(dialogView);
+
+        android.widget.TextView tvTitle = dialogView.findViewById(R.id.tvTitle);
+        android.widget.ListView listView = dialogView.findViewById(R.id.listView);
+
+        tvTitle.setText("Select type of transaction");
+        String[] options = {"Personal Expense", "Group Expense"};
+        ArrayAdapter<String> adapter = new ArrayAdapter<>(requireContext(), R.layout.item_select_dialog, options);
+        listView.setAdapter(adapter);
+
+        listView.setOnItemClickListener((parent, view, position, id) -> {
+            dialog.dismiss();
+            if (position == 0) {
+                showAddDialog();
+            } else {
+                showAddGroupExpenseDialog();
+            }
+        });
+
+        dialog.show();
+        if (dialog.getWindow() != null) {
+            int width = (int) (350 * getResources().getDisplayMetrics().density);
+            dialog.getWindow().setLayout(width, ViewGroup.LayoutParams.WRAP_CONTENT);
+        }
     }
 
     // This handles the regular personal transaction dialog
@@ -240,16 +255,32 @@ public class DashboardFragment extends Fragment {
         if (currentGroups.size() == 1) {
             showGroupExpenseDialogForGroup(currentGroups.get(0));
         } else {
-            CharSequence[] groupNames = new CharSequence[currentGroups.size()];
+            String[] groupNames = new String[currentGroups.size()];
             for (int i = 0; i < currentGroups.size(); i++) {
                 groupNames[i] = currentGroups.get(i).getName();
             }
-            new AlertDialog.Builder(requireContext(), R.style.Theme_FairShare_Dialog)
-                    .setTitle("Select Group")
-                    .setItems(groupNames, (dialog, which) -> {
-                        showGroupExpenseDialogForGroup(currentGroups.get(which));
-                    })
-                    .show();
+
+            Dialog dialog = new Dialog(requireContext(), R.style.Theme_FairShare_Dialog);
+            View dialogView = LayoutInflater.from(requireContext()).inflate(R.layout.dialog_select_list, null);
+            dialog.setContentView(dialogView);
+
+            android.widget.TextView tvTitle = dialogView.findViewById(R.id.tvTitle);
+            android.widget.ListView listView = dialogView.findViewById(R.id.listView);
+
+            tvTitle.setText("Select Group");
+            ArrayAdapter<String> adapter = new ArrayAdapter<>(requireContext(), R.layout.item_select_dialog, groupNames);
+            listView.setAdapter(adapter);
+
+            listView.setOnItemClickListener((parent, view, position, id) -> {
+                dialog.dismiss();
+                showGroupExpenseDialogForGroup(currentGroups.get(position));
+            });
+
+            dialog.show();
+            if (dialog.getWindow() != null) {
+                int width = (int) (350 * getResources().getDisplayMetrics().density);
+                dialog.getWindow().setLayout(width, ViewGroup.LayoutParams.WRAP_CONTENT);
+            }
         }
     }
 
