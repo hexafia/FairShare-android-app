@@ -194,7 +194,7 @@ public class GroupLobbyActivity extends AppCompatActivity {
                     netBalances.getOrDefault(e.getPayerUid(), 0.0) + e.getAmount());
 
             // Each participant owes their share
-            for (String uid : e.getParticipants().keySet()) {
+            for (String uid : e.getParticipants()) {
                 netBalances.put(uid, netBalances.getOrDefault(uid, 0.0) - share);
             }
         }
@@ -267,10 +267,12 @@ public class GroupLobbyActivity extends AppCompatActivity {
 
             // Add all current group members as participants
             for (String uid : memberNames.keySet()) {
-                expense.getParticipants().put(uid, true);
+                expense.getParticipants().add(uid);
             }
             // Also make sure payer is included
-            expense.getParticipants().put(user.getUid(), true);
+            if (!expense.getParticipants().contains(user.getUid())) {
+                expense.getParticipants().add(user.getUid());
+            }
 
             groupRepository.addGroupExpense(groupId, expense);
             Toast.makeText(this, "Expense added!", Toast.LENGTH_SHORT).show();
