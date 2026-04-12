@@ -1,108 +1,267 @@
 <?xml version="1.0" encoding="utf-8"?>
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    android:id="@+id/dialog_root"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
-    android:layout_height="match_parent">
+    android:layout_height="match_parent"
+    android:background="@android:color/white">
 
-    <LinearLayout
-        android:layout_width="350dp"
-        android:layout_height="wrap_content"
-        android:layout_gravity="center"
-        android:orientation="vertical"
-        android:padding="24dp"
-        android:background="@color/bg_card"
-        android:clickable="true"
-        android:focusable="true">
+    <androidx.core.widget.NestedScrollView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
 
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="@string/add_shared_expense"
-            android:textColor="@color/text_primary"
-            android:textSize="20sp"
-            android:textStyle="bold"
-            android:layout_marginBottom="20dp" />
-
-        <!-- Title -->
-        <com.google.android.material.textfield.TextInputLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginBottom="12dp"
-            app:boxBackgroundColor="@color/bg_input"
-            app:boxStrokeColor="@color/primary"
-            app:hintTextColor="@color/text_secondary"
-            style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox">
-
-            <com.google.android.material.textfield.TextInputEditText
-                android:id="@+id/etTitle"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:hint="@string/expense_title_hint"
-                android:textColor="@color/text_primary"
-                android:inputType="text" />
-
-        </com.google.android.material.textfield.TextInputLayout>
-
-        <!-- Amount -->
-        <com.google.android.material.textfield.TextInputLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginBottom="12dp"
-            app:boxBackgroundColor="@color/bg_input"
-            app:boxStrokeColor="@color/primary"
-            app:hintTextColor="@color/text_secondary"
-            style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox">
-
-            <com.google.android.material.textfield.TextInputEditText
-                android:id="@+id/etAmount"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:hint="@string/amount_hint"
-                android:textColor="@color/text_primary"
-                android:inputType="numberDecimal" />
-
-        </com.google.android.material.textfield.TextInputLayout>
-
-        <!-- Split info -->
-        <TextView
-            android:id="@+id/tvSplitInfo"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="@string/split_equally_info"
-            android:textColor="@color/text_secondary"
-            android:textSize="13sp"
-            android:layout_marginBottom="24dp"
-            android:layout_marginStart="4dp" />
-
-        <!-- Action buttons -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:gravity="end">
+            android:orientation="vertical"
+            android:padding="24dp">
 
-            <com.google.android.material.button.MaterialButton
-                android:id="@+id/btnCancel"
+            <!-- Header -->
+            <RelativeLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="24dp">
+                <TextView
+                    android:id="@+id/tvHeader"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Add Group Expense"
+                    android:textColor="#2D3142"
+                    android:textSize="24sp"
+                    android:textStyle="bold"
+                    android:layout_centerVertical="true" />
+                <ImageView
+                    android:id="@+id/btnClose"
+                    android:layout_width="32dp"
+                    android:layout_height="32dp"
+                    android:layout_alignParentEnd="true"
+                    android:layout_centerVertical="true"
+                    android:src="@android:drawable/ic_menu_close_clear_cancel"
+                    app:tint="#2D3142" />
+            </RelativeLayout>
+
+            <!-- Group Indicator Card -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:background="#DFF6F5"
+                android:padding="16dp"
+                android:gravity="center_vertical"
+                android:layout_marginBottom="24dp">
+                
+                <ImageView
+                    android:layout_width="24dp"
+                    android:layout_height="24dp"
+                    android:src="@android:drawable/ic_menu_myplaces"
+                    app:tint="#38BDB0" />
+                
+                <LinearLayout
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:layout_marginStart="12dp">
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Adding to"
+                        android:textColor="#38BDB0"
+                        android:textSize="12sp" />
+                    <TextView
+                        android:id="@+id/tvSelectGroup"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Select Group"
+                        android:textColor="#2D3142"
+                        android:textSize="16sp" />
+                </LinearLayout>
+            </LinearLayout>
+
+            <!-- Expense Name -->
+            <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="@string/cancel"
-                android:maxLines="1"
-                android:minWidth="80dp"
-                style="?attr/materialButtonOutlinedStyle"
-                android:layout_marginEnd="12dp" />
+                android:text="Expense Name"
+                android:textColor="#2D3142"
+                android:textStyle="bold"
+                android:layout_marginBottom="8dp" />
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/etTitle"
+                android:layout_width="match_parent"
+                android:layout_height="56dp"
+                android:background="#EFFFFD"
+                android:hint="e.g., Restaurant Bill, Groceries"
+                android:textColorHint="#A0AAB2"
+                android:padding="16dp"
+                android:layout_marginBottom="24dp" />
 
-            <com.google.android.material.button.MaterialButton
-                android:id="@+id/btnSave"
+            <!-- Total Amount -->
+            <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="@string/save"
-                android:maxLines="1"
-                android:minWidth="80dp"
-                app:backgroundTint="@color/primary" />
+                android:text="Total Amount"
+                android:textColor="#2D3142"
+                android:textStyle="bold"
+                android:layout_marginBottom="8dp" />
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/etAmount"
+                android:layout_width="match_parent"
+                android:layout_height="56dp"
+                android:background="#EFFFFD"
+                android:hint="0.00"
+                android:textColorHint="#A0AAB2"
+                android:padding="16dp"
+                android:inputType="numberDecimal"
+                android:layout_marginBottom="24dp" />
+
+            <!-- Who Paid? -->
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Who Paid?"
+                android:textColor="#2D3142"
+                android:textStyle="bold"
+                android:layout_marginBottom="8dp" />
+            <Spinner
+                android:id="@+id/spinnerWhoPaid"
+                android:layout_width="match_parent"
+                android:layout_height="56dp"
+                android:background="#EFFFFD"
+                android:paddingStart="12dp"
+                android:paddingEnd="12dp"
+                android:layout_marginBottom="24dp" />
+
+            <!-- Split Method -->
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Split Method"
+                android:textColor="#2D3142"
+                android:textStyle="bold"
+                android:layout_marginBottom="8dp" />
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="56dp"
+                android:orientation="horizontal"
+                android:layout_marginBottom="24dp">
+                
+                <Button
+                    android:id="@+id/btnEqualSplit"
+                    android:layout_width="0dp"
+                    android:layout_height="match_parent"
+                    android:layout_weight="1"
+                    android:text="Equal Split"
+                    android:textAllCaps="false"
+                    android:textStyle="bold"
+                    android:backgroundTint="#38BDB0"
+                    android:textColor="@android:color/white"
+                    android:layout_marginEnd="8dp" />
+
+                <Button
+                    android:id="@+id/btnItemized"
+                    android:layout_width="0dp"
+                    android:layout_height="match_parent"
+                    android:layout_weight="1"
+                    android:text="Itemized"
+                    android:textAllCaps="false"
+                    android:textStyle="bold"
+                    android:backgroundTint="#EFFFFD"
+                    android:textColor="#2D3142"
+                    android:layout_marginStart="8dp" />
+            </LinearLayout>
+
+            <!-- Who Participated? -->
+            <TextView
+                android:id="@+id/tvParticipatedHeader"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Who Participated? (0 selected)"
+                android:textColor="#2D3142"
+                android:textStyle="bold"
+                android:layout_marginBottom="8dp" />
+            
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="180dp"
+                android:background="#EFFFFD"
+                android:padding="8dp"
+                android:layout_marginBottom="24dp">
+                <!-- Use nested scroll view or recycler view -->
+                <androidx.core.widget.NestedScrollView
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent">
+                    <LinearLayout
+                        android:id="@+id/containerParticipants"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical" />
+                </androidx.core.widget.NestedScrollView>
+            </LinearLayout>
+
+            <!-- Category -->
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Category"
+                android:textColor="#2D3142"
+                android:textStyle="bold"
+                android:layout_marginBottom="8dp" />
+            <Spinner
+                android:id="@+id/spinnerCategory"
+                android:layout_width="match_parent"
+                android:layout_height="56dp"
+                android:background="#EFFFFD"
+                android:paddingStart="12dp"
+                android:paddingEnd="12dp"
+                android:layout_marginBottom="24dp" />
+
+            <!-- Notes -->
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Notes (Optional)"
+                android:textColor="#2D3142"
+                android:textStyle="bold"
+                android:layout_marginBottom="8dp" />
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/etNotes"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:minHeight="100dp"
+                android:background="#EFFFFD"
+                android:hint="Add any notes about this expense"
+                android:textColorHint="#A0AAB2"
+                android:padding="16dp"
+                android:gravity="top|start"
+                android:layout_marginBottom="24dp" />
+
+            <!-- Scan Receipt Button -->
+            <Button
+                android:id="@+id/btnScanReceipt"
+                android:layout_width="match_parent"
+                android:layout_height="64dp"
+                android:backgroundTint="#38BDB0"
+                android:textColor="@android:color/white"
+                android:text="Scan Receipt"
+                android:textAllCaps="false"
+                android:textSize="18sp"
+                android:textStyle="bold"
+                android:layout_marginBottom="16dp"
+                app:icon="@android:drawable/ic_menu_camera"
+                app:iconGravity="textStart" />
+
+            <!-- Add Expense Button -->
+            <Button
+                android:id="@+id/btnAddExpense"
+                android:layout_width="match_parent"
+                android:layout_height="64dp"
+                android:backgroundTint="#F49520"
+                android:textColor="@android:color/white"
+                android:text="Add Expense"
+                android:textAllCaps="false"
+                android:textSize="18sp"
+                android:textStyle="bold" />
 
         </LinearLayout>
-
-    </LinearLayout>
-
+    </androidx.core.widget.NestedScrollView>
 </FrameLayout>

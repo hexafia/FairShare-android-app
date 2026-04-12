@@ -1,30 +1,32 @@
 package com.example.fairshare;
 
-import java.util.HashMap;
-import java.util.Map;
+import com.google.firebase.firestore.DocumentId;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
- * Represents a shared expense group stored in Firebase Realtime Database
+ * Represents a shared expense group stored in Firestore
  * at path: groups/{groupId}
  */
 public class Group {
 
+    @DocumentId
     private String id;
     private String name;
     private String shareCode;
     private String createdBy;
-    private Map<String, Boolean> members;
+    private List<String> members;
 
     // Required empty constructor for Firebase deserialization
     public Group() {
-        members = new HashMap<>();
+        members = new ArrayList<>();
     }
 
     public Group(String name, String shareCode, String createdBy) {
         this.name = name;
         this.shareCode = shareCode;
         this.createdBy = createdBy;
-        this.members = new HashMap<>();
+        this.members = new ArrayList<>();
     }
 
     // --- Getters & Setters ---
@@ -61,11 +63,11 @@ public class Group {
         this.createdBy = createdBy;
     }
 
-    public Map<String, Boolean> getMembers() {
+    public List<String> getMembers() {
         return members;
     }
 
-    public void setMembers(Map<String, Boolean> members) {
+    public void setMembers(List<String> members) {
         this.members = members;
     }
 

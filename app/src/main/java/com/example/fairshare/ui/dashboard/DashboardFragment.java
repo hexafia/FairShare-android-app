@@ -1,5 +1,6 @@
 package com.example.fairshare.ui.dashboard;
 
+import android.app.Dialog;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -15,25 +16,35 @@ import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.LinearLayoutManager;
 
+import com.example.fairshare.DebtSimplifier;
 import com.example.fairshare.ExpenseAdapter;
-import com.example.fairshare.ExpenseViewModel;
+import com.example.fairshare.GroupExpense;
+import com.example.fairshare.GroupRepository;
 import com.example.fairshare.R;
 import com.example.fairshare.Transaction;
 import com.example.fairshare.databinding.FragmentDashboardBinding;
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.button.MaterialButtonToggleGroup;
 import com.google.android.material.textfield.TextInputEditText;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
 
 import java.text.NumberFormat;
+import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Date;
 import java.util.List;
 import java.util.Locale;
 
 public class DashboardFragment extends Fragment {
 
     private FragmentDashboardBinding binding;
-    private ExpenseViewModel viewModel;
+    private DashboardViewModel viewModel;
     private ExpenseAdapter adapter;
     private final NumberFormat currencyFormat = NumberFormat.getCurrencyInstance(Locale.getDefault());
+
+    private List<Transaction> currentPersonalExpenses = new ArrayList<>();
+    private List<GroupExpense> currentGroupExpenses = new ArrayList<>();
 
     @Nullable
     @Override
@@ -49,8 +60,8 @@ public class DashboardFragment extends Fragment {
         setupRecyclerView();
         setupViewModel();
 
-        binding.fabAdd.setOnClickListener(v -> showAddDialog());
-        binding.btnDashboardAddExpense.setOnClickListener(v -> showAddDialog());
+        binding.fabAdd.setOnClickListener(v -> showTransactionTypeDialog());
+        binding.btnDashboardAddExpense.setOnClickListener(v -> showTransactionTypeDialog());
         binding.btnDashboardNewGroup.setOnClickListener(v -> showCreateGroupDialog());
     }
 
@@ -61,13 +72,14 @@ public class DashboardFragment extends Fragment {
     }
 
     private void setupViewModel() {
-        // Shared ViewModel tied to Activity
-        viewModel = new ViewModelProvider(requireActivity()).get(ExpenseViewModel.class);
-        viewModel.getExpenses().observe(getViewLifecycleOwner(), transactions -> {
-            adapter.submitList(transactions);
-            updateSummary(transactions);
+        viewModel = new ViewModelProvider(requireActivity()).get(DashboardViewModel.class);
 
-            if (transactions == null || transactions.isEmpty()) {
+        viewModel.getPersonalExpenses().observe(getViewLifecycleOwner(), transactions -> {
+            currentPersonalExpenses = transactions != null ? transactions : new ArrayList<>();
+            adapter.submitList(currentPersonalExpenses);
+            updateSummary();
+
+            if (currentPersonalExpenses.isEmpty()) {
                 binding.tvEmpty.setVisibility(View.VISIBLE);
                 binding.rvExpenses.setVisibility(View.GONE);
             } else {
@@ -75,29 +87,84 @@ public class DashboardFragment extends Fragment {
                 binding.rvExpenses.setVisibility(View.VISIBLE);
             }
         });
+
+        viewModel.getGroupExpenses().observe(getViewLifecycleOwner(), expenses -> {
+            currentGroupExpenses = expenses != null ? expenses : new ArrayList<>();
+            updateSummary();
+        });
     }
 
-    private void updateSummary(List<Transaction> transactions) {
-        double totalIncome = 0;
-        double totalExpense = 0;
+    private boolean isCurrentMonth(Date date) {
+        if (date == null) return false;
+        Calendar today = Calendar.getInstance();
+        Calendar target = Calendar.getInstance();
+        target.setTime(date);
+        return today.get(Calendar.YEAR) == target.get(Calendar.YEAR) &&
+               today.get(Calendar.MONTH) == target.get(Calendar.MONTH);
+    }
 
-        if (transactions != null) {
-            for (Transaction t : transactions) {
-                if ("income".equalsIgnoreCase(t.getType())) {
-                    totalIncome += t.getAmount();
-                } else {
-                    totalExpense += t.getAmount();
+    private boolean isCurrentMonth(long timestamp) {
+        Calendar today = Calendar.getInstance();
+        Calendar target = Calendar.getInstance();
+        target.setTimeInMillis(timestamp);
+        return today.get(Calendar.YEAR) == target.get(Calendar.YEAR) &&
+               today.get(Calendar.MONTH) == target.get(Calendar.MONTH);
+    }
+
+    private void updateSummary() {
+        FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
+        if (user == null) return;
+        String myUid = user.getUid();
+
+        double personalSpent = 0;
+        for (Transaction t : currentPersonalExpenses) {
+            if (isCurrentMonth(t.getDate()) && "expense".equalsIgnoreCase(t.getType())) {
+                personalSpent += t.getAmount();
+            }
+        }
+
+        List<GroupExpense> monthGroupExpenses = new ArrayList<>();
+        double groupPaid = 0;
+        for (GroupExpense ge : currentGroupExpenses) {
+            if (isCurrentMonth(ge.getTimestamp())) {
+                monthGroupExpenses.add(ge);
+                if (myUid.equals(ge.getPayerUid())) {
+                    groupPaid += ge.getAmount();
                 }
             }
         }
 
-        double balance = totalIncome - totalExpense;
-        binding.tvBalance.setText(currencyFormat.format(balance));
-        binding.tvPaid.setText(currencyFormat.format(totalIncome));
-        binding.tvRemaining.setText(currencyFormat.format(totalExpense));
-        binding.tvPersonal.setText(currencyFormat.format(balance));
+        double remainingOwed = 0;
+        List<DebtSimplifier.Debt> debts = DebtSimplifier.simplify(monthGroupExpenses);
+        for (DebtSimplifier.Debt d : debts) {
+            if (d.debtorUid.equals(myUid)) {
+                remainingOwed += d.amount;
+            }
+        }
+
+        double totalBalance = personalSpent + groupPaid + remainingOwed;
+
+        binding.tvBalance.setText(currencyFormat.format(totalBalance));
+        binding.tvPersonal.setText(currencyFormat.format(personalSpent));
+        binding.tvPaid.setText(currencyFormat.format(groupPaid));
+        binding.tvRemaining.setText(currencyFormat.format(remainingOwed));
     }
 
+    private void showTransactionTypeDialog() {
+        CharSequence[] options = new CharSequence[]{"Personal Expense", "Group Expense"};
+        new AlertDialog.Builder(requireContext(), R.style.Theme_FairShare_Dialog)
+                .setTitle("Select type of transaction")
+                .setItems(options, (dialog, which) -> {
+                    if (which == 0) {
+                        showAddDialog();
+                    } else {
+                        showAddGroupExpenseDialog();
+                    }
+                })
+                .show();
+    }
+
+    // This handles the regular personal transaction dialog
     private void showAddDialog() {
         View dialogView = LayoutInflater.from(requireContext()).inflate(R.layout.dialog_add_expense, null);
 
@@ -115,7 +182,7 @@ public class DashboardFragment extends Fragment {
 
         toggleType.check(R.id.btnExpense);
 
-        android.app.Dialog dialog = new android.app.Dialog(requireContext(), R.style.Theme_FairShare_Dialog);
+        Dialog dialog = new Dialog(requireContext(), R.style.Theme_FairShare_Dialog);
         dialog.setContentView(dialogView);
         dialog.setCancelable(true);
 
@@ -146,7 +213,7 @@ public class DashboardFragment extends Fragment {
             String type = toggleType.getCheckedButtonId() == R.id.btnIncome ? "income" : "expense";
 
             Transaction transaction = new Transaction(title, amount, category, type);
-            viewModel.addExpense(transaction);
+            viewModel.addPersonalExpense(transaction);
 
             Toast.makeText(requireContext(), "Transaction added!", Toast.LENGTH_SHORT).show();
             dialog.dismiss();
@@ -159,13 +226,18 @@ public class DashboardFragment extends Fragment {
         }
     }
 
+    private void showAddGroupExpenseDialog() {
+        // TODO: Implement the redesigned UI logic here
+        Toast.makeText(requireContext(), "Opening Group Expense Dialog...", Toast.LENGTH_SHORT).show();
+    }
+
     private void showDeleteConfirmation(Transaction transaction) {
         new AlertDialog.Builder(requireContext(), R.style.Theme_FairShare_Dialog)
                 .setTitle(R.string.delete_confirm_title)
                 .setMessage(R.string.delete_confirm_msg)
                 .setPositiveButton(R.string.delete, (d, which) -> {
                     if (transaction.getId() != null) {
-                        viewModel.deleteExpense(transaction.getId());
+                        viewModel.deletePersonalExpense(transaction.getId());
                         Toast.makeText(requireContext(), "Transaction deleted", Toast.LENGTH_SHORT).show();
                     }
                 })
@@ -179,7 +251,7 @@ public class DashboardFragment extends Fragment {
         MaterialButton btnCreate = dialogView.findViewById(R.id.btnCreate);
         MaterialButton btnCancel = dialogView.findViewById(R.id.btnCancel);
 
-        android.app.Dialog dialog = new android.app.Dialog(requireContext(), R.style.Theme_FairShare_Dialog);
+        Dialog dialog = new Dialog(requireContext(), R.style.Theme_FairShare_Dialog);
         dialog.setContentView(dialogView);
         dialog.setCancelable(true);
 
@@ -192,8 +264,7 @@ public class DashboardFragment extends Fragment {
                 return;
             }
 
-            // Using GroupRepository directly for now as there's no GroupViewModel yet
-            new com.example.fairshare.GroupRepository().createGroup(name, new com.example.fairshare.GroupRepository.OnCompleteCallback() {
+            viewModel.createGroup(name, new GroupRepository.OnCompleteCallback() {
                 @Override
                 public void onSuccess(String message) {
                     Toast.makeText(requireContext(), "Group created! Code: " + message, Toast.LENGTH_LONG).show();

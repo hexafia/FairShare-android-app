@@ -48,7 +48,7 @@ public class DebtSimplifier {
         for (GroupExpense expense : expenses) {
             String payerUid = expense.getPayerUid();
             double amount = expense.getAmount();
-            Map<String, Boolean> participants = expense.getParticipants();
+            List<String> participants = expense.getParticipants();
 
             if (participants == null || participants.isEmpty()) continue;
 
@@ -60,7 +60,7 @@ public class DebtSimplifier {
                     netBalances.getOrDefault(payerUid, 0.0) + amount);
 
             // Each participant (including payer) consumed their share
-            for (String uid : participants.keySet()) {
+            for (String uid : participants) {
                 netBalances.put(uid,
                         netBalances.getOrDefault(uid, 0.0) - sharePerPerson);
             }

@@ -1,35 +1,39 @@
 package com.example.fairshare;
 
-import java.util.HashMap;
-import java.util.Map;
+import com.google.firebase.firestore.DocumentId;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
- * Represents a shared expense within a group, stored in Firebase Realtime Database
- * at path: group_expenses/{groupId}/{expenseId}
+ * Represents a shared expense within a group, stored in Firestore
+ * at path: group_expenses/{expenseId}
  */
 public class GroupExpense {
 
+    @DocumentId
     private String id;
+    private String groupId;
     private String title;
     private String payerUid;
     private String payerName;
     private double amount;
     private String splitType; // "EQUAL" for Phase 1
-    private Map<String, Boolean> participants;
+    private List<String> participants;
     private long timestamp;
 
     // Required empty constructor for Firebase deserialization
     public GroupExpense() {
-        participants = new HashMap<>();
+        participants = new ArrayList<>();
     }
 
-    public GroupExpense(String title, String payerUid, String payerName, double amount) {
+    public GroupExpense(String groupId, String title, String payerUid, String payerName, double amount) {
+        this.groupId = groupId;
         this.title = title;
         this.payerUid = payerUid;
         this.payerName = payerName;
         this.amount = amount;
         this.splitType = "EQUAL";
-        this.participants = new HashMap<>();
+        this.participants = new ArrayList<>();
         this.timestamp = System.currentTimeMillis();
     }
 
@@ -41,6 +45,14 @@ public class GroupExpense {
 
     public void setId(String id) {
         this.id = id;
+    }
+
+    public String getGroupId() {
+        return groupId;
+    }
+
+    public void setGroupId(String groupId) {
+        this.groupId = groupId;
     }
 
     public String getTitle() {
@@ -83,11 +95,11 @@ public class GroupExpense {
         this.splitType = splitType;
     }
 
-    public Map<String, Boolean> getParticipants() {
+    public List<String> getParticipants() {
         return participants;
     }
 
-    public void setParticipants(Map<String, Boolean> participants) {
+    public void setParticipants(List<String> participants) {
         this.participants = participants;
     }
 
