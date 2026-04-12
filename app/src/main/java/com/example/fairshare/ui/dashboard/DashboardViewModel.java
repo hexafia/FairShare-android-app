@@ -17,6 +17,7 @@ public class DashboardViewModel extends ViewModel {
 
     private final LiveData<List<Transaction>> personalExpenses;
     private final LiveData<List<GroupExpense>> groupExpenses;
+    private final LiveData<List<Group>> groups;
 
     public DashboardViewModel() {
         expenseRepository = new ExpenseRepository();
@@ -24,6 +25,7 @@ public class DashboardViewModel extends ViewModel {
         
         personalExpenses = expenseRepository.getExpenses();
         groupExpenses = groupRepository.getAllMyGroupExpenses();
+        groups = groupRepository.getGroups();
     }
 
     public LiveData<List<Transaction>> getPersonalExpenses() {
@@ -32,6 +34,10 @@ public class DashboardViewModel extends ViewModel {
 
     public LiveData<List<GroupExpense>> getGroupExpenses() {
         return groupExpenses;
+    }
+
+    public LiveData<List<Group>> getGroups() {
+        return groups;
     }
 
     public void addPersonalExpense(Transaction transaction) {
@@ -44,6 +50,14 @@ public class DashboardViewModel extends ViewModel {
     
     public void createGroup(String name, GroupRepository.OnCompleteCallback callback) {
         groupRepository.createGroup(name, callback);
+    }
+    
+    public void addGroupExpense(String groupId, GroupExpense expense) {
+        groupRepository.addGroupExpense(groupId, expense);
+    }
+
+    public void getGroupMembers(String groupId, GroupRepository.OnMembersCallback callback) {
+        groupRepository.getGroupMembers(groupId, callback);
     }
 
     @Override

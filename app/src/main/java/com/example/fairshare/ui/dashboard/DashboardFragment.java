@@ -45,6 +45,7 @@ public class DashboardFragment extends Fragment {
 
     private List<Transaction> currentPersonalExpenses = new ArrayList<>();
     private List<GroupExpense> currentGroupExpenses = new ArrayList<>();
+    private List<com.example.fairshare.Group> currentGroups = new ArrayList<>();
 
     @Nullable
     @Override
@@ -91,6 +92,10 @@ public class DashboardFragment extends Fragment {
         viewModel.getGroupExpenses().observe(getViewLifecycleOwner(), expenses -> {
             currentGroupExpenses = expenses != null ? expenses : new ArrayList<>();
             updateSummary();
+        });
+
+        viewModel.getGroups().observe(getViewLifecycleOwner(), groups -> {
+            currentGroups = groups != null ? groups : new ArrayList<>();
         });
     }
 
@@ -227,8 +232,146 @@ public class DashboardFragment extends Fragment {
     }
 
     private void showAddGroupExpenseDialog() {
-        // TODO: Implement the redesigned UI logic here
-        Toast.makeText(requireContext(), "Opening Group Expense Dialog...", Toast.LENGTH_SHORT).show();
+        if (currentGroups.isEmpty()) {
+            Toast.makeText(requireContext(), "You are not part of any groups", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        if (currentGroups.size() == 1) {
+            showGroupExpenseDialogForGroup(currentGroups.get(0));
+        } else {
+            CharSequence[] groupNames = new CharSequence[currentGroups.size()];
+            for (int i = 0; i < currentGroups.size(); i++) {
+                groupNames[i] = currentGroups.get(i).getName();
+            }
+            new AlertDialog.Builder(requireContext(), R.style.Theme_FairShare_Dialog)
+                    .setTitle("Select Group")
+                    .setItems(groupNames, (dialog, which) -> {
+                        showGroupExpenseDialogForGroup(currentGroups.get(which));
+                    })
+                    .show();
+        }
+    }
+
+    private void showGroupExpenseDialogForGroup(com.example.fairshare.Group group) {
+        View dialogView = LayoutInflater.from(requireContext()).inflate(R.layout.dialog_add_group_expense, null);
+        Dialog dialog = new Dialog(requireContext(), R.style.Theme_FairShare_Dialog);
+        dialog.setContentView(dialogView);
+        dialog.setCancelable(true);
+
+        android.widget.TextView tvSelectGroup = dialogView.findViewById(R.id.tvSelectGroup);
+        tvSelectGroup.setText(group.getName());
+        dialogView.findViewById(R.id.btnClose).setOnClickListener(v -> dialog.dismiss());
+
+        TextInputEditText etTitle = dialogView.findViewById(R.id.etTitle);
+        TextInputEditText etAmount = dialogView.findViewById(R.id.etAmount);
+        Spinner spinnerWhoPaid = dialogView.findViewById(R.id.spinnerWhoPaid);
+        Spinner spinnerCategory = dialogView.findViewById(R.id.spinnerCategory);
+        android.widget.LinearLayout containerParticipants = dialogView.findViewById(R.id.containerParticipants);
+        MaterialButton btnAddExpense = dialogView.findViewById(R.id.btnAddExpense);
+        android.widget.TextView tvParticipatedHeader = dialogView.findViewById(R.id.tvParticipatedHeader);
+
+        dialogView.findViewById(R.id.btnEqualSplit).setOnClickListener(v -> Toast.makeText(requireContext(), "Equal split selected", Toast.LENGTH_SHORT).show());
+        dialogView.findViewById(R.id.btnItemized).setOnClickListener(v -> Toast.makeText(requireContext(), "Itemized split coming soon!", Toast.LENGTH_SHORT).show());
+
+        ArrayAdapter<CharSequence> categoryAdapter = ArrayAdapter.createFromResource(
+                requireContext(), R.array.categories, android.R.layout.simple_spinner_item);
+        categoryAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        spinnerCategory.setAdapter(categoryAdapter);
+
+        List<String> memberUids = new ArrayList<>();
+        List<String> memberNames = new ArrayList<>();
+        java.util.Map<String, android.widget.CheckBox> checkboxes = new java.util.HashMap<>();
+
+        viewModel.getGroupMembers(group.getId(), uids -> {
+            for (String uid : uids) {
+                com.google.firebase.firestore.FirebaseFirestore.getInstance()
+                        .collection("users").document(uid).get()
+                        .addOnSuccessListener(doc -> {
+                            if (doc.exists() && dialog.isShowing()) {
+                                String name = doc.getString("displayName");
+                                if (name == null) name = "User";
+                                
+                                FirebaseUser currentUser = FirebaseAuth.getInstance().getCurrentUser();
+                                if (currentUser != null && currentUser.getUid().equals(uid)) {
+                                    name = "You";
+                                }
+
+                                memberUids.add(uid);
+                                memberNames.add(name);
+
+                                ArrayAdapter<String> payerAdapter = new ArrayAdapter<>(requireContext(), android.R.layout.simple_spinner_item, memberNames);
+                                payerAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+                                spinnerWhoPaid.setAdapter(payerAdapter);
+
+                                android.widget.CheckBox cb = new android.widget.CheckBox(requireContext());
+                                cb.setText(name);
+                                cb.setChecked(true);
+                                cb.setTextColor(android.graphics.Color.parseColor("#2D3142"));
+                                cb.setPadding(16, 24, 16, 24);
+                                cb.setTextSize(16);
+                                
+                                cb.setOnCheckedChangeListener((buttonView, isChecked) -> {
+                                     int count = 0;
+                                     for(android.widget.CheckBox c : checkboxes.values()) {
+                                         if(c.isChecked()) count++;
+                                     }
+                                     tvParticipatedHeader.setText("Who Participated? (" + count + " selected)");
+                                });
+                                containerParticipants.addView(cb);
+                                checkboxes.put(uid, cb);
+                                
+                                tvParticipatedHeader.setText("Who Participated? (" + checkboxes.size() + " selected)");
+                                
+                                // Set initial payer to "You" if possible
+                                if (name.equals("You")) {
+                                    spinnerWhoPaid.setSelection(memberNames.size() - 1);
+                                }
+                            }
+                        });
+            }
+        });
+
+        btnAddExpense.setOnClickListener(v -> {
+            String title = etTitle.getText() != null ? etTitle.getText().toString().trim() : "";
+            String amountStr = etAmount.getText() != null ? etAmount.getText().toString().trim() : "";
+
+            if (title.isEmpty()) { etTitle.setError("Title is required"); return; }
+            if (amountStr.isEmpty()) { etAmount.setError("Amount is required"); return; }
+
+            double amount;
+            try { amount = Double.parseDouble(amountStr); } 
+            catch (NumberFormatException e) { etAmount.setError("Invalid amount"); return; }
+
+            int selectedPayerIndex = spinnerWhoPaid.getSelectedItemPosition();
+            if (selectedPayerIndex < 0) { 
+                Toast.makeText(requireContext(), "Please select who paid", Toast.LENGTH_SHORT).show(); return; 
+            }
+
+            String payerUid = memberUids.get(selectedPayerIndex);
+            String payerName = memberNames.get(selectedPayerIndex);
+
+            GroupExpense expense = new GroupExpense(group.getId(), title, payerUid, payerName, amount);
+            for (String uid : checkboxes.keySet()) {
+                if (checkboxes.get(uid).isChecked()) {
+                    expense.getParticipants().add(uid);
+                }
+            }
+            
+            if (expense.getParticipants().isEmpty()) {
+                Toast.makeText(requireContext(), "Please select at least one participant", Toast.LENGTH_SHORT).show();
+                return;
+            }
+
+            viewModel.addGroupExpense(group.getId(), expense);
+            Toast.makeText(requireContext(), "Group Expense added!", Toast.LENGTH_SHORT).show();
+            dialog.dismiss();
+        });
+
+        dialog.show();
+        if (dialog.getWindow() != null) {
+            dialog.getWindow().setLayout(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT);
+        }
     }
 
     private void showDeleteConfirmation(Transaction transaction) {
