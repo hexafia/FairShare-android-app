@@ -99,7 +99,7 @@ public class GroupRepositoryRTDB {
 
         String shareCode = generateShareCode();
         Group group = new Group(name, shareCode, user.getUid());
-        group.getMembers().put(user.getUid(), true);
+        group.getMembers().add(user.getUid());
 
         String groupId = dbRef.child(GROUPS_REF).push().getKey();
         if (groupId == null) {
