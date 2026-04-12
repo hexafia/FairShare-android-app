@@ -249,48 +249,14 @@ public class DashboardFragment extends Fragment {
             return;
         }
 
-        if (currentGroups.size() == 1) {
-            showGroupExpenseDialogForGroup(currentGroups.get(0));
-        } else {
-            String[] groupNames = new String[currentGroups.size()];
-            for (int i = 0; i < currentGroups.size(); i++) {
-                groupNames[i] = currentGroups.get(i).getName();
-            }
-
-            Dialog dialog = new Dialog(requireContext(), R.style.Theme_FairShare_Dialog);
-            View dialogView = LayoutInflater.from(requireContext()).inflate(R.layout.dialog_select_list, null);
-            dialog.setContentView(dialogView);
-
-            android.widget.TextView tvTitle = dialogView.findViewById(R.id.tvTitle);
-            android.widget.ListView listView = dialogView.findViewById(R.id.listView);
-
-            tvTitle.setText("Select Group");
-            ArrayAdapter<String> adapter = new ArrayAdapter<>(requireContext(), R.layout.item_select_dialog, groupNames);
-            listView.setAdapter(adapter);
-
-            listView.setOnItemClickListener((parent, view, position, id) -> {
-                dialog.dismiss();
-                showGroupExpenseDialogForGroup(currentGroups.get(position));
-            });
-
-            dialog.show();
-            if (dialog.getWindow() != null) {
-                int width = (int) (350 * getResources().getDisplayMetrics().density);
-                dialog.getWindow().setLayout(width, ViewGroup.LayoutParams.WRAP_CONTENT);
-            }
-        }
-    }
-
-    private void showGroupExpenseDialogForGroup(com.example.fairshare.Group group) {
         View dialogView = LayoutInflater.from(requireContext()).inflate(R.layout.dialog_add_group_expense, null);
         Dialog dialog = new Dialog(requireContext(), R.style.Theme_FairShare_Dialog);
         dialog.setContentView(dialogView);
         dialog.setCancelable(true);
 
-        android.widget.TextView tvSelectGroup = dialogView.findViewById(R.id.tvSelectGroup);
-        tvSelectGroup.setText(group.getName());
         dialogView.findViewById(R.id.btnClose).setOnClickListener(v -> dialog.dismiss());
 
+        Spinner spinnerSelectGroup = dialogView.findViewById(R.id.spinnerSelectGroup);
         TextInputEditText etTitle = dialogView.findViewById(R.id.etTitle);
         TextInputEditText etAmount = dialogView.findViewById(R.id.etAmount);
         Spinner spinnerWhoPaid = dialogView.findViewById(R.id.spinnerWhoPaid);
@@ -307,57 +273,79 @@ public class DashboardFragment extends Fragment {
         categoryAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         spinnerCategory.setAdapter(categoryAdapter);
 
+        String[] groupNames = new String[currentGroups.size()];
+        for (int i = 0; i < currentGroups.size(); i++) {
+            groupNames[i] = currentGroups.get(i).getName();
+        }
+        ArrayAdapter<String> groupAdapter = new ArrayAdapter<>(requireContext(), android.R.layout.simple_spinner_item, groupNames);
+        groupAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        spinnerSelectGroup.setAdapter(groupAdapter);
+
+        final com.example.fairshare.Group[] selectedGroup = {currentGroups.get(0)};
         List<String> memberUids = new ArrayList<>();
         List<String> memberNames = new ArrayList<>();
         java.util.Map<String, android.widget.CheckBox> checkboxes = new java.util.HashMap<>();
 
-        viewModel.getGroupMembers(group.getId(), uids -> {
-            for (String uid : uids) {
-                com.google.firebase.firestore.FirebaseFirestore.getInstance()
-                        .collection("users").document(uid).get()
-                        .addOnSuccessListener(doc -> {
-                            if (doc.exists() && dialog.isShowing()) {
-                                String name = doc.getString("displayName");
-                                if (name == null) name = "User";
-                                
-                                FirebaseUser currentUser = FirebaseAuth.getInstance().getCurrentUser();
-                                if (currentUser != null && currentUser.getUid().equals(uid)) {
-                                    name = "You";
-                                }
+        spinnerSelectGroup.setOnItemSelectedListener(new android.widget.AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(android.widget.AdapterView<?> parent, View view, int position, long id) {
+                selectedGroup[0] = currentGroups.get(position);
+                memberUids.clear();
+                memberNames.clear();
+                checkboxes.clear();
+                containerParticipants.removeAllViews();
+                
+                viewModel.getGroupMembers(selectedGroup[0].getId(), uids -> {
+                    for (String uid : uids) {
+                        com.google.firebase.firestore.FirebaseFirestore.getInstance()
+                                .collection("users").document(uid).get()
+                                .addOnSuccessListener(doc -> {
+                                    if (doc.exists() && dialog.isShowing()) {
+                                        String name = doc.getString("displayName");
+                                        if (name == null) name = "User";
+                                        
+                                        FirebaseUser currentUser = FirebaseAuth.getInstance().getCurrentUser();
+                                        if (currentUser != null && currentUser.getUid().equals(uid)) {
+                                            name = "You";
+                                        }
 
-                                memberUids.add(uid);
-                                memberNames.add(name);
+                                        memberUids.add(uid);
+                                        memberNames.add(name);
 
-                                ArrayAdapter<String> payerAdapter = new ArrayAdapter<>(requireContext(), android.R.layout.simple_spinner_item, memberNames);
-                                payerAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-                                spinnerWhoPaid.setAdapter(payerAdapter);
+                                        ArrayAdapter<String> payerAdapter = new ArrayAdapter<>(requireContext(), android.R.layout.simple_spinner_item, memberNames);
+                                        payerAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+                                        spinnerWhoPaid.setAdapter(payerAdapter);
 
-                                android.widget.CheckBox cb = new android.widget.CheckBox(requireContext());
-                                cb.setText(name);
-                                cb.setChecked(true);
-                                cb.setTextColor(android.graphics.Color.parseColor("#2D3142"));
-                                cb.setPadding(16, 24, 16, 24);
-                                cb.setTextSize(16);
-                                
-                                cb.setOnCheckedChangeListener((buttonView, isChecked) -> {
-                                     int count = 0;
-                                     for(android.widget.CheckBox c : checkboxes.values()) {
-                                         if(c.isChecked()) count++;
-                                     }
-                                     tvParticipatedHeader.setText("Who Participated? (" + count + " selected)");
+                                        android.widget.CheckBox cb = new android.widget.CheckBox(requireContext());
+                                        cb.setText(name);
+                                        cb.setChecked(true);
+                                        cb.setTextColor(android.graphics.Color.parseColor("#2D3142"));
+                                        cb.setPadding(16, 24, 16, 24);
+                                        cb.setTextSize(16);
+                                        
+                                        cb.setOnCheckedChangeListener((buttonView, isChecked) -> {
+                                             int count = 0;
+                                             for(android.widget.CheckBox c : checkboxes.values()) {
+                                                 if(c.isChecked()) count++;
+                                             }
+                                             tvParticipatedHeader.setText("Who Participated? (" + count + " selected)");
+                                        });
+                                        containerParticipants.addView(cb);
+                                        checkboxes.put(uid, cb);
+                                        
+                                        tvParticipatedHeader.setText("Who Participated? (" + checkboxes.size() + " selected)");
+                                        
+                                        if (name.equals("You")) {
+                                            spinnerWhoPaid.setSelection(memberNames.size() - 1);
+                                        }
+                                    }
                                 });
-                                containerParticipants.addView(cb);
-                                checkboxes.put(uid, cb);
-                                
-                                tvParticipatedHeader.setText("Who Participated? (" + checkboxes.size() + " selected)");
-                                
-                                // Set initial payer to "You" if possible
-                                if (name.equals("You")) {
-                                    spinnerWhoPaid.setSelection(memberNames.size() - 1);
-                                }
-                            }
-                        });
+                    }
+                });
             }
+
+            @Override
+            public void onNothingSelected(android.widget.AdapterView<?> parent) {}
         });
 
         btnAddExpense.setOnClickListener(v -> {
@@ -379,7 +367,7 @@ public class DashboardFragment extends Fragment {
             String payerUid = memberUids.get(selectedPayerIndex);
             String payerName = memberNames.get(selectedPayerIndex);
 
-            GroupExpense expense = new GroupExpense(group.getId(), title, payerUid, payerName, amount);
+            GroupExpense expense = new GroupExpense(selectedGroup[0].getId(), title, payerUid, payerName, amount);
             for (String uid : checkboxes.keySet()) {
                 if (checkboxes.get(uid).isChecked()) {
                     expense.getParticipants().add(uid);
@@ -391,7 +379,7 @@ public class DashboardFragment extends Fragment {
                 return;
             }
 
-            viewModel.addGroupExpense(group.getId(), expense);
+            viewModel.addGroupExpense(selectedGroup[0].getId(), expense);
             Toast.makeText(requireContext(), "Group Expense added!", Toast.LENGTH_SHORT).show();
             dialog.dismiss();
         });

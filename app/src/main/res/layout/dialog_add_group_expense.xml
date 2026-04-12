@@ -67,13 +67,12 @@
                         android:text="Adding to"
                         android:textColor="#38BDB0"
                         android:textSize="12sp" />
-                    <TextView
-                        android:id="@+id/tvSelectGroup"
-                        android:layout_width="wrap_content"
+                    <Spinner
+                        android:id="@+id/spinnerSelectGroup"
+                        android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:text="Select Group"
-                        android:textColor="#2D3142"
-                        android:textSize="16sp" />
+                        android:background="@null"
+                        android:paddingEnd="16dp" />
                 </LinearLayout>
             </LinearLayout>
 
