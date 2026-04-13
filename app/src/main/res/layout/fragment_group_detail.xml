@@ -159,16 +159,5 @@
 
     </androidx.core.widget.NestedScrollView>
 
-    <!-- Floating Action Buttons -->
-    <com.google.android.material.floatingactionbutton.FloatingActionButton
-        android:id="@+id/fabAddExpense"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_margin="16dp"
-        android:src="@drawable/ic_add"
-        android:tint="@color/white"
-        app:backgroundTint="@color/teal"
-        app:layout_anchor="@id/viewPager"
-        app:layout_anchorGravity="bottom|end" />
-
+    
 </androidx.coordinatorlayout.widget.CoordinatorLayout>

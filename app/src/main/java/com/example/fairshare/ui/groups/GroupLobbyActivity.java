@@ -16,6 +16,7 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.example.fairshare.CurrencyHelper;
 import com.example.fairshare.DebtSimplifier;
 import com.example.fairshare.GroupExpense;
+import com.example.fairshare.Group;
 import com.example.fairshare.GroupRepository;
 import com.example.fairshare.R;
 import com.example.fairshare.UserProfile;
@@ -43,9 +44,11 @@ public class GroupLobbyActivity extends AppCompatActivity {
     private SettlementDetailAdapter settlementAdapter;
 
     private TextView tvGroupTotal, tvMemberCount, tvMyBalance;
-    private View layoutLedger, layoutSettleUp;
-    private TextView tvLedgerEmpty, tvSettleEmpty;
-    private RecyclerView rvLedger, rvDebts;
+    private View layoutLedger, layoutSettleUp, layoutMembers;
+    private TextView tvLedgerEmpty, tvSettleEmpty, tvMembersEmpty;
+    private RecyclerView rvLedger, rvDebts, rvMembers;
+    private MaterialButton btnMarkAsAccomplished;
+    private Group currentGroup;
 
     // Maps UID → display name for the Settle Up tab
     private final Map<String, String> memberNames = new HashMap<>();
@@ -87,21 +90,30 @@ public class GroupLobbyActivity extends AppCompatActivity {
         // Setup tabs
         layoutLedger = findViewById(R.id.layoutLedger);
         layoutSettleUp = findViewById(R.id.layoutSettleUp);
+        layoutMembers = findViewById(R.id.layoutMembers);
         tvLedgerEmpty = findViewById(R.id.tvLedgerEmpty);
         tvSettleEmpty = findViewById(R.id.tvSettleEmpty);
+        tvMembersEmpty = findViewById(R.id.tvMembersEmpty);
         rvLedger = findViewById(R.id.rvLedger);
         rvDebts = findViewById(R.id.rvDebts);
+        rvMembers = findViewById(R.id.rvMembers);
+        btnMarkAsAccomplished = findViewById(R.id.btnMarkAsAccomplished);
 
         TabLayout tabLayout = findViewById(R.id.tabLayout);
         tabLayout.addOnTabSelectedListener(new TabLayout.OnTabSelectedListener() {
             @Override
             public void onTabSelected(TabLayout.Tab tab) {
+                // Hide all layouts first
+                layoutLedger.setVisibility(View.GONE);
+                layoutSettleUp.setVisibility(View.GONE);
+                layoutMembers.setVisibility(View.GONE);
+                
                 if (tab.getPosition() == 0) {
                     layoutLedger.setVisibility(View.VISIBLE);
-                    layoutSettleUp.setVisibility(View.GONE);
-                } else {
-                    layoutLedger.setVisibility(View.GONE);
+                } else if (tab.getPosition() == 1) {
                     layoutSettleUp.setVisibility(View.VISIBLE);
+                } else if (tab.getPosition() == 2) {
+                    layoutMembers.setVisibility(View.VISIBLE);
                 }
             }
 
@@ -121,12 +133,15 @@ public class GroupLobbyActivity extends AppCompatActivity {
         rvDebts.setLayoutManager(new LinearLayoutManager(this));
         rvDebts.setAdapter(settlementAdapter);
 
-        // FAB
-        findViewById(R.id.fabAddExpense).setOnClickListener(v -> showAddExpenseDialog());
+        // Mark as Accomplished button
+        btnMarkAsAccomplished.setOnClickListener(v -> markGroupAsAccomplished());
 
         // Repositories
         groupRepository = new GroupRepository();
         userRepository = new UserRepository();
+
+        // Load group data
+        loadGroupData();
 
         // Load member names for display
         loadMemberNames();
@@ -167,11 +182,49 @@ public class GroupLobbyActivity extends AppCompatActivity {
                                     // Refresh settlement display with new names
                                     settlementAdapter.setMemberNames(memberNames);
                                     settlementAdapter.notifyDataSetChanged();
+                                    // Also populate members tab
+                                    populateMembersTab();
                                 }
                             }
                         });
             }
         });
+    }
+
+    private void populateMembersTab() {
+        if (memberNames.isEmpty()) {
+            tvMembersEmpty.setVisibility(View.VISIBLE);
+            rvMembers.setVisibility(View.GONE);
+        } else {
+            tvMembersEmpty.setVisibility(View.GONE);
+            rvMembers.setVisibility(View.VISIBLE);
+            
+            // Create a simple adapter for members display
+            java.util.List<String> memberList = new java.util.ArrayList<>(memberNames.keySet());
+            java.util.Collections.sort(memberList, (uid1, uid2) -> {
+                // Put creator first, then sort by name
+                if (currentGroup != null && uid1.equals(currentGroup.getCreatedBy())) return -1;
+                if (currentGroup != null && uid2.equals(currentGroup.getCreatedBy())) return 1;
+                return memberNames.get(uid1).compareToIgnoreCase(memberNames.get(uid2));
+            });
+            
+            // Simple ArrayAdapter for members
+            android.widget.ArrayAdapter<String> membersAdapter = new android.widget.ArrayAdapter<>(
+                    this,
+                    android.R.layout.simple_list_item_1,
+                    memberList.stream()
+                            .map(uid -> {
+                                String name = memberNames.get(uid);
+                                if (currentGroup != null && uid.equals(currentGroup.getCreatedBy())) {
+                                    return name + " (Creator)";
+                                }
+                                return name;
+                            })
+                            .toArray(new String[0])
+            );
+            
+            rvMembers.setAdapter(membersAdapter);
+        }
     }
 
     private void updateStats(List<GroupExpense> expenses) {
@@ -296,9 +349,71 @@ public class GroupLobbyActivity extends AppCompatActivity {
         }
     }
 
-    @Override
-    protected void onDestroy() {
-        super.onDestroy();
-        groupRepository.removeListeners();
+private void loadGroupData() {
+    // Load group data to check status and creator
+    groupRepository.getGroups().observe(this, groups -> {
+        if (groups != null) {
+            for (Group group : groups) {
+                if (group.getId().equals(groupId)) {
+                    currentGroup = group;
+                    updateUI();
+                    break;
+                }
+            }
+        }
+    });
+}
+
+private void updateUI() {
+    if (currentGroup == null) return;
+
+    FirebaseUser currentUser = FirebaseAuth.getInstance().getCurrentUser();
+    String currentUserId = currentUser != null ? currentUser.getUid() : null;
+
+    // Show/hide Mark as Accomplished button based on creator and status
+    if (currentUserId != null && currentUserId.equals(currentGroup.getCreatedBy()) 
+            && currentGroup.isActive()) {
+        btnMarkAsAccomplished.setVisibility(View.VISIBLE);
+    } else {
+        btnMarkAsAccomplished.setVisibility(View.GONE);
     }
+
+    // Disable functionality for settled groups
+    if (currentGroup.isSettled()) {
+        disableAllInputElements();
+    }
+}
+
+private void markGroupAsAccomplished() {
+    if (groupId == null || currentGroup == null) return;
+
+    groupRepository.updateGroupStatus(groupId, "settled", new GroupRepository.OnCompleteCallback() {
+        @Override
+        public void onSuccess(String message) {
+            Toast.makeText(GroupLobbyActivity.this, "Group marked as accomplished!", Toast.LENGTH_SHORT).show();
+            // UI will update automatically when group data changes
+        }
+
+        @Override
+        public void onError(String error) {
+            Toast.makeText(GroupLobbyActivity.this, "Error: " + error, Toast.LENGTH_SHORT).show();
+        }
+    });
+}
+
+private void disableAllInputElements() {
+    // Disable Mark as Accomplished button
+    if (btnMarkAsAccomplished != null) {
+        btnMarkAsAccomplished.setEnabled(false);
+        btnMarkAsAccomplished.setVisibility(View.GONE);
+    }
+
+    // Disable add expense functionality
+    // Note: FAB was already removed from XML
+}
+
+@Override
+protected void onDestroy() {
+    super.onDestroy();
+    groupRepository.removeListeners();
 }
