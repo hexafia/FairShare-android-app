@@ -1,5 +1,6 @@
 package com.example.fairshare.ui.groups;
 
+import android.app.AlertDialog;
 import android.app.Dialog;
 import android.os.Bundle;
 import android.util.Log;
@@ -305,6 +306,17 @@ public class GroupLobbyActivity extends AppCompatActivity {
             Log.d("FAB_DEBUG", "Dialog created, about to show");
             dialog.show();
             Log.d("FAB_DEBUG", "Dialog show() called");
+            
+            // Explicitly request focus on title input
+            etTitle.requestFocus();
+            
+            // Clear window flags and set soft input mode
+            if (dialog.getWindow() != null) {
+                int width = (int) (350 * getResources().getDisplayMetrics().density);
+                dialog.getWindow().setLayout(width, ViewGroup.LayoutParams.WRAP_CONTENT);
+                dialog.getWindow().clearFlags(WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE | WindowManager.LayoutParams.FLAG_ALT_FOCUSABLE_IM);
+                dialog.getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_VISIBLE);
+            }
             
             TextInputEditText etTitle = dialogView.findViewById(R.id.etTitle);
             TextInputEditText etAmount = dialogView.findViewById(R.id.etAmount);

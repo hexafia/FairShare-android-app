@@ -92,7 +92,10 @@
                 android:hint="e.g., Restaurant Bill, Groceries"
                 android:textColorHint="#A0AAB2"
                 android:padding="16dp"
-                android:layout_marginBottom="24dp" />
+                android:layout_marginBottom="24dp"
+                android:focusable="true"
+                android:focusableInTouchMode="true"
+                android:clickable="true" />
 
             <!-- Total Amount -->
             <TextView
@@ -111,7 +114,10 @@
                 android:textColorHint="#A0AAB2"
                 android:padding="16dp"
                 android:inputType="numberDecimal"
-                android:layout_marginBottom="24dp" />
+                android:layout_marginBottom="24dp"
+                android:focusable="true"
+                android:focusableInTouchMode="true"
+                android:clickable="true" />
 
             <!-- Who Paid? -->
             <TextView
