@@ -342,16 +342,23 @@ public class GroupLobbyActivity extends AppCompatActivity {
             btnEqualSplit.setOnClickListener(v -> {
                 // Handle equal split logic
                 tvSplitInfo.setText("Split equally among all group members (Equal selected)");
+                // Set active button background
+                btnEqualSplit.setBackgroundColor(getResources().getColor(android.R.color.holo_blue_light));
+                btnUnequalSplit.setBackgroundColor(getResources().getColor(android.R.color.darker_gray));
             });
             
             btnUnequalSplit.setOnClickListener(v -> {
                 // Handle unequal split logic  
                 tvSplitInfo.setText("Custom split amounts (Unequal selected)");
+                // Set active button background
+                btnUnequalSplit.setBackgroundColor(getResources().getColor(android.R.color.holo_blue_light));
+                btnEqualSplit.setBackgroundColor(getResources().getColor(android.R.color.darker_gray));
             });
 
             btnCancel.setOnClickListener(v -> dialog.dismiss());
 
             // Explicitly request focus on title input
+            etTitle.setFocusableInTouchMode(true);
             etTitle.requestFocus();
             
             // Clear window flags and set soft input mode
@@ -370,6 +377,7 @@ public class GroupLobbyActivity extends AppCompatActivity {
                 String title = etTitle.getText() != null ? etTitle.getText().toString().trim() : "";
                 String amountStr = etAmount.getText() != null ? etAmount.getText().toString().trim() : "";
 
+                // Validate inputs before processing
                 if (title.isEmpty()) {
                     etTitle.setError("Title is required");
                     return;
