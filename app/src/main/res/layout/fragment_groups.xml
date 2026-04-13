@@ -37,6 +37,7 @@
 
     <!-- Main Content Area with Rounded Corners -->
     <androidx.core.widget.NestedScrollView
+        android:id="@+id/nestedScrollView"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:layout_marginTop="120dp"
@@ -181,5 +182,19 @@
         </LinearLayout>
 
     </androidx.core.widget.NestedScrollView>
+
+    <!-- FloatingActionButton for creating new groups -->
+    <com.google.android.material.floatingactionbutton.FloatingActionButton
+        android:id="@+id/fabGlobalAction"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_margin="16dp"
+        android:contentDescription="Create New Group"
+        android:src="@drawable/ic_add"
+        app:backgroundTint="@color/teal"
+        app:tint="@color/white"
+        app:fabSize="normal"
+        app:layout_anchor="@id/nestedScrollView"
+        app:layout_anchorGravity="bottom|end" />
 
 </androidx.coordinatorlayout.widget.CoordinatorLayout>

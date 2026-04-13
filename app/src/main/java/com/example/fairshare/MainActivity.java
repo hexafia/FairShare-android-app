@@ -38,17 +38,6 @@ public class MainActivity extends AppCompatActivity {
         if (navHostFragment != null) {
             NavController navController = navHostFragment.getNavController();
             NavigationUI.setupWithNavController(binding.bottomNav, navController);
-
-            binding.fabGlobalAction.setOnClickListener(v -> {
-                Fragment currentFragment = navHostFragment.getChildFragmentManager().getFragments().isEmpty()
-                        ? null
-                        : navHostFragment.getChildFragmentManager().getFragments().get(0);
-                if (currentFragment instanceof FastActionHandler) {
-                    ((FastActionHandler) currentFragment).onFastAction();
-                } else {
-                    Toast.makeText(this, "No quick action available on this page", Toast.LENGTH_SHORT).show();
-                }
-            });
         }
     }
 }

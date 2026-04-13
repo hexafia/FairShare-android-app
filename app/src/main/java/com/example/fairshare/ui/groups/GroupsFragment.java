@@ -35,6 +35,7 @@ public class GroupsFragment extends Fragment implements FastActionHandler {
     private View layoutEmptySettled;
     private RecyclerView rvActiveGroups;
     private RecyclerView rvSettledGroups;
+    private com.google.android.material.floatingactionbutton.FloatingActionButton fabGlobalAction;
 
     @Nullable
     @Override
@@ -82,6 +83,10 @@ public class GroupsFragment extends Fragment implements FastActionHandler {
         rvSettledGroups.setLayoutManager(new LinearLayoutManager(requireContext()));
         rvSettledGroups.setAdapter(settledAdapter);
 
+        // Initialize FAB
+        fabGlobalAction = view.findViewById(R.id.fabGlobalAction);
+        fabGlobalAction.setOnClickListener(v -> showCreateGroupDialog());
+
         // Observe groups
         groupRepository = new GroupRepository();
         groupRepository.getGroups().observe(getViewLifecycleOwner(), groups -> {
@@ -116,13 +121,18 @@ public class GroupsFragment extends Fragment implements FastActionHandler {
                     layoutEmptySettled.setVisibility(View.GONE);
                     rvSettledGroups.setVisibility(View.VISIBLE);
                 }
+
+                // Control FAB visibility - only show when Active Groups section is active
+                if (fabGlobalAction != null) {
+                    fabGlobalAction.setVisibility(View.VISIBLE); // Always show in groups fragment for creating new groups
+                }
             }
         });
     }
 
     @Override
     public void onFastAction() {
-        showGroupOptions();
+        showCreateGroupDialog();
     }
 
     private void showGroupOptions() {

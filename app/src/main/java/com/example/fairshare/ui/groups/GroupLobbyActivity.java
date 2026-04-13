@@ -49,6 +49,7 @@ public class GroupLobbyActivity extends AppCompatActivity {
     private TextView tvLedgerEmpty, tvSettleEmpty, tvMembersEmpty;
     private RecyclerView rvLedger, rvDebts, rvMembers;
     private MaterialButton btnMarkAsAccomplished;
+    private com.google.android.material.floatingactionbutton.FloatingActionButton fabAddExpense;
     private Group currentGroup;
 
     // Maps UID → display name for the Settle Up tab
@@ -141,6 +142,10 @@ public class GroupLobbyActivity extends AppCompatActivity {
 
         // Mark as Accomplished button
         btnMarkAsAccomplished.setOnClickListener(v -> markGroupAsAccomplished());
+
+        // Initialize FAB
+        fabAddExpense = findViewById(R.id.fabAddExpense);
+        fabAddExpense.setOnClickListener(v -> showAddExpenseDialog());
 
         // Repositories
         groupRepository = new GroupRepository();
@@ -373,8 +378,13 @@ private void updateUI() {
         btnMarkAsAccomplished.setVisibility(View.GONE);
     }
 
-    // Disable functionality for settled groups
-    if (currentGroup.isSettled()) {
+    // Control FAB visibility based on group status
+    if (currentGroup.isActive()) {
+        if (fabAddExpense != null) {
+            fabAddExpense.setVisibility(View.VISIBLE);
+        }
+    } else if (currentGroup.isSettled()) {
+        // Disable functionality for settled groups
         disableAllInputElements();
     }
 }
@@ -403,9 +413,10 @@ private void disableAllInputElements() {
         btnMarkAsAccomplished.setVisibility(View.GONE);
     }
 
-    // Disable add expense functionality
-    // Note: FAB was already removed from XML, but we need to prevent the dialog from opening
-    // This will be handled in the showAddExpenseDialog method
+    // Hide FAB for settled groups
+    if (fabAddExpense != null) {
+        fabAddExpense.setVisibility(View.GONE);
+    }
 
     // Disable any other interactive elements if they exist
     // For now, the main restriction is preventing the add expense dialog
