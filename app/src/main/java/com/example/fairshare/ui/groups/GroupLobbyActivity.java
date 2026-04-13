@@ -356,8 +356,8 @@ public class GroupLobbyActivity extends AppCompatActivity {
                     tvSplitInfo.setText("Split equally among all group members (Equal selected)");
                 }
                 // Set active button background
-                btnEqualSplit.setBackgroundColor(getResources().getColor(android.R.color.holo_blue_light));
-                btnUnequalSplit.setBackgroundColor(getResources().getColor(android.R.color.darker_gray));
+                btnEqualSplit.setBackgroundColor(Color.parseColor("#38BDB0"));
+                btnUnequalSplit.setBackgroundColor(Color.parseColor("#EFFFFD"));
             });
             
             btnUnequalSplit.setOnClickListener(v -> {
