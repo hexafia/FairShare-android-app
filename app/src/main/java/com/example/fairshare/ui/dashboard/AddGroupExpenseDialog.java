@@ -93,7 +93,7 @@ public class AddGroupExpenseDialog {
         MaterialButton btnAddExpense = dialogView.findViewById(R.id.btnAddExpense);
         android.widget.TextView tvParticipatedHeader = dialogView.findViewById(R.id.tvParticipatedHeader);
         MaterialButton btnEqualSplit = dialogView.findViewById(R.id.btnEqualSplit);
-        MaterialButton btnItemized = dialogView.findViewById(R.id.btnItemized);
+        MaterialButton btnUnequalSplit = dialogView.findViewById(R.id.btnUnequalSplit);
 
         // Setup group spinner
         String[] groupNames = new String[availableGroups.size()];
@@ -119,21 +119,18 @@ public class AddGroupExpenseDialog {
 
         // Handle split type buttons
         currentSplitType = SPLIT_EQUAL;
-        updateSplitTypeUI(btnEqualSplit, btnItemized, SPLIT_EQUAL);
+        updateSplitTypeUI(btnEqualSplit, btnUnequalSplit, SPLIT_EQUAL);
 
         btnEqualSplit.setOnClickListener(v -> {
             currentSplitType = SPLIT_EQUAL;
-            updateSplitTypeUI(btnEqualSplit, btnItemized, SPLIT_EQUAL);
+            updateSplitTypeUI(btnEqualSplit, btnUnequalSplit, SPLIT_EQUAL);
             updateParticipantUI(containerParticipants, checkboxes, memberUids, memberNames, tvParticipatedHeader, etAmount, SPLIT_EQUAL, customSplits);
         });
 
-        btnItemized.setOnClickListener(v -> {
-            // Show dialog to choose between selective equal or unequal
-            showSplitMethodDialog(context, newMethod -> {
-                currentSplitType = newMethod;
-                updateSplitTypeUI(btnEqualSplit, btnItemized, newMethod);
-                updateParticipantUI(containerParticipants, checkboxes, memberUids, memberNames, tvParticipatedHeader, etAmount, newMethod, customSplits);
-            });
+        btnUnequalSplit.setOnClickListener(v -> {
+            currentSplitType = SPLIT_UNEQUAL;
+            updateSplitTypeUI(btnEqualSplit, btnUnequalSplit, SPLIT_UNEQUAL);
+            updateParticipantUI(containerParticipants, checkboxes, memberUids, memberNames, tvParticipatedHeader, etAmount, SPLIT_UNEQUAL, customSplits);
         });
 
         // Handle group selection
@@ -227,7 +224,8 @@ public class AddGroupExpenseDialog {
             List<String> selectedParticipants = new ArrayList<>();
             Map<String, Double> splitAmounts = new HashMap<>();
 
-            if (SPLIT_EQUAL.equals(currentSplitType) || SPLIT_SELECTIVE.equals(currentSplitType)) {
+            if (SPLIT_EQUAL.equals(currentSplitType)) {
+                // Collect from checked boxes
                 for (String uid : checkboxes.keySet()) {
                     android.widget.CheckBox cb = checkboxes.get(uid);
                     if (cb != null && cb.isChecked()) {
@@ -298,41 +296,24 @@ public class AddGroupExpenseDialog {
     /**
      * Updates the split type UI button states.
      */
-    private void updateSplitTypeUI(MaterialButton btnEqual, MaterialButton btnItemized, String splitType) {
+    private void updateSplitTypeUI(MaterialButton btnEqual, MaterialButton btnUnequal, String splitType) {
         if (SPLIT_EQUAL.equals(splitType)) {
             btnEqual.setBackgroundTintList(android.content.res.ColorStateList.valueOf(android.graphics.Color.parseColor("#38BDB0")));
             btnEqual.setTextColor(android.graphics.Color.WHITE);
-            btnItemized.setBackgroundTintList(android.content.res.ColorStateList.valueOf(android.graphics.Color.parseColor("#EFFFFD")));
-            btnItemized.setTextColor(android.graphics.Color.parseColor("#2D3142"));
+            btnUnequal.setBackgroundTintList(android.content.res.ColorStateList.valueOf(android.graphics.Color.parseColor("#EFFFFD")));
+            btnUnequal.setTextColor(android.graphics.Color.parseColor("#2D3142"));
         } else {
             btnEqual.setBackgroundTintList(android.content.res.ColorStateList.valueOf(android.graphics.Color.parseColor("#EFFFFD")));
             btnEqual.setTextColor(android.graphics.Color.parseColor("#2D3142"));
-            btnItemized.setBackgroundTintList(android.content.res.ColorStateList.valueOf(android.graphics.Color.parseColor("#38BDB0")));
-            btnItemized.setTextColor(android.graphics.Color.WHITE);
+            btnUnequal.setBackgroundTintList(android.content.res.ColorStateList.valueOf(android.graphics.Color.parseColor("#38BDB0")));
+            btnUnequal.setTextColor(android.graphics.Color.WHITE);
         }
     }
 
     /**
-     * Shows a dialog to choose between Selective Equal and Unequal splits.
-     */
-    private void showSplitMethodDialog(Context context, OnSplitMethodSelectedListener callback) {
-        AlertDialog.Builder builder = new AlertDialog.Builder(context, R.style.Theme_FairShare_Dialog);
-        builder.setTitle("Choose Split Method");
-        builder.setItems(
-                new String[]{"Selective Equal (equal among chosen members)", "Unequal (percentage-based)"},
-                (dialog, which) -> {
-                    if (which == 0) {
-                        callback.onSelected(SPLIT_SELECTIVE);
-                    } else {
-                        callback.onSelected(SPLIT_UNEQUAL);
-                    }
-                }
-        );
-        builder.show();
-    }
-
-    /**
      * Updates participant UI based on split type.
+     * For EQUAL: Shows checkboxes with all members pre-selected (inline selective)
+     * For UNEQUAL: Shows percentage input fields for each member
      */
     private void updateParticipantUI(
             android.widget.LinearLayout container,
@@ -348,15 +329,15 @@ public class AddGroupExpenseDialog {
         checkboxes.clear();
         customSplits.clear();
 
-        if (SPLIT_EQUAL.equals(splitType) || SPLIT_SELECTIVE.equals(splitType)) {
-            // Show checkboxes for member selection
+        if (SPLIT_EQUAL.equals(splitType)) {
+            // Show checkboxes for member selection (all pre-selected for inline customization)
             for (int i = 0; i < memberUids.size(); i++) {
                 final String uid = memberUids.get(i);
                 String name = memberNames.get(i);
 
                 android.widget.CheckBox cb = new android.widget.CheckBox(context);
                 cb.setText(name);
-                cb.setChecked(true);
+                cb.setChecked(true);  // All members pre-selected by default
                 cb.setTextColor(android.graphics.Color.parseColor("#2D3142"));
                 cb.setPadding(16, 24, 16, 24);
                 cb.setTextSize(16);
@@ -433,9 +414,5 @@ public class AddGroupExpenseDialog {
                 customSplits.put(uid, 0.0);
             }
         }
-    }
-
-    private interface OnSplitMethodSelectedListener {
-        void onSelected(String splitType);
     }
 }
