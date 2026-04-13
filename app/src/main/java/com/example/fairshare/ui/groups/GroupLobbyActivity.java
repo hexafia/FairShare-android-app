@@ -282,73 +282,78 @@ public class GroupLobbyActivity extends AppCompatActivity {
     }
 
     private void showAddExpenseDialog() {
-        // Check if group is settled before allowing expense addition
-        if (currentGroup != null && currentGroup.isSettled()) {
-            Toast.makeText(GroupLobbyActivity.this, "This group is archived and cannot be modified.", Toast.LENGTH_SHORT).show();
-            return;
-        }
+        try {
+            // Check if group is settled before allowing expense addition
+            if (currentGroup != null && currentGroup.isSettled()) {
+                Toast.makeText(GroupLobbyActivity.this, "This group is archived and cannot be modified.", Toast.LENGTH_SHORT).show();
+                return;
+            }
 
-        Dialog dialog = new Dialog(this, R.style.Theme_FairShare_Dialog);
-        dialog.setContentView(R.layout.dialog_add_group_expense);
-        
-        // DEBUG: Log when dialog is created
-        Log.d("GroupLobby", "Creating expense dialog for groupId: " + groupId);
+            View view = getLayoutInflater().inflate(R.layout.dialog_add_group_expense, null);
+            Dialog dialog = new Dialog(this, R.style.Theme_FairShare_Dialog);
+            dialog.setContentView(view);
+            
+            // DEBUG: Log when dialog is created
+            Log.d("GroupLobby", "Creating expense dialog for groupId: " + groupId);
 
-        TextInputEditText etTitle = dialog.findViewById(R.id.etTitle);
-        TextInputEditText etAmount = dialog.findViewById(R.id.etAmount);
-        TextView tvSplitInfo = dialog.findViewById(R.id.tvSplitInfo);
-        MaterialButton btnCancel = dialog.findViewById(R.id.btnCancel);
-        MaterialButton btnAddExpense = dialog.findViewById(R.id.btnAddExpense);
+            TextInputEditText etTitle = view.findViewById(R.id.etTitle);
+            TextInputEditText etAmount = view.findViewById(R.id.etAmount);
+            TextView tvSplitInfo = view.findViewById(R.id.tvSplitInfo);
+            MaterialButton btnCancel = view.findViewById(R.id.btnCancel);
+            MaterialButton btnAddExpense = view.findViewById(R.id.btnAddExpense);
 
         tvSplitInfo.setText("Split equally among all group members");
 
-        btnCancel.setOnClickListener(v -> dialog.dismiss());
+            btnCancel.setOnClickListener(v -> dialog.dismiss());
 
-        btnAddExpense.setOnClickListener(v -> {
-            String title = etTitle.getText() != null ? etTitle.getText().toString().trim() : "";
-            String amountStr = etAmount.getText() != null ? etAmount.getText().toString().trim() : "";
+            btnAddExpense.setOnClickListener(v -> {
+                String title = etTitle.getText() != null ? etTitle.getText().toString().trim() : "";
+                String amountStr = etAmount.getText() != null ? etAmount.getText().toString().trim() : "";
 
-            if (title.isEmpty()) {
-                etTitle.setError("Title is required");
-                return;
+                if (title.isEmpty()) {
+                    etTitle.setError("Title is required");
+                    return;
+                }
+                if (amountStr.isEmpty()) {
+                    etAmount.setError("Amount is required");
+                    return;
+                }
+
+                double amount;
+                try {
+                    amount = Double.parseDouble(amountStr);
+                } catch (NumberFormatException e) {
+                    etAmount.setError("Invalid amount");
+                    return;
+                }
+
+                FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
+                if (user == null) return;
+
+                String payerName = memberNames.getOrDefault(user.getUid(), "You");
+                GroupExpense expense = new GroupExpense(groupId, title, user.getUid(), payerName, amount);
+
+                // Add all current group members as participants
+                java.util.List<String> participants = new java.util.ArrayList<>();
+                for (String uid : memberNames.keySet()) {
+                    participants.add(uid);
+                }
+                expense.setParticipants(participants);
+                
+                // Save the expense to repository
+                groupRepository.addGroupExpense(groupId, expense);
+                
+                Toast.makeText(this, "Expense added!", Toast.LENGTH_SHORT).show();
+                dialog.dismiss();
+            });
+
+            dialog.show();
+            if (dialog.getWindow() != null) {
+                int width = (int) (350 * getResources().getDisplayMetrics().density);
+                dialog.getWindow().setLayout(width, ViewGroup.LayoutParams.WRAP_CONTENT);
             }
-            if (amountStr.isEmpty()) {
-                etAmount.setError("Amount is required");
-                return;
-            }
-
-            double amount;
-            try {
-                amount = Double.parseDouble(amountStr);
-            } catch (NumberFormatException e) {
-                etAmount.setError("Invalid amount");
-                return;
-            }
-
-            FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
-            if (user == null) return;
-
-            String payerName = memberNames.getOrDefault(user.getUid(), "You");
-            GroupExpense expense = new GroupExpense(groupId, title, user.getUid(), payerName, amount);
-
-            // Add all current group members as participants
-            java.util.List<String> participants = new java.util.ArrayList<>();
-            for (String uid : memberNames.keySet()) {
-                participants.add(uid);
-            }
-            expense.setParticipants(participants);
-            
-            // Save the expense to repository
-            groupRepository.addGroupExpense(groupId, expense);
-            
-            Toast.makeText(this, "Expense added!", Toast.LENGTH_SHORT).show();
-            dialog.dismiss();
-        });
-
-        dialog.show();
-        if (dialog.getWindow() != null) {
-            int width = (int) (350 * getResources().getDisplayMetrics().density);
-            dialog.getWindow().setLayout(width, ViewGroup.LayoutParams.WRAP_CONTENT);
+        } catch (Exception e) {
+            Log.e("CRASH_FIX", "Error launching dialog: " + e.getMessage());
         }
     }
 
