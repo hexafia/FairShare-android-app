@@ -326,10 +326,18 @@ public class GroupLobbyActivity extends AppCompatActivity {
             
             // Setup participants checkboxes
             containerParticipants.removeAllViews();
+            java.util.List<String> selectedMembers = new java.util.ArrayList<>();
             for (String memberUid : memberNames.keySet()) {
                 CheckBox checkBox = new CheckBox(this);
                 checkBox.setText(memberNames.get(memberUid));
                 checkBox.setTag(memberUid);
+                checkBox.setOnCheckedChangeListener((buttonView, isChecked) -> {
+                    if (isChecked) {
+                        selectedMembers.add(memberUid);
+                    } else {
+                        selectedMembers.remove(memberUid);
+                    }
+                });
                 containerParticipants.addView(checkBox);
             }
 
@@ -341,7 +349,12 @@ public class GroupLobbyActivity extends AppCompatActivity {
             
             btnEqualSplit.setOnClickListener(v -> {
                 // Handle equal split logic
-                tvSplitInfo.setText("Split equally among all group members (Equal selected)");
+                if (selectedMembers.size() > 0) {
+                    double amountPerPerson = amount / selectedMembers.size();
+                    tvSplitInfo.setText("Split equally among " + selectedMembers.size() + " members: ₱" + String.format("%.2f", amountPerPerson) + " each");
+                } else {
+                    tvSplitInfo.setText("Split equally among all group members (Equal selected)");
+                }
                 // Set active button background
                 btnEqualSplit.setBackgroundColor(getResources().getColor(android.R.color.holo_blue_light));
                 btnUnequalSplit.setBackgroundColor(getResources().getColor(android.R.color.darker_gray));
@@ -350,6 +363,31 @@ public class GroupLobbyActivity extends AppCompatActivity {
             btnUnequalSplit.setOnClickListener(v -> {
                 // Handle unequal split logic  
                 tvSplitInfo.setText("Custom split amounts (Unequal selected)");
+                
+                // Generate individual amount inputs for each member
+                containerParticipants.removeAllViews();
+                for (String memberUid : memberNames.keySet()) {
+                    LinearLayout memberLayout = new LinearLayout(this);
+                    memberLayout.setOrientation("horizontal");
+                    memberLayout.setPadding(8, 8, 8, 8);
+                    
+                    TextView memberName = new TextView(this);
+                    memberName.setText(memberNames.get(memberUid));
+                    memberName.setLayoutParams(new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT));
+                    memberName.setTextColor(getResources().getColor(android.R.color.black));
+                    
+                    TextInputEditText memberAmount = new TextInputEditText(this);
+                    memberAmount.setHint("Amount");
+                    memberAmount.setInputType(InputType.TYPE_CLASS_NUMBER | InputType.TYPE_NUMBER_FLAG_DECIMAL);
+                    memberAmount.setLayoutParams(new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT));
+                    memberAmount.setWidth(120);
+                    memberAmount.setTag(memberUid);
+                    
+                    memberLayout.addView(memberName);
+                    memberLayout.addView(memberAmount);
+                    containerParticipants.addView(memberLayout);
+                }
+                
                 // Set active button background
                 btnUnequalSplit.setBackgroundColor(getResources().getColor(android.R.color.holo_blue_light));
                 btnEqualSplit.setBackgroundColor(getResources().getColor(android.R.color.darker_gray));
@@ -408,6 +446,51 @@ public class GroupLobbyActivity extends AppCompatActivity {
                 }
                 expense.setParticipants(participants);
                 
+                // Validate split amounts before saving
+                if (btnEqualSplit.getBackground().getConstantColor() == getResources().getColor(android.R.color.holo_blue_light)) {
+                    // Equal split - validate amounts
+                    double totalPercentage = 0.0;
+                    for (int i = 0; i < containerParticipants.getChildCount(); i++) {
+                        LinearLayout memberLayout = (LinearLayout) containerParticipants.getChildAt(i);
+                        if (memberLayout != null && memberLayout.getChildCount() >= 2) {
+                            TextInputEditText memberAmount = (TextInputEditText) memberLayout.getChildAt(1);
+                            if (memberAmount != null && memberAmount.getText() != null) {
+                                try {
+                                    double memberAmountValue = Double.parseDouble(memberAmount.getText().toString());
+                                    totalPercentage += memberAmountValue;
+                                } catch (NumberFormatException e) {
+                                    // Skip invalid amounts
+                                }
+                            }
+                        }
+                    }
+                    if (Math.abs(totalPercentage - 100.0) > 0.01) {
+                        Toast.makeText(this, "Total percentage must be 100%", Toast.LENGTH_SHORT).show();
+                        return;
+                    }
+                } else {
+                    // Unequal split - validate individual amounts
+                    double totalAmount = 0.0;
+                    for (int i = 0; i < containerParticipants.getChildCount(); i++) {
+                        LinearLayout memberLayout = (LinearLayout) containerParticipants.getChildAt(i);
+                        if (memberLayout != null && memberLayout.getChildCount() >= 2) {
+                            TextInputEditText memberAmount = (TextInputEditText) memberLayout.getChildAt(1);
+                            if (memberAmount != null && memberAmount.getText() != null) {
+                                try {
+                                    double memberAmountValue = Double.parseDouble(memberAmount.getText().toString());
+                                    totalAmount += memberAmountValue;
+                                } catch (NumberFormatException e) {
+                                    // Skip invalid amounts
+                                }
+                            }
+                        }
+                    }
+                    if (Math.abs(totalAmount - amount) > 0.01) {
+                        Toast.makeText(this, "Individual amounts must equal total amount", Toast.LENGTH_SHORT).show();
+                        return;
+                    }
+                }
+
                 // Save the expense to repository
                 groupRepository.addGroupExpense(groupId, expense);
                 
