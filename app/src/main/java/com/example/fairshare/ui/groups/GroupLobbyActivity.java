@@ -298,13 +298,13 @@ public class GroupLobbyActivity extends AppCompatActivity {
         TextInputEditText etAmount = dialog.findViewById(R.id.etAmount);
         TextView tvSplitInfo = dialog.findViewById(R.id.tvSplitInfo);
         MaterialButton btnCancel = dialog.findViewById(R.id.btnCancel);
-        MaterialButton btnSave = dialog.findViewById(R.id.btnSave);
+        MaterialButton btnAddExpense = dialog.findViewById(R.id.btnAddExpense);
 
         tvSplitInfo.setText("Split equally among all group members");
 
         btnCancel.setOnClickListener(v -> dialog.dismiss());
 
-        btnSave.setOnClickListener(v -> {
+        btnAddExpense.setOnClickListener(v -> {
             String title = etTitle.getText() != null ? etTitle.getText().toString().trim() : "";
             String amountStr = etAmount.getText() != null ? etAmount.getText().toString().trim() : "";
 

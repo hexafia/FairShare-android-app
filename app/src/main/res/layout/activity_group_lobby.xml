@@ -344,8 +344,6 @@
         android:src="@drawable/ic_add"
         app:backgroundTint="@color/teal"
         app:tint="@color/white"
-        app:fabSize="normal"
-        app:layout_anchor="@id/tabLayout"
-        app:layout_anchorGravity="bottom|end" />
+        app:fabSize="normal" />
 
 </androidx.coordinatorlayout.widget.CoordinatorLayout>
