@@ -8,6 +8,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.Window;
+import android.view.WindowManager;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -307,6 +308,17 @@ public class GroupLobbyActivity extends AppCompatActivity {
             dialog.show();
             Log.d("FAB_DEBUG", "Dialog show() called");
             
+            // Declare views before using them
+            TextInputEditText etTitle = dialogView.findViewById(R.id.etTitle);
+            TextInputEditText etAmount = dialogView.findViewById(R.id.etAmount);
+            TextView tvSplitInfo = dialogView.findViewById(R.id.tvSplitInfo);
+            MaterialButton btnCancel = dialogView.findViewById(R.id.btnCancel);
+            MaterialButton btnAddExpense = dialogView.findViewById(R.id.btnAddExpense);
+
+            tvSplitInfo.setText("Split equally among all group members");
+
+            btnCancel.setOnClickListener(v -> dialog.dismiss());
+
             // Explicitly request focus on title input
             etTitle.requestFocus();
             
@@ -317,8 +329,6 @@ public class GroupLobbyActivity extends AppCompatActivity {
                 dialog.getWindow().clearFlags(WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE | WindowManager.LayoutParams.FLAG_ALT_FOCUSABLE_IM);
                 dialog.getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_VISIBLE);
             }
-            
-            TextInputEditText etTitle = dialogView.findViewById(R.id.etTitle);
             TextInputEditText etAmount = dialogView.findViewById(R.id.etAmount);
             TextView tvSplitInfo = dialogView.findViewById(R.id.tvSplitInfo);
             MaterialButton btnCancel = dialogView.findViewById(R.id.btnCancel);
