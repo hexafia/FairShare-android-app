@@ -223,45 +223,53 @@ public class AddGroupExpenseDialog {
             String payerUid = memberUids.get(selectedPayerIndex);
             String payerName = memberNames.get(selectedPayerIndex);
 
-            // Collect selected participants
+            // Collect selected participants and split amounts based on mode
             List<String> selectedParticipants = new ArrayList<>();
-            for (String uid : checkboxes.keySet()) {
-                android.widget.CheckBox cb = checkboxes.get(uid);
-                if (cb != null && cb.isChecked()) {
-                    selectedParticipants.add(uid);
-                }
-            }
-
-            if (selectedParticipants.isEmpty()) {
-                Toast.makeText(context, "Please select at least one participant", Toast.LENGTH_SHORT).show();
-                return;
-            }
-
-            // Validate and calculate split amounts based on type
             Map<String, Double> splitAmounts = new HashMap<>();
-            
-            if (currentSplitType.equals(SPLIT_EQUAL) || currentSplitType.equals(SPLIT_SELECTIVE)) {
-                // Equal split among selected participants
+
+            if (SPLIT_EQUAL.equals(currentSplitType) || SPLIT_SELECTIVE.equals(currentSplitType)) {
+                for (String uid : checkboxes.keySet()) {
+                    android.widget.CheckBox cb = checkboxes.get(uid);
+                    if (cb != null && cb.isChecked()) {
+                        selectedParticipants.add(uid);
+                    }
+                }
+
+                if (selectedParticipants.isEmpty()) {
+                    Toast.makeText(context, "Please select at least one participant", Toast.LENGTH_SHORT).show();
+                    return;
+                }
+
                 double sharePerPerson = amount / selectedParticipants.size();
                 for (String uid : selectedParticipants) {
                     splitAmounts.put(uid, sharePerPerson);
                 }
-            } else if (currentSplitType.equals(SPLIT_UNEQUAL)) {
-                // Validate percentages add up to 100
+            } else if (SPLIT_UNEQUAL.equals(currentSplitType)) {
                 double totalPercent = 0;
-                for (Double percent : customSplits.values()) {
-                    if (percent != null) totalPercent += percent;
+                for (Map.Entry<String, Double> entry : customSplits.entrySet()) {
+                    Double percent = entry.getValue();
+                    if (percent != null && percent > 0) {
+                        totalPercent += percent;
+                    }
                 }
+
                 if (Math.abs(totalPercent - 100.0) > 0.01) {
                     Toast.makeText(context, "Percentages must add up to 100% (currently " + String.format("%.1f", totalPercent) + "%)", Toast.LENGTH_SHORT).show();
                     return;
                 }
-                
-                for (String uid : customSplits.keySet()) {
-                    Double percent = customSplits.get(uid);
+
+                for (Map.Entry<String, Double> entry : customSplits.entrySet()) {
+                    String uid = entry.getKey();
+                    Double percent = entry.getValue();
                     if (percent != null && percent > 0) {
+                        selectedParticipants.add(uid);
                         splitAmounts.put(uid, Math.round((amount * percent / 100.0) * 100.0) / 100.0);
                     }
+                }
+
+                if (selectedParticipants.isEmpty()) {
+                    Toast.makeText(context, "Please assign at least one percentage greater than 0%", Toast.LENGTH_SHORT).show();
+                    return;
                 }
             }
 
