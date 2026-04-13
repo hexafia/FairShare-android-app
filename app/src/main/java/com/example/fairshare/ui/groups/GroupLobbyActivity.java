@@ -146,6 +146,11 @@ public class GroupLobbyActivity extends AppCompatActivity {
         // Initialize FAB
         fabAddExpense = findViewById(R.id.fabAddExpense);
         fabAddExpense.setOnClickListener(v -> showAddExpenseDialog());
+        
+        // Initially set FAB as hidden until group data loads
+        if (fabAddExpense != null) {
+            fabAddExpense.setVisibility(View.GONE);
+        }
 
         // Repositories
         groupRepository = new GroupRepository();
@@ -386,10 +391,12 @@ private void updateUI() {
     if (currentGroup.isActive()) {
         if (fabAddExpense != null) {
             fabAddExpense.setVisibility(View.VISIBLE);
+            Log.d("GroupLobby", "FAB made visible for active group: " + currentGroup.getName());
         }
     } else if (currentGroup.isSettled()) {
         // Disable functionality for settled groups
         disableAllInputElements();
+        Log.d("GroupLobby", "FAB hidden for settled group: " + currentGroup.getName());
     }
 }
 
