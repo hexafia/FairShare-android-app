@@ -69,6 +69,11 @@ public class GroupDetailFragment extends Fragment {
         if (groupId != null) {
             loadGroupData();
         }
+        
+        // CRITICAL: Check if group is settled and disable UI accordingly
+        if (currentGroup != null && currentGroup.isSettled()) {
+            disableAllInputElements();
+        }
     }
 
     private void initializeUI(View view) {
@@ -174,6 +179,26 @@ public class GroupDetailFragment extends Fragment {
                 Toast.makeText(requireContext(), "Error: " + error, Toast.LENGTH_SHORT).show();
             }
         });
+    }
+
+    private void disableAllInputElements() {
+        // Disable Mark as Accomplished button
+        if (btnMarkAsAccomplished != null) {
+            btnMarkAsAccomplished.setEnabled(false);
+            btnMarkAsAccomplished.setVisibility(View.GONE);
+        }
+
+        // Disable FAB
+        View fab = getView() != null ? getView().findViewById(R.id.fabAddExpense) : null;
+        if (fab != null) {
+            fab.setEnabled(false);
+            fab.setVisibility(View.GONE);
+        }
+
+        // Disable tab interaction for settled groups
+        if (tabLayout != null) {
+            tabLayout.setEnabled(false);
+        }
     }
 
     @Override
