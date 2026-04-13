@@ -42,6 +42,7 @@ public class GroupLobbyActivity extends AppCompatActivity {
     private UserRepository userRepository;
     private GroupExpenseAdapter expenseAdapter;
     private SettlementDetailAdapter settlementAdapter;
+    private MembersAdapter membersAdapter;
 
     private TextView tvGroupTotal, tvMemberCount, tvMyBalance;
     private View layoutLedger, layoutSettleUp, layoutMembers;
@@ -133,6 +134,11 @@ public class GroupLobbyActivity extends AppCompatActivity {
         rvDebts.setLayoutManager(new LinearLayoutManager(this));
         rvDebts.setAdapter(settlementAdapter);
 
+        // Setup Members RecyclerView
+        membersAdapter = new MembersAdapter(memberNames, null); // Will update with group data
+        rvMembers.setLayoutManager(new LinearLayoutManager(this));
+        rvMembers.setAdapter(membersAdapter);
+
         // Mark as Accomplished button
         btnMarkAsAccomplished.setOnClickListener(v -> markGroupAsAccomplished());
 
@@ -199,33 +205,14 @@ public class GroupLobbyActivity extends AppCompatActivity {
             tvMembersEmpty.setVisibility(View.GONE);
             rvMembers.setVisibility(View.VISIBLE);
             
-            // Create a simple adapter for members display
-            java.util.List<String> memberList = new java.util.ArrayList<>(memberNames.keySet());
-            java.util.Collections.sort(memberList, (uid1, uid2) -> {
-                // Put creator first, then sort by name
-                if (currentGroup != null && uid1.equals(currentGroup.getCreatedBy())) return -1;
-                if (currentGroup != null && uid2.equals(currentGroup.getCreatedBy())) return 1;
-                return memberNames.get(uid1).compareToIgnoreCase(memberNames.get(uid2));
-            });
-            
-            // Simple ArrayAdapter for members
-            java.util.List<String> displayNames = new java.util.ArrayList<>();
-            for (String uid : memberList) {
-                String name = memberNames.get(uid);
-                if (currentGroup != null && uid.equals(currentGroup.getCreatedBy())) {
-                    displayNames.add(name + " (Creator)");
-                } else {
-                    displayNames.add(name);
-                }
+            // Update members adapter with current group data
+            if (membersAdapter != null && currentGroup != null) {
+                membersAdapter = new MembersAdapter(memberNames, currentGroup.getCreatedBy());
+                rvMembers.setAdapter(membersAdapter);
+                
+                java.util.List<String> memberList = new java.util.ArrayList<>(memberNames.keySet());
+                membersAdapter.updateMembers(memberList);
             }
-            
-            android.widget.ArrayAdapter<String> membersAdapter = new android.widget.ArrayAdapter<>(
-                    this,
-                    android.R.layout.simple_list_item_1,
-                    displayNames
-            );
-            
-            rvMembers.setAdapter(membersAdapter);
         }
     }
 
