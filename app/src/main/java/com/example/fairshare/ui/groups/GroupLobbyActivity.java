@@ -2,6 +2,7 @@ package com.example.fairshare.ui.groups;
 
 import android.app.AlertDialog;
 import android.app.Dialog;
+import android.graphics.Color;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -299,6 +300,7 @@ public class GroupLobbyActivity extends AppCompatActivity {
     }
 
     private void showAddExpenseDialog() {
+        double amount; // Declare amount at method level
         try {
             Log.d("FAB_DEBUG", "Starting inflation");
             LayoutInflater inflater = getLayoutInflater();
