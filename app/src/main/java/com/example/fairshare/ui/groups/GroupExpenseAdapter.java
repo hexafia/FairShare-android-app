@@ -10,6 +10,7 @@ import androidx.recyclerview.widget.DiffUtil;
 import androidx.recyclerview.widget.ListAdapter;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.example.fairshare.CurrencyHelper;
 import com.example.fairshare.GroupExpense;
 import com.example.fairshare.R;
 
@@ -63,7 +64,7 @@ public class GroupExpenseAdapter extends ListAdapter<GroupExpense, GroupExpenseA
             tvExpenseTitle.setText(expense.getTitle());
             tvPaidBy.setText("Paid by " + (expense.getPayerName() != null ? expense.getPayerName() : "Unknown"));
             tvSplitInfo.setText("Split equally among " + expense.getParticipantCount() + " people");
-            tvAmount.setText(String.format("₱%,.0f", expense.getAmount()));
+            tvAmount.setText(CurrencyHelper.formatWholeNumber(expense.getAmount()));
         }
     }
 }

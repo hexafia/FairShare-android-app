@@ -6,8 +6,9 @@ import com.google.firebase.firestore.ServerTimestamp;
 import java.util.Date;
 
 /**
- * Represents a single expense transaction.
+ * Represents a single personal expense transaction.
  * Fields map directly to a Firestore document in the "expenses" collection.
+ * NOTE: All transactions are now treated as expenses (income tracking removed).
  */
 public class Transaction {
 
@@ -16,7 +17,6 @@ public class Transaction {
     private String title;
     private double amount;
     private String category;
-    private String type; // "expense" or "income"
     private String uid;  // ID of the user who owns this transaction
 
     @ServerTimestamp
@@ -26,11 +26,10 @@ public class Transaction {
     public Transaction() {
     }
 
-    public Transaction(String title, double amount, String category, String type) {
+    public Transaction(String title, double amount, String category) {
         this.title = title;
         this.amount = amount;
         this.category = category;
-        this.type = type;
         // Provide a local timestamp so it instantly appears in the UI
         // Firestore's @ServerTimestamp will overwrite this with the true server time upon sync.
         this.date = new Date();
@@ -68,14 +67,6 @@ public class Transaction {
 
     public void setCategory(String category) {
         this.category = category;
-    }
-
-    public String getType() {
-        return type;
-    }
-
-    public void setType(String type) {
-        this.type = type;
     }
 
     public String getUid() {

@@ -19,6 +19,7 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 
+import com.example.fairshare.CurrencyHelper;
 import com.example.fairshare.ExpenseRepository;
 import com.example.fairshare.R;
 import com.example.fairshare.Transaction;
@@ -170,19 +171,16 @@ public class ProfileFragment extends Fragment {
     private void calculateStats(List<Transaction> transactions) {
         if (transactions == null) return;
 
-        double totalIncome = 0;
         double totalExpenses = 0;
 
         for (Transaction t : transactions) {
-            if ("income".equalsIgnoreCase(t.getType())) {
-                totalIncome += t.getAmount();
-            } else {
-                totalExpenses += t.getAmount();
-            }
+            // All transactions are now expenses (income tracking removed)
+            totalExpenses += t.getAmount();
         }
 
-        tvTotalIncome.setText(String.format("₱%,.0f", totalIncome));
-        tvTotalExpenses.setText(String.format("₱%,.0f", totalExpenses));
+        // Hide income display since we no longer track it
+        tvTotalIncome.setVisibility(View.GONE);
+        tvTotalExpenses.setText(CurrencyHelper.format(totalExpenses));
     }
 
     private void showEditProfileDialog() {

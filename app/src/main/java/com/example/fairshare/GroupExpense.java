@@ -2,7 +2,9 @@ package com.example.fairshare;
 
 import com.google.firebase.firestore.DocumentId;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Represents a shared expense within a group, stored in Firestore
@@ -17,8 +19,9 @@ public class GroupExpense {
     private String payerUid;
     private String payerName;
     private double amount;
-    private String splitType; // "EQUAL" for Phase 1
+    private String splitType; // "EQUAL", "SELECTIVE", "PERCENTAGE", "AMOUNT"
     private List<String> participants;
+    private Map<String, Double> splitAmounts; // uid -> exact amount owed
     private long timestamp;
 
     // Required empty constructor for Firebase deserialization
@@ -113,5 +116,13 @@ public class GroupExpense {
 
     public int getParticipantCount() {
         return participants != null ? participants.size() : 0;
+    }
+
+    public Map<String, Double> getSplitAmounts() {
+        return splitAmounts;
+    }
+
+    public void setSplitAmounts(Map<String, Double> splitAmounts) {
+        this.splitAmounts = splitAmounts;
     }
 }

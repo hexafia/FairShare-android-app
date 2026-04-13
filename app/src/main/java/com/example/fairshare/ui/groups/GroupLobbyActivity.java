@@ -13,6 +13,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.example.fairshare.CurrencyHelper;
 import com.example.fairshare.DebtSimplifier;
 import com.example.fairshare.GroupExpense;
 import com.example.fairshare.GroupRepository;
@@ -25,10 +26,8 @@ import com.google.android.material.textfield.TextInputEditText;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 
-import java.text.NumberFormat;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Locale;
 import java.util.Map;
 
 public class GroupLobbyActivity extends AppCompatActivity {
@@ -41,7 +40,6 @@ public class GroupLobbyActivity extends AppCompatActivity {
     private UserRepository userRepository;
     private GroupExpenseAdapter expenseAdapter;
     private DebtAdapter debtAdapter;
-    private final NumberFormat currencyFormat = NumberFormat.getCurrencyInstance(new Locale("en", "PH"));
 
     private TextView tvGroupTotal, tvMemberCount, tvMyBalance;
     private View layoutLedger, layoutSettleUp;
@@ -199,15 +197,11 @@ public class GroupLobbyActivity extends AppCompatActivity {
             }
         }
 
-        tvGroupTotal.setText(String.format("₱%,.0f", total));
+        tvGroupTotal.setText(CurrencyHelper.formatWholeNumber(total));
 
         // My balance
         double myBalance = netBalances.getOrDefault(myUid, 0.0);
-        if (myBalance >= 0) {
-            tvMyBalance.setText(String.format("+₱%,.0f", myBalance));
-        } else {
-            tvMyBalance.setText(String.format("-₱%,.0f", Math.abs(myBalance)));
-        }
+        tvMyBalance.setText(CurrencyHelper.formatBalance(myBalance));
     }
 
     private void updateDebts(List<GroupExpense> expenses) {
@@ -266,13 +260,23 @@ public class GroupLobbyActivity extends AppCompatActivity {
             GroupExpense expense = new GroupExpense(groupId, title, user.getUid(), payerName, amount);
 
             // Add all current group members as participants
+            java.util.List<String> participants = new java.util.ArrayList<>();
             for (String uid : memberNames.keySet()) {
-                expense.getParticipants().add(uid);
+                participants.add(uid);
             }
             // Also make sure payer is included
-            if (!expense.getParticipants().contains(user.getUid())) {
-                expense.getParticipants().add(user.getUid());
+            if (!participants.contains(user.getUid())) {
+                participants.add(user.getUid());
             }
+            expense.setParticipants(participants);
+
+            // Calculate equal split amounts
+            Map<String, Double> splitAmounts = new HashMap<>();
+            double sharePerPerson = amount / participants.size();
+            for (String uid : participants) {
+                splitAmounts.put(uid, sharePerPerson);
+            }
+            expense.setSplitAmounts(splitAmounts);
 
             groupRepository.addGroupExpense(groupId, expense);
             Toast.makeText(this, "Expense added!", Toast.LENGTH_SHORT).show();

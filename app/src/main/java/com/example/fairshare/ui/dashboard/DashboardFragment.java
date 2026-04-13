@@ -16,6 +16,7 @@ import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.LinearLayoutManager;
 
+import com.example.fairshare.CurrencyHelper;
 import com.example.fairshare.DebtSimplifier;
 import com.example.fairshare.ExpenseAdapter;
 import com.example.fairshare.GroupExpense;
@@ -29,19 +30,16 @@ import com.google.android.material.textfield.TextInputEditText;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 
-import java.text.NumberFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
-import java.util.Locale;
 
 public class DashboardFragment extends Fragment {
 
     private FragmentDashboardBinding binding;
     private DashboardViewModel viewModel;
     private ExpenseAdapter adapter;
-    private final NumberFormat currencyFormat = NumberFormat.getCurrencyInstance(Locale.getDefault());
 
     private List<Transaction> currentPersonalExpenses = new ArrayList<>();
     private List<GroupExpense> currentGroupExpenses = new ArrayList<>();
@@ -123,7 +121,7 @@ public class DashboardFragment extends Fragment {
 
         double personalSpent = 0;
         for (Transaction t : currentPersonalExpenses) {
-            if (isCurrentMonth(t.getDate()) && "expense".equalsIgnoreCase(t.getType())) {
+            if (isCurrentMonth(t.getDate())) {
                 personalSpent += t.getAmount();
             }
         }
@@ -149,10 +147,10 @@ public class DashboardFragment extends Fragment {
 
         double totalBalance = personalSpent + groupPaid + remainingOwed;
 
-        binding.tvBalance.setText(currencyFormat.format(totalBalance));
-        binding.tvPersonal.setText(currencyFormat.format(personalSpent));
-        binding.tvPaid.setText(currencyFormat.format(groupPaid));
-        binding.tvRemaining.setText(currencyFormat.format(remainingOwed));
+        binding.tvBalance.setText(CurrencyHelper.format(totalBalance));
+        binding.tvPersonal.setText(CurrencyHelper.format(personalSpent));
+        binding.tvPaid.setText(CurrencyHelper.format(groupPaid));
+        binding.tvRemaining.setText(CurrencyHelper.format(remainingOwed));
     }
 
     private void showTransactionTypeDialog() {
@@ -227,9 +225,8 @@ public class DashboardFragment extends Fragment {
             }
 
             String category = spinnerCategory.getSelectedItem().toString();
-            String type = "expense"; // Hardcoded since we removed income tracking
 
-            Transaction transaction = new Transaction(title, amount, category, type);
+            Transaction transaction = new Transaction(title, amount, category);
             viewModel.addPersonalExpense(transaction);
 
             Toast.makeText(requireContext(), "Transaction added!", Toast.LENGTH_SHORT).show();
@@ -249,145 +246,14 @@ public class DashboardFragment extends Fragment {
             return;
         }
 
-        View dialogView = LayoutInflater.from(requireContext()).inflate(R.layout.dialog_add_group_expense, null);
-        Dialog dialog = new Dialog(requireContext(), R.style.Theme_FairShare_Dialog);
-        dialog.setContentView(dialogView);
-        dialog.setCancelable(true);
-
-        dialogView.findViewById(R.id.btnClose).setOnClickListener(v -> dialog.dismiss());
-
-        Spinner spinnerSelectGroup = dialogView.findViewById(R.id.spinnerSelectGroup);
-        TextInputEditText etTitle = dialogView.findViewById(R.id.etTitle);
-        TextInputEditText etAmount = dialogView.findViewById(R.id.etAmount);
-        Spinner spinnerWhoPaid = dialogView.findViewById(R.id.spinnerWhoPaid);
-        Spinner spinnerCategory = dialogView.findViewById(R.id.spinnerCategory);
-        android.widget.LinearLayout containerParticipants = dialogView.findViewById(R.id.containerParticipants);
-        MaterialButton btnAddExpense = dialogView.findViewById(R.id.btnAddExpense);
-        android.widget.TextView tvParticipatedHeader = dialogView.findViewById(R.id.tvParticipatedHeader);
-
-        dialogView.findViewById(R.id.btnEqualSplit).setOnClickListener(v -> Toast.makeText(requireContext(), "Equal split selected", Toast.LENGTH_SHORT).show());
-        dialogView.findViewById(R.id.btnItemized).setOnClickListener(v -> Toast.makeText(requireContext(), "Itemized split coming soon!", Toast.LENGTH_SHORT).show());
-
-        ArrayAdapter<CharSequence> categoryAdapter = ArrayAdapter.createFromResource(
-                requireContext(), R.array.categories, android.R.layout.simple_spinner_item);
-        categoryAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-        spinnerCategory.setAdapter(categoryAdapter);
-
-        String[] groupNames = new String[currentGroups.size()];
-        for (int i = 0; i < currentGroups.size(); i++) {
-            groupNames[i] = currentGroups.get(i).getName();
-        }
-        ArrayAdapter<String> groupAdapter = new ArrayAdapter<>(requireContext(), android.R.layout.simple_spinner_item, groupNames);
-        groupAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-        spinnerSelectGroup.setAdapter(groupAdapter);
-
-        final com.example.fairshare.Group[] selectedGroup = {currentGroups.get(0)};
-        List<String> memberUids = new ArrayList<>();
-        List<String> memberNames = new ArrayList<>();
-        java.util.Map<String, android.widget.CheckBox> checkboxes = new java.util.HashMap<>();
-
-        spinnerSelectGroup.setOnItemSelectedListener(new android.widget.AdapterView.OnItemSelectedListener() {
-            @Override
-            public void onItemSelected(android.widget.AdapterView<?> parent, View view, int position, long id) {
-                selectedGroup[0] = currentGroups.get(position);
-                memberUids.clear();
-                memberNames.clear();
-                checkboxes.clear();
-                containerParticipants.removeAllViews();
-                
-                viewModel.getGroupMembers(selectedGroup[0].getId(), uids -> {
-                    for (String uid : uids) {
-                        com.google.firebase.firestore.FirebaseFirestore.getInstance()
-                                .collection("users").document(uid).get()
-                                .addOnSuccessListener(doc -> {
-                                    if (doc.exists() && dialog.isShowing()) {
-                                        String name = doc.getString("displayName");
-                                        if (name == null) name = "User";
-                                        
-                                        FirebaseUser currentUser = FirebaseAuth.getInstance().getCurrentUser();
-                                        if (currentUser != null && currentUser.getUid().equals(uid)) {
-                                            name = "You";
-                                        }
-
-                                        memberUids.add(uid);
-                                        memberNames.add(name);
-
-                                        ArrayAdapter<String> payerAdapter = new ArrayAdapter<>(requireContext(), android.R.layout.simple_spinner_item, memberNames);
-                                        payerAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-                                        spinnerWhoPaid.setAdapter(payerAdapter);
-
-                                        android.widget.CheckBox cb = new android.widget.CheckBox(requireContext());
-                                        cb.setText(name);
-                                        cb.setChecked(true);
-                                        cb.setTextColor(android.graphics.Color.parseColor("#2D3142"));
-                                        cb.setPadding(16, 24, 16, 24);
-                                        cb.setTextSize(16);
-                                        
-                                        cb.setOnCheckedChangeListener((buttonView, isChecked) -> {
-                                             int count = 0;
-                                             for(android.widget.CheckBox c : checkboxes.values()) {
-                                                 if(c.isChecked()) count++;
-                                             }
-                                             tvParticipatedHeader.setText("Who Participated? (" + count + " selected)");
-                                        });
-                                        containerParticipants.addView(cb);
-                                        checkboxes.put(uid, cb);
-                                        
-                                        tvParticipatedHeader.setText("Who Participated? (" + checkboxes.size() + " selected)");
-                                        
-                                        if (name.equals("You")) {
-                                            spinnerWhoPaid.setSelection(memberNames.size() - 1);
-                                        }
-                                    }
-                                });
-                    }
-                });
-            }
-
-            @Override
-            public void onNothingSelected(android.widget.AdapterView<?> parent) {}
-        });
-
-        btnAddExpense.setOnClickListener(v -> {
-            String title = etTitle.getText() != null ? etTitle.getText().toString().trim() : "";
-            String amountStr = etAmount.getText() != null ? etAmount.getText().toString().trim() : "";
-
-            if (title.isEmpty()) { etTitle.setError("Title is required"); return; }
-            if (amountStr.isEmpty()) { etAmount.setError("Amount is required"); return; }
-
-            double amount;
-            try { amount = Double.parseDouble(amountStr); } 
-            catch (NumberFormatException e) { etAmount.setError("Invalid amount"); return; }
-
-            int selectedPayerIndex = spinnerWhoPaid.getSelectedItemPosition();
-            if (selectedPayerIndex < 0) { 
-                Toast.makeText(requireContext(), "Please select who paid", Toast.LENGTH_SHORT).show(); return; 
-            }
-
-            String payerUid = memberUids.get(selectedPayerIndex);
-            String payerName = memberNames.get(selectedPayerIndex);
-
-            GroupExpense expense = new GroupExpense(selectedGroup[0].getId(), title, payerUid, payerName, amount);
-            for (String uid : checkboxes.keySet()) {
-                if (checkboxes.get(uid).isChecked()) {
-                    expense.getParticipants().add(uid);
-                }
-            }
-            
-            if (expense.getParticipants().isEmpty()) {
-                Toast.makeText(requireContext(), "Please select at least one participant", Toast.LENGTH_SHORT).show();
-                return;
-            }
-
-            viewModel.addGroupExpense(selectedGroup[0].getId(), expense);
-            Toast.makeText(requireContext(), "Group Expense added!", Toast.LENGTH_SHORT).show();
-            dialog.dismiss();
-        });
-
-        dialog.show();
-        if (dialog.getWindow() != null) {
-            dialog.getWindow().setLayout(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT);
-        }
+        GroupRepository groupRepository = new GroupRepository();
+        AddGroupExpenseDialog dialogBuilder = new AddGroupExpenseDialog(
+                requireContext(),
+                currentGroups,
+                viewModel,
+                groupRepository,
+                null);
+        dialogBuilder.show();
     }
 
     private void showDeleteConfirmation(Transaction transaction) {

@@ -12,7 +12,6 @@ import androidx.recyclerview.widget.DiffUtil;
 import androidx.recyclerview.widget.ListAdapter;
 import androidx.recyclerview.widget.RecyclerView;
 
-import java.text.NumberFormat;
 import java.text.SimpleDateFormat;
 import java.util.Locale;
 import java.util.Objects;
@@ -25,7 +24,6 @@ public class ExpenseAdapter extends ListAdapter<Transaction, ExpenseAdapter.Expe
 
     private final OnDeleteClickListener deleteListener;
     private final SimpleDateFormat dateFormat = new SimpleDateFormat("MMM dd, yyyy", Locale.getDefault());
-    private final NumberFormat currencyFormat = NumberFormat.getCurrencyInstance(Locale.getDefault());
 
     public ExpenseAdapter(OnDeleteClickListener deleteListener) {
         super(DIFF_CALLBACK);
@@ -43,8 +41,7 @@ public class ExpenseAdapter extends ListAdapter<Transaction, ExpenseAdapter.Expe
                 public boolean areContentsTheSame(@NonNull Transaction oldItem, @NonNull Transaction newItem) {
                     return Objects.equals(oldItem.getTitle(), newItem.getTitle())
                             && oldItem.getAmount() == newItem.getAmount()
-                            && Objects.equals(oldItem.getCategory(), newItem.getCategory())
-                            && Objects.equals(oldItem.getType(), newItem.getType());
+                            && Objects.equals(oldItem.getCategory(), newItem.getCategory());
                 }
             };
 
@@ -81,11 +78,9 @@ public class ExpenseAdapter extends ListAdapter<Transaction, ExpenseAdapter.Expe
             tvTitle.setText(transaction.getTitle());
             tvCategory.setText(transaction.getCategory() != null ? transaction.getCategory() : "Uncategorized");
 
-            boolean isIncome = "income".equalsIgnoreCase(transaction.getType());
-            String amountText = (isIncome ? "+ " : "- ") + currencyFormat.format(transaction.getAmount());
+            String amountText = "- " + CurrencyHelper.format(transaction.getAmount());
             tvAmount.setText(amountText);
-            tvAmount.setTextColor(ContextCompat.getColor(itemView.getContext(),
-                    isIncome ? R.color.income_green : R.color.expense_red));
+            tvAmount.setTextColor(ContextCompat.getColor(itemView.getContext(), R.color.expense_red));
 
             if (transaction.getDate() != null) {
                 tvDate.setText(dateFormat.format(transaction.getDate()));

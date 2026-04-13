@@ -38,7 +38,11 @@ public class DebtSimplifier {
     /**
      * Calculates the minimum set of debts to settle all expenses.
      *
-     * @param expenses List of group expenses (all assumed EQUAL split)
+     * Supports multiple split types:
+     * - If splitAmounts is available, uses explicit amounts per participant
+     * - Otherwise, assumes equal split (amount / participantCount)
+     *
+     * @param expenses List of group expenses
      * @return List of Debt objects representing who owes whom and how much
      */
     public static List<Debt> simplify(List<GroupExpense> expenses) {
@@ -49,20 +53,31 @@ public class DebtSimplifier {
             String payerUid = expense.getPayerUid();
             double amount = expense.getAmount();
             List<String> participants = expense.getParticipants();
+            Map<String, Double> splitAmounts = expense.getSplitAmounts();
 
             if (participants == null || participants.isEmpty()) continue;
-
-            int participantCount = participants.size();
-            double sharePerPerson = amount / participantCount;
 
             // The payer paid the full amount
             netBalances.put(payerUid,
                     netBalances.getOrDefault(payerUid, 0.0) + amount);
 
-            // Each participant (including payer) consumed their share
-            for (String uid : participants) {
-                netBalances.put(uid,
-                        netBalances.getOrDefault(uid, 0.0) - sharePerPerson);
+            // Determine shares: use explicit splitAmounts if available, otherwise equal split
+            if (splitAmounts != null && !splitAmounts.isEmpty()) {
+                // Use explicit split amounts
+                for (Map.Entry<String, Double> split : splitAmounts.entrySet()) {
+                    String uid = split.getKey();
+                    double shareAmount = split.getValue();
+                    netBalances.put(uid,
+                            netBalances.getOrDefault(uid, 0.0) - shareAmount);
+                }
+            } else {
+                // Fallback to equal split
+                int participantCount = participants.size();
+                double sharePerPerson = amount / participantCount;
+                for (String uid : participants) {
+                    netBalances.put(uid,
+                            netBalances.getOrDefault(uid, 0.0) - sharePerPerson);
+                }
             }
         }
 

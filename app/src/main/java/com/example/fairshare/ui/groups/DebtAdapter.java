@@ -10,6 +10,7 @@ import androidx.recyclerview.widget.DiffUtil;
 import androidx.recyclerview.widget.ListAdapter;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.example.fairshare.CurrencyHelper;
 import com.example.fairshare.DebtSimplifier;
 import com.example.fairshare.R;
 
@@ -75,7 +76,7 @@ public class DebtAdapter extends ListAdapter<DebtSimplifier.Debt, DebtAdapter.Vi
             tvDebtorInitial.setText(String.valueOf(debtorName.charAt(0)).toUpperCase());
             tvCreditorInitial.setText(String.valueOf(creditorName.charAt(0)).toUpperCase());
             tvDebtDescription.setText(debtorName + " → " + creditorName);
-            tvDebtAmount.setText(String.format("₱%,.2f", debt.amount));
+            tvDebtAmount.setText(CurrencyHelper.format(debt.amount));
         }
 
         private String shortenUid(String uid) {

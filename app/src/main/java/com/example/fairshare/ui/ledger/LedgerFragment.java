@@ -18,6 +18,7 @@ import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.example.fairshare.CurrencyHelper;
 import com.example.fairshare.ExpenseAdapter;
 import com.example.fairshare.ExpenseViewModel;
 import com.example.fairshare.R;
@@ -26,7 +27,6 @@ import com.google.android.material.button.MaterialButton;
 import com.google.android.material.datepicker.MaterialDatePicker;
 import com.google.android.material.textfield.TextInputEditText;
 
-import java.text.NumberFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
@@ -38,7 +38,6 @@ public class LedgerFragment extends Fragment {
 
     private ExpenseViewModel viewModel;
     private ExpenseAdapter adapter;
-    private final NumberFormat currencyFormat = NumberFormat.getCurrencyInstance(Locale.getDefault());
 
     private List<Transaction> allExpenses = new ArrayList<>();
     
@@ -184,18 +183,13 @@ public class LedgerFragment extends Fragment {
 
             if (matchesSearch && matchesCategory && matchesDate) {
                 filtered.add(t);
-                // "Personal" sums up the amount of money they have spent
-                if ("expense".equalsIgnoreCase(t.getType())) {
-                    totalFilteredExpense += t.getAmount();
-                } else if ("income".equalsIgnoreCase(t.getType())) {
-                    // Decide whether income reduces total expense. In dashboard we said it doesn't reduce "total that they have spent"
-                    // But if it's personal ledger maybe it does. Let's strictly sum expenses for "Total Expense"
-                }
+                // All transactions are now expenses (income tracking removed)
+                totalFilteredExpense += t.getAmount();
             }
         }
 
         adapter.submitList(filtered);
-        tvTotalExpense.setText(currencyFormat.format(totalFilteredExpense));
+        tvTotalExpense.setText(CurrencyHelper.format(totalFilteredExpense));
 
         if (filtered.isEmpty()) {
             tvEmptyState.setVisibility(View.VISIBLE);
