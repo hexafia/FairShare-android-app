@@ -329,10 +329,6 @@ public class GroupLobbyActivity extends AppCompatActivity {
                 dialog.getWindow().clearFlags(WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE | WindowManager.LayoutParams.FLAG_ALT_FOCUSABLE_IM);
                 dialog.getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_VISIBLE);
             }
-            TextInputEditText etAmount = dialogView.findViewById(R.id.etAmount);
-            TextView tvSplitInfo = dialogView.findViewById(R.id.tvSplitInfo);
-            MaterialButton btnCancel = dialogView.findViewById(R.id.btnCancel);
-            MaterialButton btnAddExpense = dialogView.findViewById(R.id.btnAddExpense);
 
             tvSplitInfo.setText("Split equally among all group members");
 
