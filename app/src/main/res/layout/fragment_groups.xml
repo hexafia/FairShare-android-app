@@ -51,35 +51,132 @@
             android:orientation="vertical"
             android:padding="24dp">
 
-            <!-- Empty state -->
+            <!-- Quick Actions Buttons -->
             <LinearLayout
-                android:id="@+id/layoutEmpty"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:gravity="center"
+                android:layout_marginBottom="24dp"
+                android:orientation="horizontal">
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btnCreateNewGroup"
+                    android:layout_width="0dp"
+                    android:layout_height="64dp"
+                    android:layout_weight="1"
+                    android:layout_marginEnd="8dp"
+                    android:text="Create New Group"
+                    android:textAllCaps="false"
+                    android:textSize="16sp"
+                    android:textStyle="bold"
+                    app:backgroundTint="@color/teal"
+                    app:cornerRadius="16dp" />
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btnJoinViaCode"
+                    android:layout_width="0dp"
+                    android:layout_height="64dp"
+                    android:layout_weight="1"
+                    android:layout_marginStart="8dp"
+                    android:text="Join via Code"
+                    android:textAllCaps="false"
+                    android:textSize="16sp"
+                    android:textStyle="bold"
+                    app:backgroundTint="@color/orange"
+                    app:cornerRadius="16dp" />
+            </LinearLayout>
+
+            <!-- Active Groups Section -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
                 android:orientation="vertical"
-                android:paddingTop="48dp"
-                android:paddingBottom="48dp"
-                android:visibility="gone">
+                android:layout_marginBottom="24dp">
 
                 <TextView
+                    style="@style/TextAppearance.MyApp.Heading3"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="@string/no_groups_yet"
-                    android:textColor="@color/gray"
-                    android:textSize="16sp"
-                    android:gravity="center" />
+                    android:layout_marginBottom="16dp"
+                    android:text="Active Groups"
+                    android:textColor="@color/teal" />
+
+                <!-- Empty state for active groups -->
+                <LinearLayout
+                    android:id="@+id/layoutEmptyActive"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:gravity="center"
+                    android:orientation="vertical"
+                    android:paddingTop="24dp"
+                    android:paddingBottom="24dp"
+                    android:visibility="gone">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="No active groups"
+                        android:textColor="@color/gray"
+                        android:textSize="16sp"
+                        android:gravity="center" />
+
+                </LinearLayout>
+
+                <!-- Active groups list -->
+                <androidx.recyclerview.widget.RecyclerView
+                    android:id="@+id/rvActiveGroups"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:nestedScrollingEnabled="false"
+                    android:clipToPadding="false"
+                    tools:listitem="@layout/item_group" />
 
             </LinearLayout>
 
-            <!-- Groups list -->
-            <androidx.recyclerview.widget.RecyclerView
-                android:id="@+id/rvGroups"
+            <!-- Settled Groups Section -->
+            <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:nestedScrollingEnabled="false"
-                android:clipToPadding="false"
-                tools:listitem="@layout/item_group" />
+                android:orientation="vertical">
+
+                <TextView
+                    style="@style/TextAppearance.MyApp.Heading3"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="16dp"
+                    android:text="Settled Groups"
+                    android:textColor="@color/off_black" />
+
+                <!-- Empty state for settled groups -->
+                <LinearLayout
+                    android:id="@+id/layoutEmptySettled"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:gravity="center"
+                    android:orientation="vertical"
+                    android:paddingTop="24dp"
+                    android:paddingBottom="24dp"
+                    android:visibility="gone">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="No settled groups"
+                        android:textColor="@color/gray"
+                        android:textSize="16sp"
+                        android:gravity="center" />
+
+                </LinearLayout>
+
+                <!-- Settled groups list -->
+                <androidx.recyclerview.widget.RecyclerView
+                    android:id="@+id/rvSettledGroups"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:nestedScrollingEnabled="false"
+                    android:clipToPadding="false"
+                    tools:listitem="@layout/item_group" />
+
+            </LinearLayout>
 
         </LinearLayout>
 

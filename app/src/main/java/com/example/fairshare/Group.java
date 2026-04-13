@@ -15,6 +15,7 @@ public class Group {
     private String name;
     private String shareCode;
     private String createdBy;
+    private String status;
     private List<String> members;
 
     // Required empty constructor for Firebase deserialization
@@ -26,6 +27,7 @@ public class Group {
         this.name = name;
         this.shareCode = shareCode;
         this.createdBy = createdBy;
+        this.status = "active";
         this.members = new ArrayList<>();
     }
 
@@ -69,6 +71,22 @@ public class Group {
 
     public void setMembers(List<String> members) {
         this.members = members;
+    }
+
+    public String getStatus() {
+        return status;
+    }
+
+    public void setStatus(String status) {
+        this.status = status;
+    }
+
+    public boolean isActive() {
+        return "active".equals(status);
+    }
+
+    public boolean isSettled() {
+        return "settled".equals(status);
     }
 
     public int getMemberCount() {

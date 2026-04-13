@@ -128,6 +128,25 @@ public class GroupRepository {
                 });
     }
 
+    public void updateGroupStatus(String groupId, String status, OnCompleteCallback callback) {
+        FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
+        if (user == null) {
+            callback.onError("Not authenticated");
+            return;
+        }
+
+        db.collection(GROUPS_COLLECTION).document(groupId)
+                .update("status", status)
+                .addOnSuccessListener(aVoid -> {
+                    Log.d(TAG, "Group status updated to: " + status);
+                    callback.onSuccess("Group marked as " + status);
+                })
+                .addOnFailureListener(e -> {
+                    Log.w(TAG, "Error updating group status", e);
+                    callback.onError(e.getMessage());
+                });
+    }
+
     // ========================
     // GROUP EXPENSE OPERATIONS
     // ========================

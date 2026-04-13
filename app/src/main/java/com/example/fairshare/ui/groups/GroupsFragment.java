@@ -17,17 +17,24 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.fairshare.FastActionHandler;
+import com.example.fairshare.Group;
 import com.example.fairshare.GroupRepository;
 import com.example.fairshare.R;
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.textfield.TextInputEditText;
 
+import java.util.ArrayList;
+import java.util.List;
+
 public class GroupsFragment extends Fragment implements FastActionHandler {
 
     private GroupRepository groupRepository;
-    private GroupAdapter adapter;
-    private View layoutEmpty;
-    private RecyclerView rvGroups;
+    private GroupAdapter activeAdapter;
+    private GroupAdapter settledAdapter;
+    private View layoutEmptyActive;
+    private View layoutEmptySettled;
+    private RecyclerView rvActiveGroups;
+    private RecyclerView rvSettledGroups;
 
     @Nullable
     @Override
@@ -39,30 +46,76 @@ public class GroupsFragment extends Fragment implements FastActionHandler {
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
 
-        layoutEmpty = view.findViewById(R.id.layoutEmpty);
-        rvGroups = view.findViewById(R.id.rvGroups);
+        // Initialize UI elements
+        layoutEmptyActive = view.findViewById(R.id.layoutEmptyActive);
+        layoutEmptySettled = view.findViewById(R.id.layoutEmptySettled);
+        rvActiveGroups = view.findViewById(R.id.rvActiveGroups);
+        rvSettledGroups = view.findViewById(R.id.rvSettledGroups);
 
-        // Setup RecyclerView
-        adapter = new GroupAdapter(group -> {
+        // Setup button listeners
+        MaterialButton btnCreateNewGroup = view.findViewById(R.id.btnCreateNewGroup);
+        MaterialButton btnJoinViaCode = view.findViewById(R.id.btnJoinViaCode);
+
+        btnCreateNewGroup.setOnClickListener(v -> showCreateGroupDialog());
+        btnJoinViaCode.setOnClickListener(v -> showJoinGroupDialog());
+
+        // Setup RecyclerViews
+        activeAdapter = new GroupAdapter(group -> {
             Intent intent = new Intent(requireContext(), GroupLobbyActivity.class);
             intent.putExtra("GROUP_ID", group.getId());
             intent.putExtra("GROUP_NAME", group.getName());
             intent.putExtra("SHARE_CODE", group.getShareCode());
             startActivity(intent);
         });
-        rvGroups.setLayoutManager(new LinearLayoutManager(requireContext()));
-        rvGroups.setAdapter(adapter);
+
+        settledAdapter = new GroupAdapter(group -> {
+            Intent intent = new Intent(requireContext(), GroupLobbyActivity.class);
+            intent.putExtra("GROUP_ID", group.getId());
+            intent.putExtra("GROUP_NAME", group.getName());
+            intent.putExtra("SHARE_CODE", group.getShareCode());
+            startActivity(intent);
+        });
+
+        rvActiveGroups.setLayoutManager(new LinearLayoutManager(requireContext()));
+        rvActiveGroups.setAdapter(activeAdapter);
+
+        rvSettledGroups.setLayoutManager(new LinearLayoutManager(requireContext()));
+        rvSettledGroups.setAdapter(settledAdapter);
 
         // Observe groups
         groupRepository = new GroupRepository();
         groupRepository.getGroups().observe(getViewLifecycleOwner(), groups -> {
-            adapter.submitList(groups);
-            if (groups == null || groups.isEmpty()) {
-                layoutEmpty.setVisibility(View.VISIBLE);
-                rvGroups.setVisibility(View.GONE);
-            } else {
-                layoutEmpty.setVisibility(View.GONE);
-                rvGroups.setVisibility(View.VISIBLE);
+            if (groups != null) {
+                List<Group> activeGroups = new ArrayList<>();
+                List<Group> settledGroups = new ArrayList<>();
+
+                for (Group group : groups) {
+                    if (group.isActive()) {
+                        activeGroups.add(group);
+                    } else if (group.isSettled()) {
+                        settledGroups.add(group);
+                    }
+                }
+
+                activeAdapter.submitList(activeGroups);
+                settledAdapter.submitList(settledGroups);
+
+                // Update empty states
+                if (activeGroups.isEmpty()) {
+                    layoutEmptyActive.setVisibility(View.VISIBLE);
+                    rvActiveGroups.setVisibility(View.GONE);
+                } else {
+                    layoutEmptyActive.setVisibility(View.GONE);
+                    rvActiveGroups.setVisibility(View.VISIBLE);
+                }
+
+                if (settledGroups.isEmpty()) {
+                    layoutEmptySettled.setVisibility(View.VISIBLE);
+                    rvSettledGroups.setVisibility(View.GONE);
+                } else {
+                    layoutEmptySettled.setVisibility(View.GONE);
+                    rvSettledGroups.setVisibility(View.VISIBLE);
+                }
             }
         });
     }
