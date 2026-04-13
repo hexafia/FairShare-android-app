@@ -4,6 +4,7 @@ import android.app.AlertDialog;
 import android.app.Dialog;
 import android.graphics.Color;
 import android.os.Bundle;
+import android.text.InputType;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -351,7 +352,7 @@ public class GroupLobbyActivity extends AppCompatActivity {
             
             btnEqualSplit.setOnClickListener(v -> {
                 // Handle equal split logic
-                if (selectedMembers.size() > 0) {
+                if (selectedMembers.size() > 0 && amount > 0) {
                     double amountPerPerson = amount / selectedMembers.size();
                     tvSplitInfo.setText("Split equally among " + selectedMembers.size() + " members: ₱" + String.format("%.2f", amountPerPerson) + " each");
                 } else {
@@ -416,19 +417,22 @@ public class GroupLobbyActivity extends AppCompatActivity {
             btnAddExpense.setOnClickListener(v -> {
                 String title = etTitle.getText() != null ? etTitle.getText().toString().trim() : "";
                 String amountStr = etAmount.getText() != null ? etAmount.getText().toString().trim() : "";
+                final String finalTitle = title;
+                final String finalAmountStr = amountStr;
 
                 // Validate inputs before processing
-                if (title.isEmpty()) {
+                if (finalTitle.isEmpty()) {
                     etTitle.setError("Title is required");
                     return;
                 }
-                if (amountStr.isEmpty()) {
+                if (finalAmountStr.isEmpty()) {
                     etAmount.setError("Amount is required");
                     return;
                 }
 
+                double amount;
                 try {
-                    amount = Double.parseDouble(amountStr);
+                    amount = Double.parseDouble(finalAmountStr);
                 } catch (NumberFormatException e) {
                     etAmount.setError("Invalid amount");
                     return;
