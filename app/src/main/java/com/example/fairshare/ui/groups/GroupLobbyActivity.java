@@ -148,7 +148,14 @@ public class GroupLobbyActivity extends AppCompatActivity {
         fabAddExpense = findViewById(R.id.fabAddExpense);
         fabAddExpense.setOnClickListener(v -> {
             Log.d("FAB_DEBUG", "FAB clicked!");
-            showAddExpenseDialog();
+            try {
+                Log.d("TEST_DEBUG", "About to call showAddExpenseDialog");
+                showAddExpenseDialog();
+                Log.d("TEST_DEBUG", "Returned from showAddExpenseDialog");
+            } catch (Exception e) {
+                Log.e("FAB_ERROR", "Error in showAddExpenseDialog: " + e.getMessage());
+                e.printStackTrace();
+            }
         });
         
         // Initially set FAB as visible for testing
@@ -287,15 +294,22 @@ public class GroupLobbyActivity extends AppCompatActivity {
 
     private void showAddExpenseDialog() {
         try {
+            Log.d("DIALOG_DEBUG", "showAddExpenseDialog() called");
+            
             // Check if group is settled before allowing expense addition
             if (currentGroup != null && currentGroup.isSettled()) {
+                Log.d("DIALOG_DEBUG", "Group is settled, returning");
                 Toast.makeText(GroupLobbyActivity.this, "This group is archived and cannot be modified.", Toast.LENGTH_SHORT).show();
                 return;
             }
 
+            Log.d("DIALOG_DEBUG", "Inflating dialog layout");
             View view = getLayoutInflater().inflate(R.layout.dialog_add_group_expense, null);
+            Log.d("DIALOG_DEBUG", "Dialog layout inflated successfully");
+            
             Dialog dialog = new Dialog(this, R.style.Theme_FairShare_Dialog);
             dialog.setContentView(view);
+            Log.d("DIALOG_DEBUG", "Dialog content view set");
             
             // DEBUG: Log when dialog is created
             Log.d("GroupLobby", "Creating expense dialog for groupId: " + groupId);
