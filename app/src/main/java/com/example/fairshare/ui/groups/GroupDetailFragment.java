@@ -155,12 +155,8 @@ public class GroupDetailFragment extends Fragment {
 
         // Disable add expense functionality for settled groups
         if (currentGroup.isSettled()) {
+            // FAB was removed from XML, so no need to hide it
             // This would be communicated to the expenses fragment
-            // For now, we'll just hide the FAB if it exists
-            View fab = getView().findViewById(R.id.fabAddExpense);
-            if (fab != null) {
-                fab.setVisibility(View.GONE);
-            }
         }
     }
 
@@ -188,12 +184,7 @@ public class GroupDetailFragment extends Fragment {
             btnMarkAsAccomplished.setVisibility(View.GONE);
         }
 
-        // Disable FAB
-        View fab = getView() != null ? getView().findViewById(R.id.fabAddExpense) : null;
-        if (fab != null) {
-            fab.setEnabled(false);
-            fab.setVisibility(View.GONE);
-        }
+        // FAB was removed from XML, so no need to disable it
 
         // Disable tab interaction for settled groups
         if (tabLayout != null) {

@@ -209,21 +209,23 @@ public class GroupLobbyActivity extends AppCompatActivity {
             });
             
             // Simple ArrayAdapter for members
+            String[] memberNamesArray = memberList.stream()
+                    .map(uid -> {
+                        String name = memberNames.get(uid);
+                        if (currentGroup != null && uid.equals(currentGroup.getCreatedBy())) {
+                            return name + " (Creator)";
+                        }
+                        return name;
+                    })
+                    .toArray(String[]::new);
+            
             android.widget.ArrayAdapter<String> membersAdapter = new android.widget.ArrayAdapter<>(
                     this,
                     android.R.layout.simple_list_item_1,
-                    memberList.stream()
-                            .map(uid -> {
-                                String name = memberNames.get(uid);
-                                if (currentGroup != null && uid.equals(currentGroup.getCreatedBy())) {
-                                    return name + " (Creator)";
-                                }
-                                return name;
-                            })
-                            .toArray(new String[0])
+                    memberNamesArray
             );
             
-            rvMembers.setAdapter(membersAdapter);
+            rvMembers.setAdapter((android.widget.ListAdapter) membersAdapter);
         }
     }
 
@@ -416,4 +418,6 @@ private void disableAllInputElements() {
 protected void onDestroy() {
     super.onDestroy();
     groupRepository.removeListeners();
+    }
 }
+
