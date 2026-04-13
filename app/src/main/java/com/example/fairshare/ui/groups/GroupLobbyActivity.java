@@ -9,6 +9,8 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.view.Window;
 import android.view.WindowManager;
+import android.widget.CheckBox;
+import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -314,8 +316,36 @@ public class GroupLobbyActivity extends AppCompatActivity {
             TextView tvSplitInfo = dialogView.findViewById(R.id.tvSplitInfo);
             MaterialButton btnCancel = dialogView.findViewById(R.id.btnCancel);
             MaterialButton btnAddExpense = dialogView.findViewById(R.id.btnAddExpense);
+            
+            // Additional dialog components
+            Spinner spinnerWhoPaid = dialogView.findViewById(R.id.spinnerWhoPaid);
+            Spinner spinnerCategory = dialogView.findViewById(R.id.spinnerCategory);
+            LinearLayout containerParticipants = dialogView.findViewById(R.id.containerParticipants);
+            
+            // Setup participants checkboxes
+            containerParticipants.removeAllViews();
+            for (String memberUid : memberNames.keySet()) {
+                CheckBox checkBox = new CheckBox(this);
+                checkBox.setText(memberNames.get(memberUid));
+                checkBox.setTag(memberUid);
+                containerParticipants.addView(checkBox);
+            }
 
             tvSplitInfo.setText("Split equally among all group members");
+
+            // Split method buttons
+            Button btnEqualSplit = dialogView.findViewById(R.id.btnEqualSplit);
+            Button btnUnequalSplit = dialogView.findViewById(R.id.btnUnequalSplit);
+            
+            btnEqualSplit.setOnClickListener(v -> {
+                // Handle equal split logic
+                tvSplitInfo.setText("Split equally among all group members (Equal selected)");
+            });
+            
+            btnUnequalSplit.setOnClickListener(v -> {
+                // Handle unequal split logic  
+                tvSplitInfo.setText("Custom split amounts (Unequal selected)");
+            });
 
             btnCancel.setOnClickListener(v -> dialog.dismiss());
 
