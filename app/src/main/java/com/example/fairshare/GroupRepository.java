@@ -33,10 +33,12 @@ public class GroupRepository {
     private final MutableLiveData<List<Group>> groupsLiveData = new MutableLiveData<>(new ArrayList<>());
     private final MutableLiveData<List<GroupExpense>> expensesLiveData = new MutableLiveData<>(new ArrayList<>());
     private final MutableLiveData<List<GroupExpense>> allMyExpensesLiveData = new MutableLiveData<>(new ArrayList<>());
+    private final MutableLiveData<List<GroupExpense>> settleUpExpensesLiveData = new MutableLiveData<>(new ArrayList<>());
 
     private ListenerRegistration groupsListener;
     private ListenerRegistration expensesListener;
     private ListenerRegistration allMyExpensesListener;
+    private ListenerRegistration settleUpListener;
 
     public GroupRepository() {
         db = FirebaseFirestore.getInstance();
@@ -190,8 +192,53 @@ public class GroupRepository {
         return allMyExpensesLiveData;
     }
 
+    /**
+     * Fetches all expenses where the current user is involved (payer or participant).
+     * Uses the involvedUsers array for efficient querying.
+     * This is used for the Settle Up tab to calculate settlement amounts.
+     */
+    public LiveData<List<GroupExpense>> getExpensesForSettleUp() {
+        FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
+        if (user == null) return settleUpExpensesLiveData;
+
+        if (settleUpListener != null) {
+            settleUpListener.remove();
+        }
+
+        settleUpListener = db.collection(GROUP_EXPENSES_COLLECTION)
+                .whereArrayContains("involvedUsers", user.getUid())
+                .addSnapshotListener((value, error) -> {
+                    if (error != null) {
+                        Log.w(TAG, "Settle Up Expenses listen failed.", error);
+                        return;
+                    }
+                    List<GroupExpense> expenses = new ArrayList<>();
+                    if (value != null) {
+                        for (DocumentSnapshot doc : value) {
+                            GroupExpense expense = doc.toObject(GroupExpense.class);
+                            if (expense != null) {
+                                expenses.add(expense);
+                            }
+                        }
+                    }
+                    // Sort by timestamp descending
+                    expenses.sort((a, b) -> Long.compare(b.getTimestamp(), a.getTimestamp()));
+                    settleUpExpensesLiveData.setValue(expenses);
+                });
+        return settleUpExpensesLiveData;
+    }
+
     public void addGroupExpense(String groupId, GroupExpense expense) {
         expense.setGroupId(groupId);
+        
+        // Populate involvedUsers with payer + all participants
+        java.util.Set<String> involvedUsers = new java.util.HashSet<>();
+        involvedUsers.add(expense.getPayerUid());
+        if (expense.getParticipants() != null) {
+            involvedUsers.addAll(expense.getParticipants());
+        }
+        expense.setInvolvedUsers(new ArrayList<>(involvedUsers));
+        
         db.collection(GROUP_EXPENSES_COLLECTION).add(expense)
                 .addOnSuccessListener(documentReference -> Log.d(TAG, "Expense added with ID: " + documentReference.getId()))
                 .addOnFailureListener(e -> Log.w(TAG, "Error adding expense", e));
@@ -237,6 +284,10 @@ public class GroupRepository {
         if (allMyExpensesListener != null) {
             allMyExpensesListener.remove();
             allMyExpensesListener = null;
+        }
+        if (settleUpListener != null) {
+            settleUpListener.remove();
+            settleUpListener = null;
         }
     }
 

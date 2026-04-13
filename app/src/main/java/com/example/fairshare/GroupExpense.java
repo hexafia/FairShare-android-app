@@ -21,7 +21,8 @@ public class GroupExpense {
     private double amount;
     private String splitType; // "EQUAL", "SELECTIVE", "PERCENTAGE", "AMOUNT"
     private List<String> participants;
-    private Map<String, Double> splitAmounts; // uid -> exact amount owed
+    private Map<String, Double> splitAmounts; // uid -> exact amount owed (breakdown map)
+    private List<String> involvedUsers; // payerUid + all participants (for efficient querying)
     private long timestamp;
 
     // Required empty constructor for Firebase deserialization
@@ -124,5 +125,13 @@ public class GroupExpense {
 
     public void setSplitAmounts(Map<String, Double> splitAmounts) {
         this.splitAmounts = splitAmounts;
+    }
+
+    public List<String> getInvolvedUsers() {
+        return involvedUsers;
+    }
+
+    public void setInvolvedUsers(List<String> involvedUsers) {
+        this.involvedUsers = involvedUsers;
     }
 }

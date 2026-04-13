@@ -20,6 +20,7 @@ import com.example.fairshare.GroupRepository;
 import com.example.fairshare.R;
 import com.example.fairshare.UserProfile;
 import com.example.fairshare.UserRepository;
+import com.example.fairshare.SettlementCalculator;
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.tabs.TabLayout;
 import com.google.android.material.textfield.TextInputEditText;
@@ -39,7 +40,7 @@ public class GroupLobbyActivity extends AppCompatActivity {
     private GroupRepository groupRepository;
     private UserRepository userRepository;
     private GroupExpenseAdapter expenseAdapter;
-    private DebtAdapter debtAdapter;
+    private SettlementDetailAdapter settlementAdapter;
 
     private TextView tvGroupTotal, tvMemberCount, tvMyBalance;
     private View layoutLedger, layoutSettleUp;
@@ -116,9 +117,9 @@ public class GroupLobbyActivity extends AppCompatActivity {
         rvLedger.setLayoutManager(new LinearLayoutManager(this));
         rvLedger.setAdapter(expenseAdapter);
 
-        debtAdapter = new DebtAdapter();
+        settlementAdapter = new SettlementDetailAdapter();
         rvDebts.setLayoutManager(new LinearLayoutManager(this));
-        rvDebts.setAdapter(debtAdapter);
+        rvDebts.setAdapter(settlementAdapter);
 
         // FAB
         findViewById(R.id.fabAddExpense).setOnClickListener(v -> showAddExpenseDialog());
@@ -163,9 +164,9 @@ public class GroupLobbyActivity extends AppCompatActivity {
                                 String name = doc.getString("displayName");
                                 if (name != null) {
                                     memberNames.put(uid, name);
-                                    // Refresh debt display with new names
-                                    debtAdapter.setMemberNames(memberNames);
-                                    debtAdapter.notifyDataSetChanged();
+                                    // Refresh settlement display with new names
+                                    settlementAdapter.setMemberNames(memberNames);
+                                    settlementAdapter.notifyDataSetChanged();
                                 }
                             }
                         });
@@ -205,11 +206,16 @@ public class GroupLobbyActivity extends AppCompatActivity {
     }
 
     private void updateDebts(List<GroupExpense> expenses) {
-        List<DebtSimplifier.Debt> debts = DebtSimplifier.simplify(expenses);
-        debtAdapter.setMemberNames(memberNames);
-        debtAdapter.submitList(debts);
+        FirebaseUser currentUser = FirebaseAuth.getInstance().getCurrentUser();
+        if (currentUser == null) return;
 
-        if (debts.isEmpty()) {
+        List<SettlementCalculator.SettlementDetail> settlements = 
+                SettlementCalculator.calculateSettlements(currentUser.getUid(), expenses, memberNames);
+        
+        settlementAdapter.setMemberNames(memberNames);
+        settlementAdapter.submitList(settlements);
+
+        if (settlements.isEmpty()) {
             tvSettleEmpty.setVisibility(View.VISIBLE);
             rvDebts.setVisibility(View.GONE);
         } else {
