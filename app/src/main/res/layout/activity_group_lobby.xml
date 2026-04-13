@@ -189,6 +189,8 @@
 
                         </LinearLayout>
 
+                    </LinearLayout>
+
                     <!-- Mark as Accomplished Button (Hidden by default) -->
                     <com.google.android.material.button.MaterialButton
                         android:id="@+id/btnMarkAccomplished"
