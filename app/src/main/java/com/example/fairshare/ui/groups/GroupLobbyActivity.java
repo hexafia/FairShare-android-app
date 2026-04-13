@@ -2,6 +2,7 @@ package com.example.fairshare.ui.groups;
 
 import android.app.Dialog;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -289,6 +290,9 @@ public class GroupLobbyActivity extends AppCompatActivity {
 
         Dialog dialog = new Dialog(this, R.style.Theme_FairShare_Dialog);
         dialog.setContentView(R.layout.dialog_add_group_expense);
+        
+        // DEBUG: Log when dialog is created
+        Log.d("GroupLobby", "Creating expense dialog for groupId: " + groupId);
 
         TextInputEditText etTitle = dialog.findViewById(R.id.etTitle);
         TextInputEditText etAmount = dialog.findViewById(R.id.etAmount);
@@ -332,21 +336,6 @@ public class GroupLobbyActivity extends AppCompatActivity {
             for (String uid : memberNames.keySet()) {
                 participants.add(uid);
             }
-            // Also make sure payer is included
-            if (!participants.contains(user.getUid())) {
-                participants.add(user.getUid());
-            }
-            expense.setParticipants(participants);
-
-            // Calculate equal split amounts
-            Map<String, Double> splitAmounts = new HashMap<>();
-            double sharePerPerson = amount / participants.size();
-            for (String uid : participants) {
-                splitAmounts.put(uid, sharePerPerson);
-            }
-            expense.setSplitAmounts(splitAmounts);
-
-            groupRepository.addGroupExpense(groupId, expense);
             Toast.makeText(this, "Expense added!", Toast.LENGTH_SHORT).show();
             dialog.dismiss();
         });

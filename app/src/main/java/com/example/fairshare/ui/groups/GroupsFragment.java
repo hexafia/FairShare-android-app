@@ -104,6 +104,23 @@ public class GroupsFragment extends Fragment implements FastActionHandler {
 
                 activeAdapter.submitList(activeGroups);
                 settledAdapter.submitList(settledGroups);
+                
+                // Update empty states
+                if (activeGroups.isEmpty()) {
+                    layoutEmptyActive.setVisibility(View.VISIBLE);
+                    rvActiveGroups.setVisibility(View.GONE);
+                } else {
+                    layoutEmptyActive.setVisibility(View.GONE);
+                    rvActiveGroups.setVisibility(View.VISIBLE);
+                }
+
+                if (settledGroups.isEmpty()) {
+                    layoutEmptySettled.setVisibility(View.VISIBLE);
+                    rvSettledGroups.setVisibility(View.GONE);
+                } else {
+                    layoutEmptySettled.setVisibility(View.GONE);
+                    rvSettledGroups.setVisibility(View.VISIBLE);
+                }
 
                 // Update empty states
                 if (activeGroups.isEmpty()) {

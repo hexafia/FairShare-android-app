@@ -88,6 +88,11 @@ public class Group {
     public boolean isSettled() {
         return "settled".equals(status);
     }
+    
+    // Add case-insensitive comparison for robustness
+    public boolean isSettledIgnoreCase() {
+        return "settled".equalsIgnoreCase(status);
+    }
 
     public int getMemberCount() {
         return members != null ? members.size() : 0;

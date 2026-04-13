@@ -55,7 +55,6 @@ public class GroupRepository {
         if (groupsListener == null) {
             groupsListener = db.collection(GROUPS_COLLECTION)
                     .whereArrayContains("members", user.getUid())
-                    .whereEqualTo("status", "active") // CRITICAL: Only fetch active groups
                     .addSnapshotListener((value, error) -> {
                         if (error != null) {
                             Log.w(TAG, "Groups listen failed.", error);
@@ -75,6 +74,96 @@ public class GroupRepository {
                     });
         }
         return groupsLiveData;
+    }
+    
+    // Separate method to get settled groups for GroupsFragment
+    public void getSettledGroups(LiveData<List<Group>> settledGroupsLiveData) {
+        FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
+        if (user == null) {
+            settledGroupsLiveData.setValue(new ArrayList<>());
+            return;
+        }
+
+        if (settledGroupsListener == null) {
+            settledGroupsListener = db.collection(GROUPS_COLLECTION)
+                    .whereArrayContains("members", user.getUid())
+                    .whereEqualTo("status", "settled") // Fetch settled groups
+                    .addSnapshotListener((value, error) -> {
+                        if (error != null) {
+                            Log.w(TAG, "Settled groups listen failed.", error);
+                            return;
+                        }
+                        List<Group> settledGroups = new ArrayList<>();
+                        if (value != null) {
+                            for (DocumentSnapshot doc : value) {
+                                Group group = doc.toObject(Group.class);
+                                if (group != null) {
+                                    settledGroups.add(group);
+                                }
+                            }
+                        }
+                        settledGroupsLiveData.setValue(settledGroups);
+                    });
+        }
+        return settledGroupsLiveData;
+    }
+    
+    // Update GroupsFragment to use both listeners for real-time updates
+    public void getGroupsWithBothListeners(LiveData<List<Group>> activeGroupsLiveData, 
+                                            LiveData<List<Group>> settledGroupsLiveData) {
+        FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
+        if (user == null) {
+            activeGroupsLiveData.setValue(new ArrayList<>());
+            settledGroupsLiveData.setValue(new ArrayList<>());
+            return;
+        }
+
+        if (groupsListener == null) {
+            groupsListener = db.collection(GROUPS_COLLECTION)
+                    .whereArrayContains("members", user.getUid())
+                    .addSnapshotListener((value, error) -> {
+                        if (error != null) {
+                            Log.w(TAG, "Groups listen failed.", error);
+                            return;
+                        }
+                        List<Group> groups = new ArrayList<>();
+                        if (value != null) {
+                            for (DocumentSnapshot doc : value) {
+                                Group group = doc.toObject(Group.class);
+                                if (group != null) {
+                                    if (group.isActive()) {
+                                        activeGroupsLiveData.getValue().add(group);
+                                    } else if (group.isSettled()) {
+                                        settledGroupsLiveData.getValue().add(group);
+                                    }
+                                }
+                            }
+                        }
+                        groupsLiveData.setValue(groups);
+                    });
+        }
+        
+        if (settledGroupsListener == null) {
+            settledGroupsListener = db.collection(GROUPS_COLLECTION)
+                    .whereArrayContains("members", user.getUid())
+                    .whereEqualTo("status", "settled") // Fetch settled groups
+                    .addSnapshotListener((value, error) -> {
+                        if (error != null) {
+                            Log.w(TAG, "Settled groups listen failed.", error);
+                            return;
+                        }
+                        List<Group> settledGroups = new ArrayList<>();
+                        if (value != null) {
+                            for (DocumentSnapshot doc : value) {
+                                Group group = doc.toObject(Group.class);
+                                if (group != null) {
+                                    settledGroupsLiveData.getValue().add(group);
+                                }
+                            }
+                        }
+                        settledGroupsLiveData.setValue(settledGroups);
+                    });
+        }
     }
 
     public void createGroup(String name, OnCompleteCallback callback) {
