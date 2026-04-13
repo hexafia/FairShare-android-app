@@ -186,22 +186,13 @@
                 android:layout_marginBottom="8dp" />
             
             <LinearLayout
+                android:id="@+id/containerParticipants"
                 android:layout_width="match_parent"
                 android:layout_height="180dp"
                 android:background="#EFFFFD"
                 android:padding="8dp"
-                android:layout_marginBottom="24dp">
-                <!-- Use nested scroll view or recycler view -->
-                <androidx.core.widget.NestedScrollView
-                    android:layout_width="match_parent"
-                    android:layout_height="match_parent">
-                    <LinearLayout
-                        android:id="@+id/containerParticipants"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:orientation="vertical" />
-                </androidx.core.widget.NestedScrollView>
-            </LinearLayout>
+                android:layout_marginBottom="24dp"
+                android:orientation="vertical" />
 
             <!-- Category -->
             <TextView
