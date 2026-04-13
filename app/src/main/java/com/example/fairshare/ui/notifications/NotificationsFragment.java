@@ -5,17 +5,24 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
+import android.widget.Toast;
+
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 
 import com.example.fairshare.R;
 
-public class NotificationsFragment extends Fragment {
+public class NotificationsFragment extends Fragment implements com.example.fairshare.FastActionHandler {
 
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         return inflater.inflate(R.layout.fragment_notifications, container, false);
+    }
+
+    @Override
+    public void onFastAction() {
+        Toast.makeText(requireContext(), "No fast action available here", Toast.LENGTH_SHORT).show();
     }
 }

@@ -110,6 +110,15 @@
                     android:layout_height="52dp"
                     android:text="All Dates"
                     app:icon="@android:drawable/ic_menu_today" />
+
+                <!-- Clear Date Filter -->
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btnClearDate"
+                    style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                    android:layout_width="wrap_content"
+                    android:layout_height="52dp"
+                    android:layout_marginStart="8dp"
+                    android:text="Reset" />
             </LinearLayout>
             
             <View

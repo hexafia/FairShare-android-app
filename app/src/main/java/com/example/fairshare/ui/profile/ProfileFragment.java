@@ -37,7 +37,7 @@ import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
-public class ProfileFragment extends Fragment {
+public class ProfileFragment extends Fragment implements com.example.fairshare.FastActionHandler {
 
     private UserRepository userRepository;
     private ExpenseRepository expenseRepository;
@@ -48,7 +48,7 @@ public class ProfileFragment extends Fragment {
     private TextView tvAvatarInitial;
     private View flAvatarFallback;
     private ImageView ivAvatar;
-    private TextView tvTotalIncome, tvTotalExpenses;
+    private TextView tvTotalExpenses;
 
     private final ExecutorService imageExecutor = Executors.newSingleThreadExecutor();
     private final Handler mainHandler = new Handler(Looper.getMainLooper());
@@ -72,7 +72,6 @@ public class ProfileFragment extends Fragment {
         tvAvatarInitial = view.findViewById(R.id.tvAvatarInitial);
         flAvatarFallback = view.findViewById(R.id.flAvatarFallback);
         ivAvatar = view.findViewById(R.id.ivAvatar);
-        tvTotalIncome = view.findViewById(R.id.tvTotalIncome);
         tvTotalExpenses = view.findViewById(R.id.tvTotalExpenses);
 
         // Settings gear button → opens SettingsActivity
@@ -178,9 +177,12 @@ public class ProfileFragment extends Fragment {
             totalExpenses += t.getAmount();
         }
 
-        // Hide income display since we no longer track it
-        tvTotalIncome.setVisibility(View.GONE);
         tvTotalExpenses.setText(CurrencyHelper.format(totalExpenses));
+    }
+
+    @Override
+    public void onFastAction() {
+        showEditProfileDialog();
     }
 
     private void showEditProfileDialog() {

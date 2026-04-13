@@ -35,7 +35,7 @@ import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 
-public class DashboardFragment extends Fragment {
+public class DashboardFragment extends Fragment implements com.example.fairshare.FastActionHandler {
 
     private FragmentDashboardBinding binding;
     private DashboardViewModel viewModel;
@@ -59,9 +59,13 @@ public class DashboardFragment extends Fragment {
         setupRecyclerView();
         setupViewModel();
 
-        binding.fabAdd.setOnClickListener(v -> showTransactionTypeDialog());
         binding.btnDashboardAddExpense.setOnClickListener(v -> showTransactionTypeDialog());
         binding.btnDashboardNewGroup.setOnClickListener(v -> showCreateGroupDialog());
+    }
+
+    @Override
+    public void onFastAction() {
+        showTransactionTypeDialog();
     }
 
     private void setupRecyclerView() {

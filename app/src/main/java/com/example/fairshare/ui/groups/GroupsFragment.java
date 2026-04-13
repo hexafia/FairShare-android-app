@@ -16,13 +16,13 @@ import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.example.fairshare.FastActionHandler;
 import com.example.fairshare.GroupRepository;
 import com.example.fairshare.R;
 import com.google.android.material.button.MaterialButton;
-import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.android.material.textfield.TextInputEditText;
 
-public class GroupsFragment extends Fragment {
+public class GroupsFragment extends Fragment implements FastActionHandler {
 
     private GroupRepository groupRepository;
     private GroupAdapter adapter;
@@ -41,7 +41,6 @@ public class GroupsFragment extends Fragment {
 
         layoutEmpty = view.findViewById(R.id.layoutEmpty);
         rvGroups = view.findViewById(R.id.rvGroups);
-        FloatingActionButton fab = view.findViewById(R.id.fabGroup);
 
         // Setup RecyclerView
         adapter = new GroupAdapter(group -> {
@@ -53,9 +52,6 @@ public class GroupsFragment extends Fragment {
         });
         rvGroups.setLayoutManager(new LinearLayoutManager(requireContext()));
         rvGroups.setAdapter(adapter);
-
-        // FAB → show create/join options
-        fab.setOnClickListener(v -> showGroupOptions());
 
         // Observe groups
         groupRepository = new GroupRepository();
@@ -69,6 +65,11 @@ public class GroupsFragment extends Fragment {
                 rvGroups.setVisibility(View.VISIBLE);
             }
         });
+    }
+
+    @Override
+    public void onFastAction() {
+        showGroupOptions();
     }
 
     private void showGroupOptions() {

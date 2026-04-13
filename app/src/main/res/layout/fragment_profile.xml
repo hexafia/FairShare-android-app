@@ -178,14 +178,7 @@
                 android:layout_marginTop="24dp"
                 android:orientation="horizontal">
                 <com.google.android.material.card.MaterialCardView
-                    android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:layout_marginEnd="8dp" app:cardCornerRadius="16dp" app:cardElevation="0dp">
-                    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:gravity="center" android:orientation="vertical" android:padding="16dp">
-                        <TextView android:id="@+id/tvTotalIncome" style="@style/TextAppearance.MyApp.Heading3" android:textColor="@color/teal" tools:text="₱65,000" android:layout_width="wrap_content" android:layout_height="wrap_content" />
-                        <TextView style="@style/TextAppearance.MyApp.BodySmaller" android:text="@string/total_income_label" android:textColor="@color/gray" android:layout_width="wrap_content" android:layout_height="wrap_content" />
-                    </LinearLayout>
-                </com.google.android.material.card.MaterialCardView>
-                <com.google.android.material.card.MaterialCardView
-                    android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:layout_marginStart="8dp" app:cardCornerRadius="16dp" app:cardElevation="0dp">
+                    android:layout_width="match_parent" android:layout_height="wrap_content" app:cardCornerRadius="16dp" app:cardElevation="0dp">
                     <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:gravity="center" android:orientation="vertical" android:padding="16dp">
                         <TextView android:id="@+id/tvTotalExpenses" style="@style/TextAppearance.MyApp.Heading3" android:textColor="@color/orange" tools:text="₱16,450" android:layout_width="wrap_content" android:layout_height="wrap_content" />
                         <TextView style="@style/TextAppearance.MyApp.BodySmaller" android:text="@string/total_expenses_label" android:textColor="@color/gray" android:layout_width="wrap_content" android:layout_height="wrap_content" />

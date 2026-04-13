@@ -10,6 +10,7 @@ import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Spinner;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -34,7 +35,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.Locale;
 
-public class LedgerFragment extends Fragment {
+public class LedgerFragment extends Fragment implements com.example.fairshare.FastActionHandler {
 
     private ExpenseViewModel viewModel;
     private ExpenseAdapter adapter;
@@ -44,6 +45,7 @@ public class LedgerFragment extends Fragment {
     private TextInputEditText etSearch;
     private Spinner spinnerFilterCategory;
     private MaterialButton btnFilterDate;
+    private MaterialButton btnClearDate;
     private TextView tvTotalExpense;
     private TextView tvEmptyState;
     private RecyclerView rvPersonalExpenses;
@@ -65,6 +67,7 @@ public class LedgerFragment extends Fragment {
         etSearch = view.findViewById(R.id.etSearch);
         spinnerFilterCategory = view.findViewById(R.id.spinnerFilterCategory);
         btnFilterDate = view.findViewById(R.id.btnFilterDate);
+        btnClearDate = view.findViewById(R.id.btnClearDate);
         tvTotalExpense = view.findViewById(R.id.tvTotalExpense);
         tvEmptyState = view.findViewById(R.id.tvEmptyState);
         rvPersonalExpenses = view.findViewById(R.id.rvPersonalExpenses);
@@ -128,6 +131,7 @@ public class LedgerFragment extends Fragment {
             MaterialDatePicker<Long> datePicker = MaterialDatePicker.Builder.datePicker()
                     .setTitleText("Select Date")
                     .setSelection(selectedDateStart != null ? selectedDateStart : MaterialDatePicker.todayInUtcMilliseconds())
+                    .setNegativeButtonText("All Dates")
                     .build();
 
             datePicker.addOnPositiveButtonClickListener(selection -> {
@@ -137,15 +141,19 @@ public class LedgerFragment extends Fragment {
                 applyFilters();
             });
 
+            datePicker.addOnNegativeButtonClickListener(dialog -> {
+                selectedDateStart = null;
+                btnFilterDate.setText("All Dates");
+                applyFilters();
+            });
+
             datePicker.show(getParentFragmentManager(), "DATE_PICKER");
         });
-        
-        // Add a long click listener to clear the date filter
-        btnFilterDate.setOnLongClickListener(v -> {
+
+        btnClearDate.setOnClickListener(v -> {
             selectedDateStart = null;
             btnFilterDate.setText("All Dates");
             applyFilters();
-            return true;
         });
     }
 
@@ -156,6 +164,18 @@ public class LedgerFragment extends Fragment {
             allExpenses = transactions != null ? transactions : new ArrayList<>();
             applyFilters();
         });
+    }
+
+    @Override
+    public void onFastAction() {
+        if (selectedDateStart != null) {
+            selectedDateStart = null;
+            btnFilterDate.setText("All Dates");
+            applyFilters();
+            Toast.makeText(requireContext(), "Date filter cleared", Toast.LENGTH_SHORT).show();
+        } else {
+            Toast.makeText(requireContext(), "No date filter active", Toast.LENGTH_SHORT).show();
+        }
     }
 
     private void applyFilters() {
