@@ -146,11 +146,15 @@ public class GroupLobbyActivity extends AppCompatActivity {
 
         // Initialize FAB
         fabAddExpense = findViewById(R.id.fabAddExpense);
-        fabAddExpense.setOnClickListener(v -> showAddExpenseDialog());
+        fabAddExpense.setOnClickListener(v -> {
+            Log.d("FAB_DEBUG", "FAB clicked!");
+            showAddExpenseDialog();
+        });
         
-        // Initially set FAB as hidden until group data loads
+        // Initially set FAB as visible for testing
         if (fabAddExpense != null) {
-            fabAddExpense.setVisibility(View.GONE);
+            fabAddExpense.setVisibility(View.VISIBLE);
+            Log.d("FAB_DEBUG", "FAB made visible in onCreate");
         }
 
         // Repositories
