@@ -41,14 +41,21 @@ public class GroupLobbyActivity extends AppCompatActivity {
     private UserRepository userRepository;
     private GroupExpenseAdapter expenseAdapter;
     private DebtAdapter debtAdapter;
+    private MembersAdapter membersAdapter;
     private final NumberFormat currencyFormat = NumberFormat.getCurrencyInstance(new Locale("en", "PH"));
+
+    private String createdBy;
+    private String status;
 
     private TextView tvGroupTotal, tvMemberCount, tvMyBalance;
     private View layoutLedger, layoutSettleUp;
     private TextView tvLedgerEmpty, tvSettleEmpty;
-    private RecyclerView rvLedger, rvDebts;
+    private RecyclerView rvLedger, rvDebts, rvMembers;
+    private MaterialButton btnMarkAccomplished;
+    private com.google.android.material.floatingactionbutton.FloatingActionButton fabAddExpense;
+    private View layoutMembers;
 
-    // Maps UID → display name for the Settle Up tab
+    // Maps UID → display name for the Settle Up & Members tabs
     private final Map<String, String> memberNames = new HashMap<>();
 
     @Override
@@ -59,6 +66,8 @@ public class GroupLobbyActivity extends AppCompatActivity {
         groupId = getIntent().getStringExtra("GROUP_ID");
         groupName = getIntent().getStringExtra("GROUP_NAME");
         shareCode = getIntent().getStringExtra("SHARE_CODE");
+        createdBy = getIntent().getStringExtra("CREATED_BY");
+        status = getIntent().getStringExtra("STATUS");
 
         // Bind header views
         TextView tvGroupName = findViewById(R.id.tvGroupName);
@@ -88,21 +97,29 @@ public class GroupLobbyActivity extends AppCompatActivity {
         // Setup tabs
         layoutLedger = findViewById(R.id.layoutLedger);
         layoutSettleUp = findViewById(R.id.layoutSettleUp);
+        layoutMembers = findViewById(R.id.layoutMembers);
         tvLedgerEmpty = findViewById(R.id.tvLedgerEmpty);
         tvSettleEmpty = findViewById(R.id.tvSettleEmpty);
         rvLedger = findViewById(R.id.rvLedger);
         rvDebts = findViewById(R.id.rvDebts);
+        rvMembers = findViewById(R.id.rvMembers);
+        btnMarkAccomplished = findViewById(R.id.btnMarkAccomplished);
+        fabAddExpense = findViewById(R.id.fabAddExpense);
 
         TabLayout tabLayout = findViewById(R.id.tabLayout);
         tabLayout.addOnTabSelectedListener(new TabLayout.OnTabSelectedListener() {
             @Override
             public void onTabSelected(TabLayout.Tab tab) {
+                layoutLedger.setVisibility(View.GONE);
+                layoutSettleUp.setVisibility(View.GONE);
+                layoutMembers.setVisibility(View.GONE);
+
                 if (tab.getPosition() == 0) {
                     layoutLedger.setVisibility(View.VISIBLE);
-                    layoutSettleUp.setVisibility(View.GONE);
-                } else {
-                    layoutLedger.setVisibility(View.GONE);
+                } else if (tab.getPosition() == 1) {
                     layoutSettleUp.setVisibility(View.VISIBLE);
+                } else {
+                    layoutMembers.setVisibility(View.VISIBLE);
                 }
             }
 
@@ -122,8 +139,12 @@ public class GroupLobbyActivity extends AppCompatActivity {
         rvDebts.setLayoutManager(new LinearLayoutManager(this));
         rvDebts.setAdapter(debtAdapter);
 
+        membersAdapter = new MembersAdapter();
+        rvMembers.setLayoutManager(new LinearLayoutManager(this));
+        rvMembers.setAdapter(membersAdapter);
+
         // FAB
-        findViewById(R.id.fabAddExpense).setOnClickListener(v -> showAddExpenseDialog());
+        fabAddExpense.setOnClickListener(v -> showAddExpenseDialog());
 
         // Repositories
         groupRepository = new GroupRepository();
@@ -150,6 +171,40 @@ public class GroupLobbyActivity extends AppCompatActivity {
                 updateDebts(expenses);
             }
         });
+
+        // Setup Mark as Accomplished button visibility & logic
+        FirebaseUser currentUser = FirebaseAuth.getInstance().getCurrentUser();
+        if (currentUser != null && currentUser.getUid().equals(createdBy) && !"settled".equals(status)) {
+            btnMarkAccomplished.setVisibility(View.VISIBLE);
+            btnMarkAccomplished.setOnClickListener(v -> markAsAccomplished());
+        }
+
+        if ("settled".equals(status)) {
+            enforceReadonlyState();
+        }
+    }
+
+    private void enforceReadonlyState() {
+        btnMarkAccomplished.setVisibility(View.GONE);
+        fabAddExpense.setVisibility(View.GONE);
+        // Toast when trying to interact with anything disabled could be added here, 
+        // but hiding the FAB is generally enough to prevent new expenses.
+    }
+
+    private void markAsAccomplished() {
+        groupRepository.updateGroupStatus(groupId, "settled", new GroupRepository.OnCompleteCallback() {
+            @Override
+            public void onSuccess(String message) {
+                status = "settled";
+                Toast.makeText(GroupLobbyActivity.this, "Group settled", Toast.LENGTH_SHORT).show();
+                enforceReadonlyState();
+            }
+
+            @Override
+            public void onError(String error) {
+                Toast.makeText(GroupLobbyActivity.this, "Error: " + error, Toast.LENGTH_SHORT).show();
+            }
+        });
     }
 
     private void loadMemberNames() {
@@ -165,13 +220,20 @@ public class GroupLobbyActivity extends AppCompatActivity {
                                 String name = doc.getString("displayName");
                                 if (name != null) {
                                     memberNames.put(uid, name);
-                                    // Refresh debt display with new names
+                                    // Refresh debt & members display with new names
                                     debtAdapter.setMemberNames(memberNames);
                                     debtAdapter.notifyDataSetChanged();
+                                    
+                                    membersAdapter.setMembers(memberUids, memberNames);
+                                    membersAdapter.notifyDataSetChanged();
                                 }
                             }
                         });
             }
+            
+            // Initial render before names load
+            membersAdapter.setMembers(memberUids, memberNames);
+            membersAdapter.notifyDataSetChanged();
         });
     }
 
@@ -290,5 +352,50 @@ public class GroupLobbyActivity extends AppCompatActivity {
     protected void onDestroy() {
         super.onDestroy();
         groupRepository.removeListeners();
+    }
+
+    // Inner class for displaying Members
+    private class MembersAdapter extends RecyclerView.Adapter<MembersAdapter.MemberViewHolder> {
+        private List<String> memberUids;
+        private Map<String, String> nameMap;
+
+        void setMembers(List<String> memberUids, Map<String, String> nameMap) {
+            this.memberUids = memberUids;
+            this.nameMap = nameMap;
+        }
+
+        @NonNull
+        @Override
+        public MemberViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
+            TextView tv = new TextView(parent.getContext());
+            tv.setPadding(32, 32, 32, 32);
+            tv.setTextSize(16f);
+            tv.setTextColor(0xFF2D3142); // @color/off_black
+            tv.setLayoutParams(new ViewGroup.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT, 
+                ViewGroup.LayoutParams.WRAP_CONTENT));
+            return new MemberViewHolder(tv);
+        }
+
+        @Override
+        public void onBindViewHolder(@NonNull MemberViewHolder holder, int position) {
+            String uid = memberUids.get(position);
+            String name = nameMap.containsKey(uid) ? nameMap.get(uid) : "Loading...";
+            if (createdBy != null && createdBy.equals(uid)) {
+                name += " (Creator)";
+            }
+            ((TextView)holder.itemView).setText(name);
+        }
+
+        @Override
+        public int getItemCount() {
+            return memberUids != null ? memberUids.size() : 0;
+        }
+
+        class MemberViewHolder extends RecyclerView.ViewHolder {
+            MemberViewHolder(@NonNull View itemView) {
+                super(itemView);
+            }
+        }
     }
 }

@@ -189,7 +189,19 @@
 
                         </LinearLayout>
 
-                    </LinearLayout>
+                    <!-- Mark as Accomplished Button (Hidden by default) -->
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/btnMarkAccomplished"
+                        android:layout_width="match_parent"
+                        android:layout_height="56dp"
+                        android:layout_marginTop="16dp"
+                        android:text="Mark as Accomplished"
+                        android:textAllCaps="false"
+                        android:textColor="@color/white"
+                        android:textStyle="bold"
+                        app:backgroundTint="@color/teal"
+                        app:cornerRadius="12dp"
+                        android:visibility="gone" />
 
                 </LinearLayout>
 
@@ -216,6 +228,11 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="@string/tab_settle_up" />
+
+                <com.google.android.material.tabs.TabItem
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Members" />
 
             </com.google.android.material.tabs.TabLayout>
 
@@ -275,6 +292,24 @@
                     android:layout_height="wrap_content"
                     android:nestedScrollingEnabled="false"
                     android:visibility="gone" />
+
+            </LinearLayout>
+
+            <!-- Members content -->
+            <LinearLayout
+                android:id="@+id/layoutMembers"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:padding="16dp"
+                android:visibility="gone">
+
+                <androidx.recyclerview.widget.RecyclerView
+                    android:id="@+id/rvMembers"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:nestedScrollingEnabled="false"
+                    android:visibility="visible" />
 
             </LinearLayout>
 

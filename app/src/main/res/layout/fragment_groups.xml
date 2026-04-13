@@ -51,30 +51,91 @@
             android:orientation="vertical"
             android:padding="24dp">
 
-            <!-- Empty state -->
+            <!-- Quick Actions -->
             <LinearLayout
-                android:id="@+id/layoutEmpty"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:gravity="center"
-                android:orientation="vertical"
-                android:paddingTop="48dp"
-                android:paddingBottom="48dp"
-                android:visibility="gone">
+                android:layout_marginBottom="24dp"
+                android:orientation="horizontal">
 
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="@string/no_groups_yet"
-                    android:textColor="@color/gray"
-                    android:textSize="16sp"
-                    android:gravity="center" />
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btnCreateGroup"
+                    android:layout_width="0dp"
+                    android:layout_height="64dp"
+                    android:layout_weight="1"
+                    android:layout_marginEnd="8dp"
+                    android:text="Create New Group"
+                    android:textAllCaps="false"
+                    android:textSize="14sp"
+                    android:textStyle="bold"
+                    app:backgroundTint="@color/teal"
+                    app:cornerRadius="16dp" />
 
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btnJoinGroup"
+                    android:layout_width="0dp"
+                    android:layout_height="64dp"
+                    android:layout_weight="1"
+                    android:layout_marginStart="8dp"
+                    android:text="Join via Code"
+                    android:textAllCaps="false"
+                    android:textSize="14sp"
+                    android:textStyle="bold"
+                    app:backgroundTint="@color/orange"
+                    app:cornerRadius="16dp" />
             </LinearLayout>
 
-            <!-- Groups list -->
+            <!-- Active Groups Section -->
+            <TextView
+                style="@style/TextAppearance.MyApp.Heading3"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Active Groups"
+                android:layout_marginBottom="8dp" />
+
+            <TextView
+                android:id="@+id/tvEmptyActive"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="No active groups"
+                android:textColor="@color/gray"
+                android:textSize="16sp"
+                android:gravity="center"
+                android:paddingTop="24dp"
+                android:paddingBottom="24dp"
+                android:visibility="gone" />
+
             <androidx.recyclerview.widget.RecyclerView
-                android:id="@+id/rvGroups"
+                android:id="@+id/rvActiveGroups"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:nestedScrollingEnabled="false"
+                android:clipToPadding="false"
+                tools:listitem="@layout/item_group" />
+
+            <!-- Settled Groups Section -->
+            <TextView
+                style="@style/TextAppearance.MyApp.Heading3"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Settled Groups"
+                android:layout_marginTop="24dp"
+                android:layout_marginBottom="8dp" />
+
+            <TextView
+                android:id="@+id/tvEmptySettled"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="No settled groups"
+                android:textColor="@color/gray"
+                android:textSize="16sp"
+                android:gravity="center"
+                android:paddingTop="24dp"
+                android:paddingBottom="24dp"
+                android:visibility="gone" />
+
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/rvSettledGroups"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:nestedScrollingEnabled="false"
@@ -84,18 +145,5 @@
         </LinearLayout>
 
     </androidx.core.widget.NestedScrollView>
-
-    <!-- FAB -->
-    <com.google.android.material.floatingactionbutton.FloatingActionButton
-        android:id="@+id/fabGroup"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_gravity="bottom|end"
-        android:layout_margin="24dp"
-        android:contentDescription="@string/add_group"
-        android:src="@android:drawable/ic_input_add"
-        app:backgroundTint="@color/orange"
-        app:tint="@color/white"
-        app:fabSize="normal" />
 
 </androidx.coordinatorlayout.widget.CoordinatorLayout>

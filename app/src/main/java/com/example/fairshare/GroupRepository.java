@@ -126,6 +126,13 @@ public class GroupRepository {
                 });
     }
 
+    public void updateGroupStatus(String groupId, String status, OnCompleteCallback callback) {
+        db.collection(GROUPS_COLLECTION).document(groupId)
+                .update("status", status)
+                .addOnSuccessListener(aVoid -> callback.onSuccess("Group updated"))
+                .addOnFailureListener(e -> callback.onError(e.getMessage()));
+    }
+
     // ========================
     // GROUP EXPENSE OPERATIONS
     // ========================

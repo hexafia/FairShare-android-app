@@ -16,6 +16,7 @@ public class Group {
     private String shareCode;
     private String createdBy;
     private List<String> members;
+    private String status = "active";
 
     // Required empty constructor for Firebase deserialization
     public Group() {
@@ -73,5 +74,13 @@ public class Group {
 
     public int getMemberCount() {
         return members != null ? members.size() : 0;
+    }
+
+    public String getStatus() {
+        return status;
+    }
+
+    public void setStatus(String status) {
+        this.status = status;
     }
 }

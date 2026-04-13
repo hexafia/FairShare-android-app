@@ -25,9 +25,12 @@ import com.google.android.material.textfield.TextInputEditText;
 public class GroupsFragment extends Fragment {
 
     private GroupRepository groupRepository;
-    private GroupAdapter adapter;
-    private View layoutEmpty;
-    private RecyclerView rvGroups;
+    private GroupAdapter activeAdapter;
+    private GroupAdapter settledAdapter;
+    private View tvEmptyActive;
+    private View tvEmptySettled;
+    private RecyclerView rvActiveGroups;
+    private RecyclerView rvSettledGroups;
 
     @Nullable
     @Override
@@ -39,64 +42,64 @@ public class GroupsFragment extends Fragment {
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
 
-        layoutEmpty = view.findViewById(R.id.layoutEmpty);
-        rvGroups = view.findViewById(R.id.rvGroups);
-        FloatingActionButton fab = view.findViewById(R.id.fabGroup);
+        tvEmptyActive = view.findViewById(R.id.tvEmptyActive);
+        tvEmptySettled = view.findViewById(R.id.tvEmptySettled);
+        rvActiveGroups = view.findViewById(R.id.rvActiveGroups);
+        rvSettledGroups = view.findViewById(R.id.rvSettledGroups);
+        
+        MaterialButton btnCreateGroup = view.findViewById(R.id.btnCreateGroup);
+        MaterialButton btnJoinGroup = view.findViewById(R.id.btnJoinGroup);
 
-        // Setup RecyclerView
-        adapter = new GroupAdapter(group -> {
+        // Setup RecyclerViews
+        GroupAdapter.OnGroupClickListener listener = group -> {
             Intent intent = new Intent(requireContext(), GroupLobbyActivity.class);
             intent.putExtra("GROUP_ID", group.getId());
             intent.putExtra("GROUP_NAME", group.getName());
             intent.putExtra("SHARE_CODE", group.getShareCode());
+            intent.putExtra("CREATED_BY", group.getCreatedBy());
+            intent.putExtra("STATUS", group.getStatus());
             startActivity(intent);
-        });
-        rvGroups.setLayoutManager(new LinearLayoutManager(requireContext()));
-        rvGroups.setAdapter(adapter);
+        };
 
-        // FAB → show create/join options
-        fab.setOnClickListener(v -> showGroupOptions());
+        activeAdapter = new GroupAdapter(listener);
+        rvActiveGroups.setLayoutManager(new LinearLayoutManager(requireContext()));
+        rvActiveGroups.setAdapter(activeAdapter);
+
+        settledAdapter = new GroupAdapter(listener);
+        rvSettledGroups.setLayoutManager(new LinearLayoutManager(requireContext()));
+        rvSettledGroups.setAdapter(settledAdapter);
+
+        btnCreateGroup.setOnClickListener(v -> showCreateGroupDialog());
+        btnJoinGroup.setOnClickListener(v -> showJoinGroupDialog());
 
         // Observe groups
         groupRepository = new GroupRepository();
         groupRepository.getGroups().observe(getViewLifecycleOwner(), groups -> {
-            adapter.submitList(groups);
-            if (groups == null || groups.isEmpty()) {
-                layoutEmpty.setVisibility(View.VISIBLE);
-                rvGroups.setVisibility(View.GONE);
-            } else {
-                layoutEmpty.setVisibility(View.GONE);
-                rvGroups.setVisibility(View.VISIBLE);
+            List<com.example.fairshare.Group> activeGroups = new java.util.ArrayList<>();
+            List<com.example.fairshare.Group> settledGroups = new java.util.ArrayList<>();
+
+            if (groups != null) {
+                for (com.example.fairshare.Group group : groups) {
+                    if ("settled".equalsIgnoreCase(group.getStatus())) {
+                        settledGroups.add(group);
+                    } else {
+                        activeGroups.add(group);
+                    }
+                }
             }
+
+            activeAdapter.submitList(activeGroups);
+            settledAdapter.submitList(settledGroups);
+
+            tvEmptyActive.setVisibility(activeGroups.isEmpty() ? View.VISIBLE : View.GONE);
+            rvActiveGroups.setVisibility(activeGroups.isEmpty() ? View.GONE : View.VISIBLE);
+
+            tvEmptySettled.setVisibility(settledGroups.isEmpty() ? View.VISIBLE : View.GONE);
+            rvSettledGroups.setVisibility(settledGroups.isEmpty() ? View.GONE : View.VISIBLE);
         });
     }
 
-    private void showGroupOptions() {
-        Dialog dialog = new Dialog(requireContext(), R.style.Theme_FairShare_Dialog);
-        dialog.setContentView(R.layout.dialog_group_options);
-
-        MaterialButton btnCreate = dialog.findViewById(R.id.btnCreateOption);
-        MaterialButton btnJoin = dialog.findViewById(R.id.btnJoinOption);
-        MaterialButton btnCancel = dialog.findViewById(R.id.btnCancel);
-
-        btnCreate.setOnClickListener(v -> {
-            dialog.dismiss();
-            showCreateGroupDialog();
-        });
-
-        btnJoin.setOnClickListener(v -> {
-            dialog.dismiss();
-            showJoinGroupDialog();
-        });
-
-        btnCancel.setOnClickListener(v -> dialog.dismiss());
-
-        dialog.show();
-        if (dialog.getWindow() != null) {
-            int width = (int) (350 * getResources().getDisplayMetrics().density);
-            dialog.getWindow().setLayout(width, ViewGroup.LayoutParams.WRAP_CONTENT);
-        }
-    }
+    // Removed showGroupOptions method as we now use direct buttons
 
     private void showCreateGroupDialog() {
         Dialog dialog = new Dialog(requireContext(), R.style.Theme_FairShare_Dialog);
