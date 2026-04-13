@@ -294,31 +294,23 @@ public class GroupLobbyActivity extends AppCompatActivity {
 
     private void showAddExpenseDialog() {
         try {
-            Log.d("DIALOG_DEBUG", "showAddExpenseDialog() called");
+            Log.d("FAB_DEBUG", "Starting inflation");
+            LayoutInflater inflater = getLayoutInflater();
+            View dialogView = inflater.inflate(R.layout.dialog_add_group_expense, null);
+            Log.d("FAB_DEBUG", "Inflation successful");
             
-            // Check if group is settled before allowing expense addition
-            if (currentGroup != null && currentGroup.isSettled()) {
-                Log.d("DIALOG_DEBUG", "Group is settled, returning");
-                Toast.makeText(GroupLobbyActivity.this, "This group is archived and cannot be modified.", Toast.LENGTH_SHORT).show();
-                return;
-            }
-
-            Log.d("DIALOG_DEBUG", "Inflating dialog layout");
-            View view = getLayoutInflater().inflate(R.layout.dialog_add_group_expense, null);
-            Log.d("DIALOG_DEBUG", "Dialog layout inflated successfully");
+            AlertDialog.Builder builder = new AlertDialog.Builder(GroupLobbyActivity.this);
+            builder.setView(dialogView);
+            AlertDialog dialog = builder.create();
+            Log.d("FAB_DEBUG", "Dialog created, about to show");
+            dialog.show();
+            Log.d("FAB_DEBUG", "Dialog show() called");
             
-            Dialog dialog = new Dialog(this, R.style.Theme_FairShare_Dialog);
-            dialog.setContentView(view);
-            Log.d("DIALOG_DEBUG", "Dialog content view set");
-            
-            // DEBUG: Log when dialog is created
-            Log.d("GroupLobby", "Creating expense dialog for groupId: " + groupId);
-
-            TextInputEditText etTitle = view.findViewById(R.id.etTitle);
-            TextInputEditText etAmount = view.findViewById(R.id.etAmount);
-            TextView tvSplitInfo = view.findViewById(R.id.tvSplitInfo);
-            MaterialButton btnCancel = view.findViewById(R.id.btnCancel);
-            MaterialButton btnAddExpense = view.findViewById(R.id.btnAddExpense);
+            TextInputEditText etTitle = dialogView.findViewById(R.id.etTitle);
+            TextInputEditText etAmount = dialogView.findViewById(R.id.etAmount);
+            TextView tvSplitInfo = dialogView.findViewById(R.id.tvSplitInfo);
+            MaterialButton btnCancel = dialogView.findViewById(R.id.btnCancel);
+            MaterialButton btnAddExpense = dialogView.findViewById(R.id.btnAddExpense);
 
             tvSplitInfo.setText("Split equally among all group members");
 
@@ -364,16 +356,9 @@ public class GroupLobbyActivity extends AppCompatActivity {
                 Toast.makeText(this, "Expense added!", Toast.LENGTH_SHORT).show();
                 dialog.dismiss();
             });
-
-            Log.d("DIALOG_DEBUG", "About to show dialog");
-            dialog.show();
-            Log.d("DIALOG_DEBUG", "Dialog shown successfully");
-            if (dialog.getWindow() != null) {
-                int width = (int) (350 * getResources().getDisplayMetrics().density);
-                dialog.getWindow().setLayout(width, ViewGroup.LayoutParams.WRAP_CONTENT);
-            }
         } catch (Exception e) {
-            Log.e("CRASH_FIX", "Error launching dialog: " + e.getMessage());
+            Log.e("FAB_ERROR", "Crash in showAddExpenseDialog: " + e.getMessage());
+            e.printStackTrace();
         }
     }
 
