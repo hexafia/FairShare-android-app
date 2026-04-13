@@ -114,6 +114,17 @@ public class GroupRepository {
                         DocumentSnapshot doc = task.getResult().getDocuments().get(0);
                         String groupId = doc.getId();
                         
+                        // Check group status before allowing join
+                        String status = doc.getString("status");
+                        if (status == null) {
+                            status = "active"; // Default to active if status field is missing
+                        }
+                        
+                        if ("settled".equals(status)) {
+                            callback.onError("This group has been archived and is no longer accepting new members.");
+                            return;
+                        }
+                        
                         db.collection(GROUPS_COLLECTION).document(groupId)
                                 .update("members", FieldValue.arrayUnion(user.getUid()))
                                 .addOnSuccessListener(aVoid -> {

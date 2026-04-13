@@ -267,6 +267,12 @@ public class GroupLobbyActivity extends AppCompatActivity {
     }
 
     private void showAddExpenseDialog() {
+        // Check if group is settled before allowing expense addition
+        if (currentGroup != null && currentGroup.isSettled()) {
+            Toast.makeText(GroupLobbyActivity.this, "This group is archived and cannot be modified.", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
         Dialog dialog = new Dialog(this, R.style.Theme_FairShare_Dialog);
         dialog.setContentView(R.layout.dialog_add_group_expense);
 
@@ -398,7 +404,11 @@ private void disableAllInputElements() {
     }
 
     // Disable add expense functionality
-    // Note: FAB was already removed from XML
+    // Note: FAB was already removed from XML, but we need to prevent the dialog from opening
+    // This will be handled in the showAddExpenseDialog method
+
+    // Disable any other interactive elements if they exist
+    // For now, the main restriction is preventing the add expense dialog
 }
 
 @Override
