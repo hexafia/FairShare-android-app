@@ -55,6 +55,7 @@ public class GroupRepository {
         if (groupsListener == null) {
             groupsListener = db.collection(GROUPS_COLLECTION)
                     .whereArrayContains("members", user.getUid())
+                    .whereEqualTo("status", "active") // CRITICAL: Only fetch active groups
                     .addSnapshotListener((value, error) -> {
                         if (error != null) {
                             Log.w(TAG, "Groups listen failed.", error);
