@@ -306,7 +306,7 @@ public class GroupLobbyActivity extends AppCompatActivity {
             MaterialButton btnCancel = view.findViewById(R.id.btnCancel);
             MaterialButton btnAddExpense = view.findViewById(R.id.btnAddExpense);
 
-        tvSplitInfo.setText("Split equally among all group members");
+            tvSplitInfo.setText("Split equally among all group members");
 
             btnCancel.setOnClickListener(v -> dialog.dismiss());
 
@@ -351,7 +351,9 @@ public class GroupLobbyActivity extends AppCompatActivity {
                 dialog.dismiss();
             });
 
+            Log.d("DIALOG_DEBUG", "About to show dialog");
             dialog.show();
+            Log.d("DIALOG_DEBUG", "Dialog shown successfully");
             if (dialog.getWindow() != null) {
                 int width = (int) (350 * getResources().getDisplayMetrics().density);
                 dialog.getWindow().setLayout(width, ViewGroup.LayoutParams.WRAP_CONTENT);
