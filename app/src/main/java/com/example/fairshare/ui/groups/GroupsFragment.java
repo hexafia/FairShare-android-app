@@ -85,7 +85,7 @@ public class GroupsFragment extends Fragment implements FastActionHandler {
 
         // Initialize FAB
         fabGlobalAction = view.findViewById(R.id.fabGlobalAction);
-        fabGlobalAction.setOnClickListener(v -> showCreateGroupDialog());
+        fabGlobalAction.setOnClickListener(v -> showGroupOptions());
 
         // Observe groups
         groupRepository = new GroupRepository();
@@ -132,7 +132,7 @@ public class GroupsFragment extends Fragment implements FastActionHandler {
 
     @Override
     public void onFastAction() {
-        showCreateGroupDialog();
+        showGroupOptions();
     }
 
     private void showGroupOptions() {

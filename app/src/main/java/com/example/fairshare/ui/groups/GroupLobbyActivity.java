@@ -193,6 +193,10 @@ public class GroupLobbyActivity extends AppCompatActivity {
                                     // Refresh settlement display with new names
                                     settlementAdapter.setMemberNames(memberNames);
                                     settlementAdapter.notifyDataSetChanged();
+                                    // Recalculate settlements with updated member names
+                                    if (expenseAdapter.getCurrentList() != null) {
+                                        updateDebts(expenseAdapter.getCurrentList());
+                                    }
                                     // Also populate members tab
                                     populateMembersTab();
                                 }

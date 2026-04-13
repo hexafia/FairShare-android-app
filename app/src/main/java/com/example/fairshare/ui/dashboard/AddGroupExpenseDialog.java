@@ -191,6 +191,13 @@ public class AddGroupExpenseDialog {
 
         // Handle save button
         btnAddExpense.setOnClickListener(v -> {
+            // CRITICAL SECURITY CHECK: Verify group status before allowing expense addition
+            Group group = selectedGroup[0];
+            if (group != null && group.isSettled()) {
+                Toast.makeText(context, "Cannot add expenses to an archived group.", Toast.LENGTH_SHORT).show();
+                return;
+            }
+
             String title = etTitle.getText() != null ? etTitle.getText().toString().trim() : "";
             String amountStr = etAmount.getText() != null ? etAmount.getText().toString().trim() : "";
 
