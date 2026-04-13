@@ -209,23 +209,23 @@ public class GroupLobbyActivity extends AppCompatActivity {
             });
             
             // Simple ArrayAdapter for members
-            String[] memberNamesArray = memberList.stream()
-                    .map(uid -> {
-                        String name = memberNames.get(uid);
-                        if (currentGroup != null && uid.equals(currentGroup.getCreatedBy())) {
-                            return name + " (Creator)";
-                        }
-                        return name;
-                    })
-                    .toArray(String[]::new);
+            java.util.List<String> displayNames = new java.util.ArrayList<>();
+            for (String uid : memberList) {
+                String name = memberNames.get(uid);
+                if (currentGroup != null && uid.equals(currentGroup.getCreatedBy())) {
+                    displayNames.add(name + " (Creator)");
+                } else {
+                    displayNames.add(name);
+                }
+            }
             
             android.widget.ArrayAdapter<String> membersAdapter = new android.widget.ArrayAdapter<>(
                     this,
                     android.R.layout.simple_list_item_1,
-                    memberNamesArray
+                    displayNames
             );
             
-            rvMembers.setAdapter((android.widget.ListAdapter) membersAdapter);
+            rvMembers.setAdapter(membersAdapter);
         }
     }
 
