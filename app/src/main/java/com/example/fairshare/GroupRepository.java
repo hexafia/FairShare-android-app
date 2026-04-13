@@ -31,11 +31,13 @@ public class GroupRepository {
 
     private final FirebaseFirestore db;
     private final MutableLiveData<List<Group>> groupsLiveData = new MutableLiveData<>(new ArrayList<>());
+    private final MutableLiveData<List<Group>> settledGroupsLiveData = new MutableLiveData<>(new ArrayList<>());
     private final MutableLiveData<List<GroupExpense>> expensesLiveData = new MutableLiveData<>(new ArrayList<>());
     private final MutableLiveData<List<GroupExpense>> allMyExpensesLiveData = new MutableLiveData<>(new ArrayList<>());
     private final MutableLiveData<List<GroupExpense>> settleUpExpensesLiveData = new MutableLiveData<>(new ArrayList<>());
 
     private ListenerRegistration groupsListener;
+    private ListenerRegistration settledGroupsListener;
     private ListenerRegistration expensesListener;
     private ListenerRegistration allMyExpensesListener;
     private ListenerRegistration settleUpListener;
@@ -77,7 +79,7 @@ public class GroupRepository {
     }
     
     // Separate method to get settled groups for GroupsFragment
-    public void getSettledGroups(LiveData<List<Group>> settledGroupsLiveData) {
+    public void getSettledGroups(MutableLiveData<List<Group>> settledGroupsLiveData) {
         FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
         if (user == null) {
             settledGroupsLiveData.setValue(new ArrayList<>());
@@ -105,12 +107,11 @@ public class GroupRepository {
                         settledGroupsLiveData.setValue(settledGroups);
                     });
         }
-        return settledGroupsLiveData;
     }
     
     // Update GroupsFragment to use both listeners for real-time updates
-    public void getGroupsWithBothListeners(LiveData<List<Group>> activeGroupsLiveData, 
-                                            LiveData<List<Group>> settledGroupsLiveData) {
+    public void getGroupsWithBothListeners(MutableLiveData<List<Group>> activeGroupsLiveData, 
+                                            MutableLiveData<List<Group>> settledGroupsLiveData) {
         FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
         if (user == null) {
             activeGroupsLiveData.setValue(new ArrayList<>());
@@ -132,9 +133,17 @@ public class GroupRepository {
                                 Group group = doc.toObject(Group.class);
                                 if (group != null) {
                                     if (group.isActive()) {
-                                        activeGroupsLiveData.getValue().add(group);
+                                        List<Group> currentActive = activeGroupsLiveData.getValue();
+                                        if (currentActive != null) {
+                                            currentActive.add(group);
+                                            activeGroupsLiveData.setValue(currentActive);
+                                        }
                                     } else if (group.isSettled()) {
-                                        settledGroupsLiveData.getValue().add(group);
+                                        List<Group> currentSettled = settledGroupsLiveData.getValue();
+                                        if (currentSettled != null) {
+                                            currentSettled.add(group);
+                                            settledGroupsLiveData.setValue(currentSettled);
+                                        }
                                     }
                                 }
                             }
@@ -157,7 +166,11 @@ public class GroupRepository {
                             for (DocumentSnapshot doc : value) {
                                 Group group = doc.toObject(Group.class);
                                 if (group != null) {
-                                    settledGroupsLiveData.getValue().add(group);
+                                    List<Group> currentSettled = settledGroupsLiveData.getValue();
+                                    if (currentSettled != null) {
+                                        currentSettled.add(group);
+                                        settledGroupsLiveData.setValue(currentSettled);
+                                    }
                                 }
                             }
                         }
