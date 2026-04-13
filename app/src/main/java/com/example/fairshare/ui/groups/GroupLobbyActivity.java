@@ -370,7 +370,7 @@ public class GroupLobbyActivity extends AppCompatActivity {
                 containerParticipants.removeAllViews();
                 for (String memberUid : memberNames.keySet()) {
                     LinearLayout memberLayout = new LinearLayout(this);
-                    memberLayout.setOrientation("horizontal");
+                    memberLayout.setOrientation(LinearLayout.HORIZONTAL);
                     memberLayout.setPadding(8, 8, 8, 8);
                     
                     TextView memberName = new TextView(this);
@@ -427,7 +427,6 @@ public class GroupLobbyActivity extends AppCompatActivity {
                     return;
                 }
 
-                double amount;
                 try {
                     amount = Double.parseDouble(amountStr);
                 } catch (NumberFormatException e) {
@@ -449,7 +448,7 @@ public class GroupLobbyActivity extends AppCompatActivity {
                 expense.setParticipants(participants);
                 
                 // Validate split amounts before saving
-                if (btnEqualSplit.getBackground().getConstantColor() == getResources().getColor(android.R.color.holo_blue_light)) {
+                if (btnEqualSplit.getBackground().equals(Color.parseColor("#38BDB0"))) {
                     // Equal split - validate amounts
                     double totalPercentage = 0.0;
                     for (int i = 0; i < containerParticipants.getChildCount(); i++) {
