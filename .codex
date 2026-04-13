@@ -1,0 +1,20 @@
+FairShare project instructions
+
+- Keep Firebase configuration and Firebase auth working. Do not replace the real auth flow.
+- If a local admin fallback exists, it must be debug-only and must not affect release behavior.
+- Treat FairShare primarily as a shared ledger app for "ambagan", not a generic personal finance tracker.
+- The key group feature is equity-based contribution tracking, not equal split.
+- "Equity" here means each member's share is based on what they actually contributed to the total expense pool.
+- Example:
+- Total expense pool = 100 pesos
+- Jash = 10
+- Naz = 30
+- Ryan = 20
+- Yoza = 40
+- The system should compute contribution percentages and ledger balances from those real amounts, not force an equal split.
+- Shared ledgers must remain accessible to multiple users.
+- Users should be able to access an existing ledger through their account, preferably bound to Gmail / Firebase identity.
+- Persist shared ledger data in Firebase so group members see the same expenses and balances.
+- Add a pie chart style visualization for contribution breakdown inside the shared ledger experience.
+- Prefer extending the current group / shared-expense flow instead of building a disconnected second system.
+- Preserve existing working flows where possible, but align naming and UX toward ambagan / shared ledger behavior.

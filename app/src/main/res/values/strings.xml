@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">FairShare</string>
+    <string name="add_transaction">Add Transaction</string>
+    <string name="title_hint">Title (e.g. Groceries)</string>
+    <string name="amount_hint">Amount</string>
+    <string name="select_category">Select category</string>
+    <string name="type_expense">Expense</string>
+    <string name="type_income">Income</string>
+    <string name="save">Save</string>
+    <string name="cancel">Cancel</string>
+    <string name="total_balance">Total Balance</string>
+    <string name="income_label">Income</string>
+    <string name="expense_label">Expenses</string>
+    <string name="no_transactions">No transactions yet.\nTap + to add one!</string>
+    <string name="delete_confirm_title">Delete transaction?</string>
+    <string name="delete_confirm_msg">This action cannot be undone.</string>
+    <string name="delete">Delete</string>
+
+    <!-- Profile Page -->
+    <string name="profile_title">Profile</string>
+    <string name="profile_subtitle">Manage personal details</string>
+    <string name="edit_profile">Edit Profile</string>
+    <string name="label_name">Name</string>
+    <string name="label_email">Email</string>
+    <string name="label_phone">Phone</string>
+    <string name="label_location">Location</string>
+    <string name="default_user_name">User Name</string>
+    <string name="default_user_email">user@email.com</string>
+    <string name="default_user_phone">+63 912 345 6789</string>
+    <string name="default_user_location">Manila, Philippines</string>
+    <string name="total_income_label">Total Income</string>
+    <string name="total_expenses_label">Total Expenses</string>
+    <string name="active_groups_label">Active Groups</string>
+    <string name="settled_ious_label">Settled IOUs</string>
+
+    <!-- Settings -->
+    <string name="settings_title">Settings</string>
+    <string name="dark_mode">Dark Mode</string>
+    <string name="dark_mode_summary">Switch between light and dark theme</string>
+
+    <!-- Bottom Nav -->
+    <string name="nav_personal">Personal</string>
+    <string name="nav_group">Group</string>
+    <string name="nav_home">Home</string>
+    <string name="nav_notifs">Notifs</string>
+    <string name="nav_profile">Profile</string>
+
+    <!-- Categories -->
+    <string-array name="categories">
+        <item>Food</item>
+        <item>Transport</item>
+        <item>Shopping</item>
+        <item>Bills</item>
+        <item>Salary</item>
+        <item>Other</item>
+    </string-array>
+
+    <!-- Groups -->
+    <string name="my_groups">My Groups</string>
+    <string name="no_groups_yet">No groups yet.\nTap + to create or join one!</string>
+    <string name="add_group">Add Group</string>
+    <string name="create_group">Create Group</string>
+    <string name="join_group">Join Group</string>
+    <string name="join_group_subtitle">Enter the 6-character code shared by a group member</string>
+    <string name="group_name_hint">Group Name (e.g. Boracay Trip)</string>
+    <string name="share_code_hint">Share Code</string>
+    <string name="create">Create</string>
+    <string name="join">Join</string>
+    <string name="group_total">Group Total</string>
+    <string name="members_label">Members</string>
+    <string name="my_balance">My Balance</string>
+    <string name="my_contribution">My Ambag</string>
+    <string name="tab_ledger">Ledger</string>
+    <string name="tab_settle_up">Settle Up</string>
+    <string name="tab_equity">Equity</string>
+    <string name="no_group_expenses">No contributions yet.\nTap + to add an ambag entry.</string>
+    <string name="all_settled">All settled up! 🎉</string>
+    <string name="add_shared_expense">Add Shared Expense</string>
+    <string name="add_contribution">Add Contribution</string>
+    <string name="expense_title_hint">What was this expense for?</string>
+    <string name="split_equally_info">This will be split equally among all group members</string>
+    <string name="equity_contribution_info">This amount will count toward the current member\'s equity contribution</string>
+    <string name="contribution_breakdown">Contribution Breakdown</string>
+    <string name="member_amount_hint">0.00</string>
+    <string name="equity_empty_summary">No equity data yet.</string>
+    <string name="equity_top_summary">%1$s currently holds the largest share at %2$s%%</string>
+</resources>

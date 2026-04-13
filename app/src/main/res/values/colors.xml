@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="white">#FFFFFFFF</color>
+    <color name="black">#FF000000</color>
+
+    <!-- Primary palette (Teal from design) -->
+    <color name="primary">#2CB4A5</color>
+    <color name="primary_dark">#239A8D</color>
+    <color name="primary_light">#5AD4C6</color>
+    <color name="accent">#FF9F1C</color>
+
+    <!-- Background (Light) -->
+    <color name="bg_dark">#F2F2F2</color>
+    <color name="bg_card">#FFFFFF</color>
+    <color name="bg_surface">#FFFFFF</color>
+    <color name="bg_input">#F0F0F0</color>
+
+    <!-- Text (Light) -->
+    <color name="text_primary">#1A1A2E</color>
+    <color name="text_secondary">#777788</color>
+    <color name="text_on_primary">#FFFFFF</color>
+
+    <!-- Transaction colors -->
+    <color name="income_green">#2CB4A5</color>
+    <color name="expense_red">#EE5B5B</color>
+
+    <!-- Category indicators -->
+    <color name="cat_food">#FF9F43</color>
+    <color name="cat_transport">#54A0FF</color>
+    <color name="cat_shopping">#FF6B81</color>
+    <color name="cat_bills">#FECA57</color>
+    <color name="cat_salary">#1DD1A1</color>
+    <color name="cat_other">#B0BEC5</color>
+
+    <!-- FAB -->
+    <color name="fab_bg">#2CB4A5</color>
+    <color name="fab_icon">#FFFFFF</color>
+
+    <!-- Profile page specific -->
+    <color name="profile_header_bg">#2CB4A5</color>
+    <color name="avatar_bg">#D6EBE8</color>
+    <color name="avatar_badge_bg">#FF9F1C</color>
+    <color name="stat_card_border">#2CB4A5</color>
+
+    <!-- Splash screen gradient -->
+    <color name="splash_gradient_1">#fdb86b</color>
+    <color name="splash_gradient_2">#c7f0ec</color>
+    <color name="splash_gradient_3">#f8d7ad</color>
+    <color name="splash_gradient_4">#7bd4c9</color>
+
+    <!-- Frontend design palette -->
+    <color name="teal">#2EC4B6</color>
+    <color name="light_teal">#CBF3F0</color>
+    <color name="orange">#FF9F1C</color>
+    <color name="light_orange">#FFBF69</color>
+    <color name="off_white">#E8FFFD</color>
+    <color name="off_black">#272B40</color>
+    <color name="gray">#6D6E78</color>
+</resources>
