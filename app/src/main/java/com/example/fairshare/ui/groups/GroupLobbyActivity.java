@@ -336,6 +336,11 @@ public class GroupLobbyActivity extends AppCompatActivity {
             for (String uid : memberNames.keySet()) {
                 participants.add(uid);
             }
+            expense.setParticipants(participants);
+            
+            // Save the expense to repository
+            groupRepository.addGroupExpense(groupId, expense);
+            
             Toast.makeText(this, "Expense added!", Toast.LENGTH_SHORT).show();
             dialog.dismiss();
         });
