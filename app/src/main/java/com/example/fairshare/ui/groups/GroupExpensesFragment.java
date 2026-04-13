@@ -84,6 +84,12 @@ public class GroupExpensesFragment extends Fragment {
             btnAddExpense.setEnabled(false);
             btnAddExpense.setAlpha(0.5f);
             btnAddExpense.setText("Group Settled - Cannot Add Expenses");
+            btnAddExpense.setBackgroundColor(getResources().getColor(R.color.gray, null));
+        } else {
+            btnAddExpense.setEnabled(true);
+            btnAddExpense.setAlpha(1.0f);
+            btnAddExpense.setText("Add Expense");
+            btnAddExpense.setBackgroundColor(getResources().getColor(R.color.teal, null));
         }
     }
 

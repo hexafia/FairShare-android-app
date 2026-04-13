@@ -20,6 +20,13 @@ public class GroupMembersFragment extends Fragment {
 
     private GroupRepository groupRepository;
     private String groupId;
+    private MemberAdapter memberAdapter;
+    private Group currentGroup;
+
+    // UI elements
+    private RecyclerView rvMembers;
+    private View layoutEmptyMembers;
+    private MaterialButton btnAddMember;
 
     @Nullable
     @Override
@@ -40,17 +47,18 @@ public class GroupMembersFragment extends Fragment {
         }
 
         // Setup UI
-        MaterialButton btnAddMember = view.findViewById(R.id.btnAddMember);
-        RecyclerView rvMembers = view.findViewById(R.id.rvMembers);
-        View layoutEmptyMembers = view.findViewById(R.id.layoutEmptyMembers);
+        btnAddMember = view.findViewById(R.id.btnAddMember);
+        rvMembers = view.findViewById(R.id.rvMembers);
+        layoutEmptyMembers = view.findViewById(R.id.layoutEmptyMembers);
 
         // Setup RecyclerView
         rvMembers.setLayoutManager(new LinearLayoutManager(requireContext()));
-        // TODO: Create and set adapter for members
 
         // Setup add member button
         btnAddMember.setOnClickListener(v -> {
             // TODO: Show add member dialog
+            // For now, just show a toast
+            android.widget.Toast.makeText(requireContext(), "Add member feature coming soon", android.widget.Toast.LENGTH_SHORT).show();
         });
 
         // Load group data
@@ -64,12 +72,49 @@ public class GroupMembersFragment extends Fragment {
             if (groups != null) {
                 for (Group group : groups) {
                     if (group.getId().equals(groupId)) {
-                        // TODO: Load and display members
+                        currentGroup = group;
+                        updateMembersList();
+                        updateAddMemberButton();
                         break;
                     }
                 }
             }
         });
+    }
+
+    private void updateMembersList() {
+        if (currentGroup == null) return;
+
+        // Create and set adapter with group creator ID
+        memberAdapter = new MemberAdapter(currentGroup.getCreatedBy());
+        rvMembers.setAdapter(memberAdapter);
+
+        // Submit member list
+        memberAdapter.submitList(currentGroup.getMembers());
+
+        // Update empty state
+        if (currentGroup.getMembers().isEmpty()) {
+            layoutEmptyMembers.setVisibility(View.VISIBLE);
+            rvMembers.setVisibility(View.GONE);
+        } else {
+            layoutEmptyMembers.setVisibility(View.GONE);
+            rvMembers.setVisibility(View.VISIBLE);
+        }
+    }
+
+    private void updateAddMemberButton() {
+        if (currentGroup == null) return;
+
+        // Disable add member button for settled groups
+        if (currentGroup.isSettled()) {
+            btnAddMember.setEnabled(false);
+            btnAddMember.setAlpha(0.5f);
+            btnAddMember.setText("Group Settled - Cannot Add Members");
+        } else {
+            btnAddMember.setEnabled(true);
+            btnAddMember.setAlpha(1.0f);
+            btnAddMember.setText("Add Member");
+        }
     }
 
     @Override
