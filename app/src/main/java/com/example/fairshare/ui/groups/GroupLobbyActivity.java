@@ -116,6 +116,7 @@ public class GroupLobbyActivity extends AppCompatActivity {
         rvDebts = findViewById(R.id.rvDebts);
         rvMembers = findViewById(R.id.rvMembers);
         btnMarkAsAccomplished = findViewById(R.id.btnMarkAsAccomplished);
+        btnMarkAsAccomplished.setOnClickListener(v -> markGroupAsAccomplished());
 
         TabLayout tabLayout = findViewById(R.id.tabLayout);
         tabLayout.addOnTabSelectedListener(new TabLayout.OnTabSelectedListener() {
@@ -342,12 +343,98 @@ public class GroupLobbyActivity extends AppCompatActivity {
         FirebaseUser currentUser = FirebaseAuth.getInstance().getCurrentUser();
         if (currentUser == null) return;
 
-        List<SettlementCalculator.SettlementDetail> settlements = 
-                SettlementCalculator.calculateSettlements(currentUser.getUid(), expenses, memberNames);
-        
+        // THE MATH: Calculate net balances for each user
+        Map<String, Double> totalPaid = new HashMap<>();
+        Map<String, Double> totalOwed = new HashMap<>();
+        Map<String, Double> netBalances = new HashMap<>();
+
+        // 1. Total up what each user paid
+        for (GroupExpense expense : expenses) {
+            String payerUid = expense.getPayerUid();
+            totalPaid.put(payerUid, totalPaid.getOrDefault(payerUid, 0.0) + expense.getAmount());
+        }
+
+        // 2. Total up what each user owes (from breakdown map of each expense)
+        for (GroupExpense expense : expenses) {
+            Map<String, Double> breakdown = expense.getSplitAmounts();
+            if (breakdown != null) {
+                for (Map.Entry<String, Double> entry : breakdown.entrySet()) {
+                    String memberUid = entry.getKey();
+                    double amountOwed = entry.getValue();
+                    totalOwed.put(memberUid, totalOwed.getOrDefault(memberUid, 0.0) + amountOwed);
+                }
+            }
+        }
+
+        // 3. Net Balance = Total Paid - Total Owed
+        for (String memberUid : memberNames.keySet()) {
+            double paid = totalPaid.getOrDefault(memberUid, 0.0);
+            double owed = totalOwed.getOrDefault(memberUid, 0.0);
+            double netBalance = paid - owed; // Positive = owed money, Negative = owes money
+            netBalances.put(memberUid, netBalance);
+        }
+
+        // 4. Generate settlement strings: "[User A] owes [User B] XXX.XX"
+        List<String> settlementStrings = new ArrayList<>();
+        List<SettlementCalculator.SettlementDetail> settlements = new ArrayList<>();
+
+        // Find debtors (negative net balance) and creditors (positive net balance)
+        List<Map.Entry<String, Double>> debtors = new ArrayList<>();
+        List<Map.Entry<String, Double>> creditors = new ArrayList<>();
+
+        for (Map.Entry<String, Double> entry : netBalances.entrySet()) {
+            if (entry.getValue() < 0) { // Owes money (debtor)
+                debtors.add(entry);
+            } else if (entry.getValue() > 0) { // Is owed money (creditor)
+                creditors.add(entry);
+            }
+        }
+
+        // Calculate settlements using netting algorithm
+        int debtorIndex = 0, creditorIndex = 0;
+        while (debtorIndex < debtors.size() && creditorIndex < creditors.size()) {
+            Map.Entry<String, Double> debtor = debtors.get(debtorIndex);
+            Map.Entry<String, Double> creditor = creditors.get(creditorIndex);
+
+            double debtorOwes = Math.abs(debtor.getValue()); // Amount debtor needs to pay
+            double creditorIsOwed = creditor.getValue(); // Amount creditor is owed
+
+            double settlementAmount = Math.min(debtorOwes, creditorIsOwed);
+
+            if (settlementAmount > 0.01) { // Only add if amount is significant
+                String debtorName = memberNames.get(debtor.getKey());
+                String creditorName = memberNames.get(creditor.getKey());
+                
+                String settlementString = debtorName + " owes " + creditorName + " " + 
+                        CurrencyHelper.format(settlementAmount);
+                settlementStrings.add(settlementString);
+
+                // Create SettlementDetail for adapter
+                SettlementCalculator.SettlementDetail detail = new SettlementCalculator.SettlementDetail();
+                detail.debtorUid = debtor.getKey();
+                detail.creditorUid = creditor.getKey();
+                detail.settlementAmount = settlementAmount;
+                settlements.add(detail);
+
+                // Update balances
+                debtors.set(debtorIndex, Map.entry(debtor.getKey(), debtor.getValue() + settlementAmount));
+                creditors.set(creditorIndex, Map.entry(creditor.getKey(), creditor.getValue() - settlementAmount));
+            }
+
+            // Move to next debtor or creditor if current one is settled
+            if (Math.abs(debtors.get(debtorIndex).getValue()) < 0.01) {
+                debtorIndex++;
+            }
+            if (Math.abs(creditors.get(creditorIndex).getValue()) < 0.01) {
+                creditorIndex++;
+            }
+        }
+
+        // Update settlement adapter
         settlementAdapter.setMemberNames(memberNames);
         settlementAdapter.submitList(settlements);
 
+        // Show/hide empty state
         if (settlements.isEmpty()) {
             tvSettleEmpty.setVisibility(View.VISIBLE);
             rvDebts.setVisibility(View.GONE);
@@ -559,6 +646,60 @@ public class GroupLobbyActivity extends AppCompatActivity {
                 String category = (String) spinnerCategory.getSelectedItem();
                 GroupExpense expense = new GroupExpense(selectedGroupId[0], title, payerUid, selectedPayerName, amount);
                 expense.setParticipants(participants);
+                
+                // VALIDATE 3 SPLIT LOGICS: Calculate breakdown map based on split type
+                Map<String, Double> splitAmounts = new HashMap<>();
+                
+                // Determine split type based on current toggle state
+                boolean isUnequalSplit = btnUnequalSplit.getCurrentTextColor() == Color.WHITE;
+                
+                if (!isUnequalSplit) {
+                    // EQUAL or SELECTIVE EQUAL SPLIT
+                    if (participants.size() == memberNames.size()) {
+                        // EQUAL SPLIT: Total / All_Members
+                        double equalShare = amount / participants.size();
+                        for (String participantUid : participants) {
+                            splitAmounts.put(participantUid, equalShare);
+                        }
+                        expense.setSplitType("EQUAL");
+                    } else {
+                        // SELECTIVE EQUAL: Total / Checked_Members
+                        double selectiveShare = amount / participants.size();
+                        for (String participantUid : participants) {
+                            splitAmounts.put(participantUid, selectiveShare);
+                        }
+                        expense.setSplitType("SELECTIVE");
+                    }
+                } else {
+                    // UNEQUAL (%) SPLIT: Total * (Percentage / 100)
+                    expense.setSplitType("PERCENTAGE");
+                    double totalPercentage = 0.0;
+                    
+                    // Calculate percentages from input fields
+                    for (String participantUid : participants) {
+                        View participantView = containerParticipants.findViewWithTag(participantUid + "_percentage");
+                        if (participantView instanceof TextInputEditText) {
+                            TextInputEditText percentageInput = (TextInputEditText) participantView;
+                            String percentageStr = percentageInput.getText().toString();
+                            if (!percentageStr.isEmpty()) {
+                                double percentage = Double.parseDouble(percentageStr.replace("%", ""));
+                                double amountOwed = amount * (percentage / 100.0);
+                                splitAmounts.put(participantUid, amountOwed);
+                                totalPercentage += percentage;
+                            }
+                        }
+                    }
+                    
+                    // Validate total percentage equals 100%
+                    if (Math.abs(totalPercentage - 100.0) > 0.01) {
+                        Toast.makeText(GroupLobbyActivity.this, 
+                            "Percentages must total 100%. Current: " + totalPercentage + "%", 
+                            Toast.LENGTH_LONG).show();
+                        return;
+                    }
+                }
+                
+                expense.setSplitAmounts(splitAmounts);
                 
                 // Save the expense
                 groupRepository.addGroupExpense(selectedGroupId[0], expense);
