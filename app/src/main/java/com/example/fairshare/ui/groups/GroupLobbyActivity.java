@@ -812,10 +812,10 @@ public class GroupLobbyActivity extends AppCompatActivity {
                         updateUI();
                         
                         // Force 'Mark as Accomplished' Visibility
-                        if (currentGroup.getCreatorId() == null) {
+                        if (currentGroup.getCreatedBy() == null) {
                             Log.e("DEBUG", "CreatorID is NULL");
                         }
-                        btnMarkAsAccomplished.setVisibility(FirebaseAuth.getInstance().getUid().equals(currentGroup.getCreatorId()) ? View.VISIBLE : View.GONE);
+                        btnMarkAsAccomplished.setVisibility(FirebaseAuth.getInstance().getUid().equals(currentGroup.getCreatedBy()) ? View.VISIBLE : View.GONE);
                         break;
                     }
                 }
