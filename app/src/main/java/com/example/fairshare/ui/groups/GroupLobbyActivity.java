@@ -83,6 +83,9 @@ public class GroupLobbyActivity extends AppCompatActivity {
     // Track selected participants for expense splitting
     private final Map<String, Boolean> selectedParticipants = new HashMap<>();
     private boolean isEqualSplit = true;
+    
+    // Store current expenses list for tab refresh
+    private List<GroupExpense> currentExpensesList = new ArrayList<>();
 
     // OCR and Camera
     private ActivityResultLauncher<Intent> cameraLauncher;
@@ -172,6 +175,11 @@ public class GroupLobbyActivity extends AppCompatActivity {
                     layoutLedger.setVisibility(View.VISIBLE);
                 } else if (tab.getPosition() == 1) {
                     layoutSettleUp.setVisibility(View.VISIBLE);
+                    // Force Refresh on Tab Switch - Explicitly call updateDebts for Settle Up tab
+                    Log.d("REALTIME_CHECK", "Settle Up tab selected, forcing refresh");
+                    if (!currentExpensesList.isEmpty()) {
+                        updateDebts(currentExpensesList);
+                    }
                 } else if (tab.getPosition() == 2) {
                     layoutMembers.setVisibility(View.VISIBLE);
                 }
@@ -248,10 +256,19 @@ public class GroupLobbyActivity extends AppCompatActivity {
 
         // Load group data
         loadGroupData();
-
-        // Observe group expenses
+        
+        // Global Observer Setup - MOVED TO END OF onCreate FOR ACTIVITY LIFECYCLE
+        // This ensures real-time sync even when Settle Up tab isn't visible
+        setupExpenseObserver();
+    }
+    
+    private void setupExpenseObserver() {
+        // Global Observer Setup - Using Activity lifecycle owner for real-time sync
         groupRepository.getGroupExpenses(groupId).observe(this, expenses -> {
-            Log.d("SETTLE_UP_SYNC", "Expenses updated: " + (expenses != null ? expenses.size() : 0) + " items");
+            Log.d("REALTIME_CHECK", "New expenses received, count: " + (expenses != null ? expenses.size() : 0));
+            
+            // Store current expenses for tab refresh
+            currentExpensesList = expenses != null ? new ArrayList<>(expenses) : new ArrayList<>();
             
             // Update expense adapter first
             expenseAdapter.submitList(expenses);
@@ -427,6 +444,7 @@ public class GroupLobbyActivity extends AppCompatActivity {
     }
 
     private void updateDebts(List<GroupExpense> expenses) {
+        Log.d("REALTIME_CHECK", "Recalculating debts for Settle Up tab");
         Log.d("SETTLE_UP_SYNC", "updateDebts called with " + (expenses != null ? expenses.size() : 0) + " expenses");
         
         FirebaseUser currentUser = FirebaseAuth.getInstance().getCurrentUser();
@@ -445,6 +463,9 @@ public class GroupLobbyActivity extends AppCompatActivity {
         runOnUiThread(() -> {
             // Update UI with aggregated settlements
             settlementAdapter.submitList(settlements);
+            
+            // Fix the 'CalculatedDebts' submission - Manual notify for complex aggregation
+            settlementAdapter.notifyDataSetChanged();
 
             // Show empty state if no outstanding debts
             if (settlements.isEmpty()) {
