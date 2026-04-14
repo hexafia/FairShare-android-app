@@ -453,8 +453,6 @@ public class GroupLobbyActivity extends AppCompatActivity {
                 // Create expense
                 String category = (String) spinnerCategory.getSelectedItem();
                 GroupExpense expense = new GroupExpense(groupId, title, payerUid, selectedPayerName, amount);
-                expense.setCategory(category);
-                expense.setNotes(notes);
                 expense.setParticipants(participants);
                 
                 // Save the expense
