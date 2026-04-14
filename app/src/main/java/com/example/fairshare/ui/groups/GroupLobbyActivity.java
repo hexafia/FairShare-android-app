@@ -636,7 +636,19 @@ public class GroupLobbyActivity extends AppCompatActivity {
                     if (entry.getValue() != null && entry.getValue()) {
                         participants.add(entry.getKey());
                     }
-                groupRepository.addGroupExpense(groupId, expense);
+                }
+                
+                // Get selected category
+                String selectedCategory = spinnerCategory.getSelectedItem().toString();
+                
+                // Create expense object
+                GroupExpense expense = new GroupExpense(
+                    title, amount, notes, payerUid, selectedPayerName, 
+                    participants, selectedCategory, selectedGroupId[0]
+                );
+                
+                // Add expense to repository
+                groupRepository.addGroupExpense(selectedGroupId[0], expense);
                 
                 Toast.makeText(this, "Expense added!", Toast.LENGTH_SHORT).show();
                 dialog.dismiss();
