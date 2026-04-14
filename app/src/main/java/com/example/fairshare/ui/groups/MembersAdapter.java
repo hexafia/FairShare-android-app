@@ -17,6 +17,15 @@ public class MembersAdapter extends RecyclerView.Adapter<MembersAdapter.MemberVi
     private List<String> memberUids = new ArrayList<>();
     private Map<String, String> memberNames;
     private String groupCreatorId;
+    private OnMemberClickListener listener;
+
+    public interface OnMemberClickListener {
+        void onMemberClick(String memberUid);
+    }
+
+    public void setOnMemberClickListener(OnMemberClickListener listener) {
+        this.listener = listener;
+    }
 
     public MembersAdapter(Map<String, String> memberNames, String groupCreatorId) {
         this.memberNames = memberNames;
@@ -52,6 +61,13 @@ public class MembersAdapter extends RecyclerView.Adapter<MembersAdapter.MemberVi
         } else {
             holder.textView.setText(name);
         }
+        
+        // Set click listener
+        holder.itemView.setOnClickListener(v -> {
+            if (listener != null) {
+                listener.onMemberClick(uid);
+            }
+        });
     }
 
     @Override

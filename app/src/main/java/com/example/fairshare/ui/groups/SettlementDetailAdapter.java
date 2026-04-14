@@ -85,7 +85,9 @@ public class SettlementDetailAdapter extends ListAdapter<SettlementCalculator.Se
 
             tvDebtorInitial.setText(String.valueOf(debtorName.charAt(0)).toUpperCase());
             tvCreditorInitial.setText(String.valueOf(creditorName.charAt(0)).toUpperCase());
-            tvSettlementDescription.setText(debtorName + " → " + creditorName);
+            
+            // Enhanced "Who owes Whom" display format
+            tvSettlementDescription.setText(debtorName + " owes " + creditorName);
             tvSettlementAmount.setText(CurrencyHelper.format(settlement.settlementAmount));
             
             // Show the expense title for context

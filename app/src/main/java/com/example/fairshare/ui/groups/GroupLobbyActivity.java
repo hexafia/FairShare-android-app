@@ -147,19 +147,26 @@ public class GroupLobbyActivity extends AppCompatActivity {
         rvLedger.setLayoutManager(new LinearLayoutManager(this));
         rvLedger.setAdapter(expenseAdapter);
 
-        settlementAdapter = new SettlementDetailAdapter();
-        rvDebts.setLayoutManager(new LinearLayoutManager(this));
-        rvDebts.setAdapter(settlementAdapter);
+        // Setup tabs
+        layoutLedger = findViewById(R.id.layoutLedger);
+        layoutSettleUp = findViewById(R.id.layoutSettleUp);
+        layoutMembers = findViewById(R.id.layoutMembers);
+        tvLedgerEmpty = findViewById(R.id.tvLedgerEmpty);
+        tvSettleEmpty = findViewById(R.id.tvSettleEmpty);
+        tvMembersEmpty = findViewById(R.id.tvMembersEmpty);
+        rvLedger = findViewById(R.id.rvLedger);
+        rvDebts = findViewById(R.id.rvDebts);
+        rvMembers = findViewById(R.id.rvMembers);
+        btnMarkAsAccomplished = findViewById(R.id.btnMarkAsAccomplished);
 
-        // Setup Members RecyclerView
-        membersAdapter = new MembersAdapter(memberNames, null); // Will update with group data
-        rvMembers.setLayoutManager(new LinearLayoutManager(this));
-        rvMembers.setAdapter(membersAdapter);
-
-        // Mark as Accomplished button
-        btnMarkAsAccomplished.setOnClickListener(v -> markGroupAsAccomplished());
-
-        // Initialize FAB
+        TabLayout tabLayout = findViewById(R.id.tabLayout);
+        tabLayout.addOnTabSelectedListener(new TabLayout.OnTabSelectedListener() {
+            @Override
+            public void onTabSelected(TabLayout.Tab tab) {
+                // Hide all layouts first
+                layoutLedger.setVisibility(View.GONE);
+                layoutSettleUp.setVisibility(View.GONE);
+                layoutMembers.setVisibility(View.GONE);
         fabAddExpense = findViewById(R.id.fabAddExpense);
         fabAddExpense.setOnClickListener(v -> {
             Log.d("FAB_DEBUG", "FAB clicked!");
@@ -251,12 +258,63 @@ public class GroupLobbyActivity extends AppCompatActivity {
                 membersAdapter = new MembersAdapter(memberNames, currentGroup.getCreatedBy());
                 rvMembers.setAdapter(membersAdapter);
                 
+                // Set up member click listener
+                membersAdapter.setOnMemberClickListener(this::showMemberProfileDialog);
+                
                 java.util.List<String> memberList = new java.util.ArrayList<>(memberNames.keySet());
                 membersAdapter.updateMembers(memberList);
             }
         }
     }
-
+    
+    private void showMemberProfileDialog(String memberUid) {
+        LayoutInflater inflater = getLayoutInflater();
+        View dialogView = inflater.inflate(R.layout.dialog_member_profile, null);
+        
+        AlertDialog.Builder builder = new AlertDialog.Builder(GroupLobbyActivity.this);
+        builder.setView(dialogView);
+        AlertDialog dialog = builder.create();
+        dialog.show();
+        
+        // Get dialog views
+        TextInputEditText etDisplayName = dialogView.findViewById(R.id.etDisplayName);
+        TextInputEditText etTagline = dialogView.findViewById(R.id.etTagline);
+        MaterialButton btnClose = dialogView.findViewById(R.id.btnClose);
+        
+        // Fetch member data from Firestore
+        com.google.firebase.firestore.FirebaseFirestore.getInstance()
+                .collection("users").document(memberUid).get()
+                .addOnSuccessListener(doc -> {
+                    if (doc.exists()) {
+                        String displayName = doc.getString("displayName");
+                        String tagline = doc.getString("tagline");
+                        
+                        // Set the data in the dialog
+                        if (displayName != null) {
+                            etDisplayName.setText(displayName);
+                        }
+                        if (tagline != null) {
+                            etTagline.setText(tagline);
+                        } else {
+                            etTagline.setText("No tagline set");
+                        }
+                    }
+                })
+                .addOnFailureListener(e -> {
+                    etDisplayName.setText("Error loading profile");
+                    etTagline.setText("Please try again");
+                });
+        
+        // Set up close button
+        btnClose.setOnClickListener(v -> dialog.dismiss());
+        
+        // Set dialog size
+        if (dialog.getWindow() != null) {
+            int width = (int) (350 * getResources().getDisplayMetrics().density);
+            dialog.getWindow().setLayout(width, ViewGroup.LayoutParams.WRAP_CONTENT);
+        }
+    }
+    
     private void updateStats(List<GroupExpense> expenses) {
         double total = 0;
         Map<String, Double> netBalances = new HashMap<>();
