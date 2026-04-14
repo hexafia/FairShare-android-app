@@ -859,13 +859,7 @@ public class GroupLobbyActivity extends AppCompatActivity {
         FirebaseUser currentUser = FirebaseAuth.getInstance().getCurrentUser();
         String currentUserId = currentUser != null ? currentUser.getUid() : null;
 
-        // Show/hide Mark as Accomplished button based on creator and status
-        if (currentUserId != null && currentUserId.equals(currentGroup.getCreatedBy()) 
-                && currentGroup.isActive()) {
-            btnMarkAsAccomplished.setVisibility(View.VISIBLE);
-        } else {
-            btnMarkAsAccomplished.setVisibility(View.GONE);
-        }
+        // Button visibility is now handled ONLY in loadGroupData() to prevent conflicts
 
         // Control FAB visibility based on group status
         if (currentGroup.isActive()) {
