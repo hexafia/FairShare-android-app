@@ -1,5 +1,36 @@
-# 📱 FairShare Project
+# 📋 FairShare Project
 > [ Main README ](./README.md) &nbsp; | &nbsp; [ **Recent Changes** ] &nbsp; | &nbsp; [ [Walkthrough](./walkthrough_fairshare_first_design.md) ] &nbsp; | &nbsp; [ [Implementation Plan](./implementation_plan_fairshare.md) ]  &nbsp; | &nbsp; [ [Development Guide](./Repo_Cloning.md) ]
+---
+
+# Changes Log — April 14, 2026
+
+## Overview
+Implemented **OCR Receipt Scanning** for quick expense creation, advanced **Group Expense Split Computations**, and a full **Settle Up** flow with real-time UI updates and Firestore tracking. Included fixes for group synchronization and dynamic UI logic.
+
+---
+
+## 1. 🔍 OCR Receipt Scanning
+- **Technology**: Integrated **Google ML Kit Text Recognition** for high-accuracy, on-device OCR.
+- **High-Resolution Capture**: Implemented a `FileProvider` architecture. Instead of processing low-res thumbnails, the app captures and processes full-resolution images to ensure the ML Kit can read receipt characters clearly.
+- **Intelligent Extraction**: Uses regex-based logic to extract the largest floating-point number from the receipt (typically the "Total Amount") and auto-populates the "Amount" field in expense dialogs.
+
+## 2. ➕ Advanced Group Expense Logic
+- **Split Computations**: Fixed a bug where expense breakdowns weren't being recorded.
+- **Equal Split**: Automatically calculates per-person shares based on selected participants.
+- **Unequal Split**: Added support for percentage-based splits. Includes a validation mechanism to ensure percentages add up to exactly 100%.
+- **Authoritative Sync**: Fixed an issue where "Who Paid?" and "Who Participated?" lists only showed the creator. The UI now observes the live group membership stream, ensuring all joiners appear correctly in real-time.
+
+## 3. 💸 "Settle Up" Tab & Flow
+- **Debt Tracking**: Added a dedicated sub-tab to visualize who owes whom and for which expense.
+- **Mark as Settled**: Users can now click a "Settle" button to mark a specific portion of an expense as paid.
+- **Firestore Integration**: Implemented a `settledStatus` map in the `GroupExpense` model to track settlement status for each participant independently.
+- **Visual UI Feedback**: Settled items are dynamically dimmed and display a "✓ Settled" badge.
+
+## 4. 🛠️ Technical Improvements
+- **Repository Pattern**: Centralized Firestore logic in `GroupRepository.java`.
+- **UI Performance**: Refactored `GroupLobbyActivity.java` to use LiveData for real-time updates of balances and member counts.
+- **Permissions**: Configured Android `CAMERA` permissions and `FileProvider` XML paths for secure image handling.
+
 ---
 
 # Changes Log — April 05, 2026

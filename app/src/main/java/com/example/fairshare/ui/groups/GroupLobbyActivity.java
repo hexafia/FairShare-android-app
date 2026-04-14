@@ -22,7 +22,19 @@ import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContracts;
+import androidx.core.content.FileProvider;
+import android.content.Intent;
+import android.net.Uri;
+import android.provider.MediaStore;
+import java.io.File;
+import java.io.IOException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.Locale;
 
+import com.example.fairshare.OcrHelper;
 import com.example.fairshare.CurrencyHelper;
 import com.example.fairshare.DebtSimplifier;
 import com.example.fairshare.GroupExpense;
@@ -65,16 +77,46 @@ public class GroupLobbyActivity extends AppCompatActivity {
     private com.google.android.material.floatingactionbutton.FloatingActionButton fabAddExpense;
     private Group currentGroup;
 
-    // Maps UID → display name for the Settle Up tab
+    // Maps UID ΓåÆ display name for the Settle Up tab
     private final Map<String, String> memberNames = new HashMap<>();
     
     // Track selected participants for expense splitting
     private final Map<String, Boolean> selectedParticipants = new HashMap<>();
+    private boolean isEqualSplit = true;
+
+    // OCR and Camera
+    private ActivityResultLauncher<Intent> cameraLauncher;
+    private Uri currentPhotoUri;
+    private TextInputEditText activeAmountEditText;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_group_lobby);
+
+        // Register camera launcher
+        cameraLauncher = registerForActivityResult(
+            new ActivityResultContracts.StartActivityForResult(),
+            result -> {
+                if (result.getResultCode() == RESULT_OK && currentPhotoUri != null && activeAmountEditText != null) {
+                    OcrHelper.extractAmountFromReceipt(this, currentPhotoUri, new OcrHelper.OcrCallback() {
+                        @Override
+                        public void onSuccess(String amount) {
+                            if (amount != null && !amount.isEmpty()) {
+                                activeAmountEditText.setText(amount);
+                                Toast.makeText(GroupLobbyActivity.this, "Scan successful", Toast.LENGTH_SHORT).show();
+                            } else {
+                                Toast.makeText(GroupLobbyActivity.this, "Could not detect total amount", Toast.LENGTH_SHORT).show();
+                            }
+                        }
+
+                        @Override
+                        public void onError(Exception e) {
+                            Toast.makeText(GroupLobbyActivity.this, "Scan failed: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                        }
+                    });
+                }
+            });
 
         groupId = getIntent().getStringExtra("GROUP_ID");
         groupName = getIntent().getStringExtra("GROUP_NAME");
@@ -116,30 +158,6 @@ public class GroupLobbyActivity extends AppCompatActivity {
         rvDebts = findViewById(R.id.rvDebts);
         rvMembers = findViewById(R.id.rvMembers);
         btnMarkAsAccomplished = findViewById(R.id.btnMarkAsAccomplished);
-        btnMarkAsAccomplished.setOnClickListener(v -> {
-            // Show confirmation dialog
-            new AlertDialog.Builder(GroupLobbyActivity.this)
-                .setTitle("Settle Group")
-                .setMessage("Are you sure you want to settle this group? This will make the ledger read-only.")
-                .setPositiveButton("Yes", (dialog, which) -> {
-                    // Call updateGroupStatus with callback
-                    groupRepository.updateGroupStatus(groupId, "settled", new GroupRepository.OnCompleteCallback() {
-                        @Override
-                        public void onSuccess(String message) {
-                            Toast.makeText(GroupLobbyActivity.this, "Group has been archived.", Toast.LENGTH_SHORT).show();
-                            // Immediately refresh UI to hide FAB and input fields
-                            updateUI();
-                        }
-
-                        @Override
-                        public void onError(String error) {
-                            Toast.makeText(GroupLobbyActivity.this, "Error: " + error, Toast.LENGTH_SHORT).show();
-                        }
-                    });
-                })
-                .setNegativeButton("No", null)
-                .show();
-        });
 
         TabLayout tabLayout = findViewById(R.id.tabLayout);
         tabLayout.addOnTabSelectedListener(new TabLayout.OnTabSelectedListener() {
@@ -172,15 +190,37 @@ public class GroupLobbyActivity extends AppCompatActivity {
         rvLedger.setAdapter(expenseAdapter);
 
         settlementAdapter = new SettlementDetailAdapter();
+        settlementAdapter.setOnSettleClickListener(settlement -> {
+            new android.app.AlertDialog.Builder(this)
+                .setTitle("Confirm Settlement")
+                .setMessage("Mark this debt as settled?")
+                .setPositiveButton("Yes", (d, which) -> {
+                    groupRepository.markSettled(settlement.expenseId, settlement.debtorUid,
+                        new GroupRepository.OnCompleteCallback() {
+                            @Override
+                            public void onSuccess(String message) {
+                                Toast.makeText(GroupLobbyActivity.this, message, Toast.LENGTH_SHORT).show();
+                            }
+                            @Override
+                            public void onError(String error) {
+                                Toast.makeText(GroupLobbyActivity.this, "Error: " + error, Toast.LENGTH_SHORT).show();
+                            }
+                        });
+                })
+                .setNegativeButton("Cancel", null)
+                .show();
+        });
         rvDebts.setLayoutManager(new LinearLayoutManager(this));
         rvDebts.setAdapter(settlementAdapter);
 
+        // Setup Members RecyclerView
         membersAdapter = new MembersAdapter(memberNames, null); // Will update with group data
         rvMembers.setLayoutManager(new LinearLayoutManager(this));
         rvMembers.setAdapter(membersAdapter);
-        
-        // Set up member click listener
         membersAdapter.setOnMemberClickListener(this::showMemberProfileDialog);
+
+        // Mark as Accomplished button
+        btnMarkAsAccomplished.setOnClickListener(v -> markGroupAsAccomplished());
 
         // Initialize FAB
         fabAddExpense = findViewById(R.id.fabAddExpense);
@@ -195,7 +235,7 @@ public class GroupLobbyActivity extends AppCompatActivity {
                 e.printStackTrace();
             }
         });
-
+        
         // Initially set FAB as visible for testing
         if (fabAddExpense != null) {
             fabAddExpense.setVisibility(View.VISIBLE);
@@ -209,9 +249,6 @@ public class GroupLobbyActivity extends AppCompatActivity {
         // Load group data
         loadGroupData();
 
-        // Load member names for display
-        loadMemberNames();
-
         // Observe group expenses
         groupRepository.getGroupExpenses(groupId).observe(this, expenses -> {
             expenseAdapter.submitList(expenses);
@@ -219,8 +256,8 @@ public class GroupLobbyActivity extends AppCompatActivity {
             if (expenses == null || expenses.isEmpty()) {
                 tvLedgerEmpty.setVisibility(View.VISIBLE);
                 rvLedger.setVisibility(View.GONE);
-                tvGroupTotal.setText("₱0");
-                tvMyBalance.setText("₱0");
+                tvGroupTotal.setText("Γé▒0");
+                tvMyBalance.setText("Γé▒0");
                 tvSettleEmpty.setVisibility(View.VISIBLE);
                 rvDebts.setVisibility(View.GONE);
             } else {
@@ -232,33 +269,34 @@ public class GroupLobbyActivity extends AppCompatActivity {
         });
     }
 
-    private void loadMemberNames() {
-        groupRepository.getGroupMembers(groupId, memberUids -> {
-            tvMemberCount.setText(String.valueOf(memberUids.size()));
+    private void loadMemberNames(java.util.List<String> memberUids) {
+        if (memberUids == null) return;
+        tvMemberCount.setText(String.valueOf(memberUids.size()));
 
-            // For each member UID, look up their display name from the users Firestore collection
-            for (String uid : memberUids) {
-                com.google.firebase.firestore.FirebaseFirestore.getInstance()
-                        .collection("users").document(uid).get()
-                        .addOnSuccessListener(doc -> {
-                            if (doc.exists()) {
-                                String name = doc.getString("displayName");
-                                if (name != null) {
-                                    memberNames.put(uid, name);
-                                    // Refresh settlement display with new names
-                                    settlementAdapter.setMemberNames(memberNames);
-                                    settlementAdapter.notifyDataSetChanged();
-                                    // Recalculate settlements with updated member names
-                                    if (expenseAdapter.getCurrentList() != null) {
-                                        updateDebts(expenseAdapter.getCurrentList());
-                                    }
-                                    // Also populate members tab
-                                    populateMembersTab();
+        // For each member UID, look up their display name from the users Firestore collection
+        for (String uid : memberUids) {
+            if (memberNames.containsKey(uid)) continue; // Avoid redundant queries
+
+            com.google.firebase.firestore.FirebaseFirestore.getInstance()
+                    .collection("users").document(uid).get()
+                    .addOnSuccessListener(doc -> {
+                        if (doc.exists()) {
+                            String name = doc.getString("displayName");
+                            if (name != null) {
+                                memberNames.put(uid, name);
+                                // Refresh settlement display with new names
+                                settlementAdapter.setMemberNames(memberNames);
+                                settlementAdapter.notifyDataSetChanged();
+                                // Recalculate settlements with updated member names
+                                if (expenseAdapter.getCurrentList() != null) {
+                                    updateDebts(expenseAdapter.getCurrentList());
                                 }
+                                // Also populate members tab
+                                populateMembersTab();
                             }
-                        });
-            }
-        });
+                        }
+                    });
+        }
     }
 
     private void populateMembersTab() {
@@ -333,32 +371,49 @@ public class GroupLobbyActivity extends AppCompatActivity {
 
     private void updateStats(List<GroupExpense> expenses) {
         double total = 0;
-        Map<String, Double> netBalances = new HashMap<>();
         FirebaseUser currentUser = FirebaseAuth.getInstance().getCurrentUser();
         String myUid = currentUser != null ? currentUser.getUid() : "";
+        double myBalance = 0;
 
         for (GroupExpense e : expenses) {
             total += e.getAmount();
+            Map<String, Double> splits = e.getSplitAmounts();
 
-            // Calculate net balance for each participant
-            int participantCount = e.getParticipantCount();
-            if (participantCount == 0) continue;
-            double share = e.getAmount() / participantCount;
+            if (splits != null && !splits.isEmpty()) {
+                // Use explicit splitAmounts for accurate calculation
+                // Payer paid the full amount, so they are owed (amount - their own share)
+                if (myUid.equals(e.getPayerUid())) {
+                    // I paid, so I'm owed everything except my own share
+                    double myShare = splits.containsKey(myUid) ? splits.get(myUid) : 0;
+                    double owedToMe = e.getAmount() - myShare;
+                    // Subtract already-settled amounts
+                    for (Map.Entry<String, Double> split : splits.entrySet()) {
+                        if (!split.getKey().equals(myUid) && e.isSettledFor(split.getKey())) {
+                            owedToMe -= split.getValue();
+                        }
+                    }
+                    myBalance += owedToMe;
+                } else if (splits.containsKey(myUid)) {
+                    // I owe my share to the payer (unless settled)
+                    if (!e.isSettledFor(myUid)) {
+                        myBalance -= splits.get(myUid);
+                    }
+                }
+            } else {
+                // Fallback: equal split based on participant count
+                int participantCount = e.getParticipantCount();
+                if (participantCount == 0) continue;
+                double share = e.getAmount() / participantCount;
 
-            // Payer gains
-            netBalances.put(e.getPayerUid(),
-                    netBalances.getOrDefault(e.getPayerUid(), 0.0) + e.getAmount());
-
-            // Each participant owes their share
-            for (String uid : e.getParticipants()) {
-                netBalances.put(uid, netBalances.getOrDefault(uid, 0.0) - share);
+                if (myUid.equals(e.getPayerUid())) {
+                    myBalance += (e.getAmount() - share);
+                } else if (e.getParticipants() != null && e.getParticipants().contains(myUid)) {
+                    myBalance -= share;
+                }
             }
         }
 
         tvGroupTotal.setText(CurrencyHelper.formatWholeNumber(total));
-
-        // My balance
-        double myBalance = netBalances.getOrDefault(myUid, 0.0);
         tvMyBalance.setText(CurrencyHelper.formatBalance(myBalance));
     }
 
@@ -366,104 +421,12 @@ public class GroupLobbyActivity extends AppCompatActivity {
         FirebaseUser currentUser = FirebaseAuth.getInstance().getCurrentUser();
         if (currentUser == null) return;
 
-        // THE MATH: Calculate net balances for each user
-        Map<String, Double> totalPaid = new HashMap<>();
-        Map<String, Double> totalOwed = new HashMap<>();
-        Map<String, Double> netBalances = new HashMap<>();
-
-        // 1. Total up what each user paid
-        for (GroupExpense expense : expenses) {
-            String payerUid = expense.getPayerUid();
-            totalPaid.put(payerUid, totalPaid.getOrDefault(payerUid, 0.0) + expense.getAmount());
-        }
-
-        // 2. Total up what each user owes (from breakdown map of each expense)
-        for (GroupExpense expense : expenses) {
-            Map<String, Double> breakdown = expense.getSplitAmounts();
-            if (breakdown != null) {
-                for (Map.Entry<String, Double> entry : breakdown.entrySet()) {
-                    String memberUid = entry.getKey();
-                    double amountOwed = entry.getValue();
-                    totalOwed.put(memberUid, totalOwed.getOrDefault(memberUid, 0.0) + amountOwed);
-                }
-            }
-        }
-
-        // 3. Net Balance = Total Paid - Total Owed
-        for (String memberUid : memberNames.keySet()) {
-            double paid = totalPaid.getOrDefault(memberUid, 0.0);
-            double owed = totalOwed.getOrDefault(memberUid, 0.0);
-            double netBalance = paid - owed; // Positive = owed money, Negative = owes money
-            netBalances.put(memberUid, netBalance);
-        }
-
-        // 4. Generate settlement strings: "[User A] owes [User B] XXX.XX"
-        List<String> settlementStrings = new ArrayList<>();
-        List<SettlementCalculator.SettlementDetail> settlements = new ArrayList<>();
-
-        // Find debtors (negative net balance) and creditors (positive net balance)
-        List<Map.Entry<String, Double>> debtors = new ArrayList<>();
-        List<Map.Entry<String, Double>> creditors = new ArrayList<>();
-
-        for (Map.Entry<String, Double> entry : netBalances.entrySet()) {
-            if (entry.getValue() < 0) { // Owes money (debtor)
-                debtors.add(entry);
-            } else if (entry.getValue() > 0) { // Is owed money (creditor)
-                creditors.add(entry);
-            }
-        }
-
-        // Calculate settlements using netting algorithm
-        int debtorIndex = 0, creditorIndex = 0;
-        while (debtorIndex < debtors.size() && creditorIndex < creditors.size()) {
-            Map.Entry<String, Double> debtor = debtors.get(debtorIndex);
-            Map.Entry<String, Double> creditor = creditors.get(creditorIndex);
-
-            double debtorOwes = Math.abs(debtor.getValue()); // Amount debtor needs to pay
-            double creditorIsOwed = creditor.getValue(); // Amount creditor is owed
-
-            double settlementAmount = Math.min(debtorOwes, creditorIsOwed);
-
-            if (settlementAmount > 0.01) { // Only add if amount is significant
-                String debtorName = memberNames.get(debtor.getKey());
-                String creditorName = memberNames.get(creditor.getKey());
-                
-                String settlementString = debtorName + " owes " + creditorName + " " + 
-                        CurrencyHelper.format(settlementAmount);
-                settlementStrings.add(settlementString);
-
-                // Create SettlementDetail for adapter
-                SettlementCalculator.SettlementDetail detail = new SettlementCalculator.SettlementDetail(
-                    "settlement", // expenseId
-                    "Group Settlement", // expenseTitle  
-                    debtor.getKey(), // payerUid (using debtor as payer for this context)
-                    memberNames.get(debtor.getKey()), // payerName
-                    settlementAmount, // amount
-                    debtor.getKey(), // debtorUid
-                    creditor.getKey(), // creditorUid
-                    settlementAmount // settlementAmount
-                );
-                settlements.add(detail);
-
-                // Update balances
-                debtors.set(debtorIndex, Map.entry(debtor.getKey(), debtor.getValue() + settlementAmount));
-                creditors.set(creditorIndex, Map.entry(creditor.getKey(), creditor.getValue() - settlementAmount));
-            }
-
-            // Move to next debtor or creditor if current one is settled
-            if (Math.abs(debtors.get(debtorIndex).getValue()) < 0.01) {
-                debtorIndex++;
-            }
-            if (Math.abs(creditors.get(creditorIndex).getValue()) < 0.01) {
-                creditorIndex++;
-            }
-        }
-
-        // Update settlement adapter
+        List<SettlementCalculator.SettlementDetail> settlements = 
+                SettlementCalculator.calculateSettlements(currentUser.getUid(), expenses, memberNames);
+        
         settlementAdapter.setMemberNames(memberNames);
         settlementAdapter.submitList(settlements);
 
-        // Show/hide empty state
         if (settlements.isEmpty()) {
             tvSettleEmpty.setVisibility(View.VISIBLE);
             rvDebts.setVisibility(View.GONE);
@@ -508,22 +471,17 @@ public class GroupLobbyActivity extends AppCompatActivity {
             Button btnEqualSplit = dialogView.findViewById(R.id.btnEqualSplit);
             Button btnUnequalSplit = dialogView.findViewById(R.id.btnUnequalSplit);
             
-            // 1. SPINNER SELECT GROUP INITIALIZATION
-            // Fetch only active groups for the spinner
+            // 0. SPINNER SELECT GROUP INITIALIZATION
             groupRepository.getGroups().observe(this, groups -> {
                 if (groups != null) {
-                    ArrayList<String> activeGroupNames = new ArrayList<>();
-                    ArrayList<String> activeGroupIds = new ArrayList<>();
-                    
-                    // Filter out archived groups (status != "active")
+                    java.util.ArrayList<String> activeGroupNames = new java.util.ArrayList<>();
+                    java.util.ArrayList<String> activeGroupIds = new java.util.ArrayList<>();
                     for (Group group : groups) {
                         if (group.isActive()) {
                             activeGroupNames.add(group.getName());
                             activeGroupIds.add(group.getId());
                         }
                     }
-                    
-                    // Create adapter for spinner
                     ArrayAdapter<String> groupAdapter = new ArrayAdapter<>(GroupLobbyActivity.this,
                         android.R.layout.simple_spinner_item, activeGroupNames);
                     groupAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
@@ -531,37 +489,42 @@ public class GroupLobbyActivity extends AppCompatActivity {
                     spinnerSelectGroup.setClickable(true);
                     spinnerSelectGroup.setEnabled(true);
                     
-                    // Default to current group if it's active
                     int currentPosition = activeGroupIds.indexOf(groupId);
                     if (currentPosition >= 0) {
                         spinnerSelectGroup.setSelection(currentPosition);
                     }
                     
-                    // Set up selection listener to sync groupId
+                    // We don't implement full re-rendering for other groups yet since our 
+                    // authoritative UI relies heavily on the active lobby's stream. We just 
+                    // track the ID so the expense saves to the chosen group.
                     spinnerSelectGroup.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
                         @Override
                         public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
                             selectedGroupId[0] = activeGroupIds.get(position);
-                            // Reload member names for the selected group
-                            loadMemberNamesForGroup(selectedGroupId[0]);
                         }
-                        
                         @Override
                         public void onNothingSelected(AdapterView<?> parent) {}
                     });
                 }
             });
-            
-            // Touch event fix for spinnerSelectGroup
             spinnerSelectGroup.setOnTouchListener((v, event) -> {
                 v.getParent().requestDisallowInterceptTouchEvent(true);
                 return false;
             });
             
-            // 2. WHO PAID SPINNER INITIALIZATION
-            // Who Paid Spinner - populate with group members
-            ArrayList<String> memberNamesList = new ArrayList<>(memberNames.values());
-            ArrayAdapter<String> whoPaidAdapter = new ArrayAdapter<>(GroupLobbyActivity.this, 
+            // 1. SPINNER INITIALIZATION
+            // Build the full ordered member list from currentGroup (authoritative source)
+            List<String> allMemberUids = (currentGroup != null && currentGroup.getMembers() != null)
+                    ? currentGroup.getMembers() : new ArrayList<>(memberNames.keySet());
+
+            // Build parallel lists for the spinner: uid -> display name (fallback to short uid)
+            final List<String> whoPaidUids = new ArrayList<>(allMemberUids);
+            ArrayList<String> memberNamesList = new ArrayList<>();
+            for (String uid : whoPaidUids) {
+                memberNamesList.add(memberNames.containsKey(uid) ? memberNames.get(uid) : uid.substring(0, Math.min(6, uid.length())));
+            }
+
+            ArrayAdapter<String> whoPaidAdapter = new ArrayAdapter<>(this,
                 android.R.layout.simple_spinner_item, memberNamesList);
             whoPaidAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
             spinnerWhoPaid.setAdapter(whoPaidAdapter);
@@ -570,14 +533,14 @@ public class GroupLobbyActivity extends AppCompatActivity {
             
             // Category Spinner - populate with predefined categories
             String[] categories = {"Food", "Transport", "Bills", "Others"};
-            ArrayAdapter<String> categoryAdapter = new ArrayAdapter<>(GroupLobbyActivity.this,
+            ArrayAdapter<String> categoryAdapter = new ArrayAdapter<>(this,
                 android.R.layout.simple_spinner_item, categories);
             categoryAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
             spinnerCategory.setAdapter(categoryAdapter);
             spinnerCategory.setClickable(true);
             spinnerCategory.setEnabled(true);
             
-            // 3. TOUCH EVENT FIX FOR NESTEDSCROLLVIEW
+            // 2. TOUCH EVENT FIX FOR NESTEDSCROLLVIEW
             spinnerWhoPaid.setOnTouchListener((v, event) -> {
                 v.getParent().requestDisallowInterceptTouchEvent(true);
                 return false;
@@ -588,25 +551,28 @@ public class GroupLobbyActivity extends AppCompatActivity {
                 return false;
             });
             
-            // 4. PARTICIPANT CHECKLIST (Dynamic Inflation)
+            // 3. PARTICIPANT CHECKLIST (Dynamic Inflation)
             selectedParticipants.clear();
-            updateParticipantChecklist(containerParticipants, tvParticipatedHeader, true);
+            updateParticipantChecklist(containerParticipants, tvParticipatedHeader, true, allMemberUids);
             
-            // 5. EQUAL/UNEQUAL SPLIT TOGGLE
+            // 4. EQUAL/UNEQUAL SPLIT TOGGLE
+            isEqualSplit = true;
             btnEqualSplit.setOnClickListener(v -> {
+                isEqualSplit = true;
                 btnEqualSplit.setBackgroundColor(Color.parseColor("#38BDB0"));
                 btnEqualSplit.setTextColor(Color.WHITE);
                 btnUnequalSplit.setBackgroundColor(Color.parseColor("#EFFFFD"));
                 btnUnequalSplit.setTextColor(Color.parseColor("#2D3142"));
-                updateParticipantChecklist(containerParticipants, tvParticipatedHeader, true);
+                updateParticipantChecklist(containerParticipants, tvParticipatedHeader, true, allMemberUids);
             });
             
             btnUnequalSplit.setOnClickListener(v -> {
+                isEqualSplit = false;
                 btnUnequalSplit.setBackgroundColor(Color.parseColor("#38BDB0"));
                 btnUnequalSplit.setTextColor(Color.WHITE);
                 btnEqualSplit.setBackgroundColor(Color.parseColor("#EFFFFD"));
                 btnEqualSplit.setTextColor(Color.parseColor("#2D3142"));
-                updateParticipantChecklist(containerParticipants, tvParticipatedHeader, false);
+                updateParticipantChecklist(containerParticipants, tvParticipatedHeader, false, allMemberUids);
             });
             
             // Close button
@@ -618,6 +584,15 @@ public class GroupLobbyActivity extends AppCompatActivity {
                 dialog.getWindow().setLayout(width, ViewGroup.LayoutParams.WRAP_CONTENT);
                 dialog.getWindow().clearFlags(WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE | WindowManager.LayoutParams.FLAG_ALT_FOCUSABLE_IM);
                 dialog.getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_VISIBLE);
+            }
+
+            // OCR Camera Scan button
+            Button btnScanReceipt = dialogView.findViewById(R.id.btnScanReceipt);
+            if (btnScanReceipt != null) {
+                btnScanReceipt.setOnClickListener(v -> {
+                    activeAmountEditText = etAmount;
+                    launchCamera();
+                });
             }
 
             btnAddExpense.setOnClickListener(v -> {
@@ -643,18 +618,15 @@ public class GroupLobbyActivity extends AppCompatActivity {
                     return;
                 }
 
-                // Get selected payer
-                String selectedPayerName = (String) spinnerWhoPaid.getSelectedItem();
-                String payerUid = null;
-                for (Map.Entry<String, String> entry : memberNames.entrySet()) {
-                    if (entry.getValue().equals(selectedPayerName)) {
-                        payerUid = entry.getKey();
-                        break;
-                    }
-                }
+                // Get selected payer ΓÇö use the parallel uid list (safe even if name is a short UID fallback)
+                int selectedPayerPos = spinnerWhoPaid.getSelectedItemPosition();
+                String payerUid = (selectedPayerPos >= 0 && selectedPayerPos < whoPaidUids.size())
+                        ? whoPaidUids.get(selectedPayerPos) : null;
+                String selectedPayerName = (payerUid != null && memberNames.containsKey(payerUid))
+                        ? memberNames.get(payerUid) : (String) spinnerWhoPaid.getSelectedItem();
 
                 if (payerUid == null) {
-                    Toast.makeText(GroupLobbyActivity.this, "Please select who paid", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(this, "Please select who paid", Toast.LENGTH_SHORT).show();
                     return;
                 }
 
@@ -667,7 +639,7 @@ public class GroupLobbyActivity extends AppCompatActivity {
                 }
 
                 if (participants.isEmpty()) {
-                    Toast.makeText(GroupLobbyActivity.this, "Please select at least one participant", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(this, "Please select at least one participant", Toast.LENGTH_SHORT).show();
                     return;
                 }
 
@@ -675,65 +647,48 @@ public class GroupLobbyActivity extends AppCompatActivity {
                 String category = (String) spinnerCategory.getSelectedItem();
                 GroupExpense expense = new GroupExpense(selectedGroupId[0], title, payerUid, selectedPayerName, amount);
                 expense.setParticipants(participants);
-                
-                // VALIDATE 3 SPLIT LOGICS: Calculate breakdown map based on split type
+
+                // Compute splitAmounts based on split method
                 Map<String, Double> splitAmounts = new HashMap<>();
-                
-                // Determine split type based on current toggle state
-                boolean isUnequalSplit = btnUnequalSplit.getCurrentTextColor() == Color.WHITE;
-                
-                if (!isUnequalSplit) {
-                    // EQUAL or SELECTIVE EQUAL SPLIT
-                    if (participants.size() == memberNames.size()) {
-                        // EQUAL SPLIT: Total / All_Members
-                        double equalShare = amount / participants.size();
-                        for (String participantUid : participants) {
-                            splitAmounts.put(participantUid, equalShare);
-                        }
-                        expense.setSplitType("EQUAL");
-                    } else {
-                        // SELECTIVE EQUAL: Total / Checked_Members
-                        double selectiveShare = amount / participants.size();
-                        for (String participantUid : participants) {
-                            splitAmounts.put(participantUid, selectiveShare);
-                        }
-                        expense.setSplitType("SELECTIVE");
+                if (isEqualSplit) {
+                    expense.setSplitType("EQUAL");
+                    double sharePerPerson = Math.round(amount / participants.size() * 100.0) / 100.0;
+                    for (String uid : participants) {
+                        splitAmounts.put(uid, sharePerPerson);
                     }
                 } else {
-                    // UNEQUAL (%) SPLIT: Total * (Percentage / 100)
-                    expense.setSplitType("PERCENTAGE");
-                    double totalPercentage = 0.0;
-                    
-                    // Calculate percentages from input fields
-                    for (String participantUid : participants) {
-                        View participantView = containerParticipants.findViewWithTag(participantUid + "_percentage");
-                        if (participantView instanceof TextInputEditText) {
-                            TextInputEditText percentageInput = (TextInputEditText) participantView;
-                            String percentageStr = percentageInput.getText().toString();
-                            if (!percentageStr.isEmpty()) {
-                                double percentage = Double.parseDouble(percentageStr.replace("%", ""));
-                                double amountOwed = amount * (percentage / 100.0);
-                                splitAmounts.put(participantUid, amountOwed);
-                                totalPercentage += percentage;
+                    expense.setSplitType("UNEQUAL");
+                    double totalPct = 0;
+                    Map<String, Double> pctMap = new HashMap<>();
+                    for (String uid : participants) {
+                        View pctInput = containerParticipants.findViewWithTag(uid + "_percentage");
+                        double pct = 0;
+                        if (pctInput instanceof TextInputEditText) {
+                            String pctStr = ((TextInputEditText) pctInput).getText() != null ?
+                                    ((TextInputEditText) pctInput).getText().toString().trim() : "";
+                            if (!pctStr.isEmpty()) {
+                                try { pct = Double.parseDouble(pctStr); } catch (NumberFormatException ignored) {}
                             }
                         }
+                        pctMap.put(uid, pct);
+                        totalPct += pct;
                     }
-                    
-                    // Validate total percentage equals 100%
-                    if (Math.abs(totalPercentage - 100.0) > 0.01) {
-                        Toast.makeText(GroupLobbyActivity.this, 
-                            "Percentages must total 100%. Current: " + totalPercentage + "%", 
-                            Toast.LENGTH_LONG).show();
+                    // Validate percentages add up to 100
+                    if (Math.abs(totalPct - 100.0) > 0.5) {
+                        Toast.makeText(this, "Percentages must add up to 100% (currently " + String.format(Locale.US, "%.0f", totalPct) + "%)", Toast.LENGTH_LONG).show();
                         return;
                     }
+                    for (Map.Entry<String, Double> pctEntry : pctMap.entrySet()) {
+                        double shareAmount = Math.round(amount * pctEntry.getValue() / 100.0 * 100.0) / 100.0;
+                        splitAmounts.put(pctEntry.getKey(), shareAmount);
+                    }
                 }
-                
                 expense.setSplitAmounts(splitAmounts);
                 
                 // Save the expense
-                groupRepository.addGroupExpense(selectedGroupId[0], expense);
+                groupRepository.addGroupExpense(groupId, expense);
                 
-                Toast.makeText(GroupLobbyActivity.this, "Expense added!", Toast.LENGTH_SHORT).show();
+                Toast.makeText(this, "Expense added!", Toast.LENGTH_SHORT).show();
                 dialog.dismiss();
             });
         } catch (Exception e) {
@@ -742,49 +697,47 @@ public class GroupLobbyActivity extends AppCompatActivity {
         }
     }
     
-    private void loadMemberNamesForGroup(String targetGroupId) {
-        // Clear current member names
-        memberNames.clear();
-        selectedParticipants.clear();
-        
-        // Load member names for the selected group
-        groupRepository.getGroupMembers(targetGroupId, memberUids -> {
-            for (String uid : memberUids) {
-                com.google.firebase.firestore.FirebaseFirestore.getInstance()
-                        .collection("users").document(uid).get()
-                        .addOnSuccessListener(doc -> {
-                            if (doc.exists()) {
-                                String name = doc.getString("displayName");
-                                if (name != null) {
-                                    memberNames.put(uid, name);
-                                    // Refresh settlement display with new names
-                                    if (settlementAdapter != null) {
-                                        settlementAdapter.setMemberNames(memberNames);
-                                        settlementAdapter.notifyDataSetChanged();
-                                    }
-                                }
-                            }
-                        });
+    private void launchCamera() {
+        Intent takePictureIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
+        File photoFile = null;
+        try {
+            String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss", Locale.US).format(new Date());
+            File storageDir = new File(getCacheDir(), "images");
+            if (!storageDir.exists()) {
+                storageDir.mkdirs();
             }
-        });
+            photoFile = File.createTempFile("JPEG_" + timeStamp + "_", ".jpg", storageDir);
+        } catch (IOException ex) {
+            Toast.makeText(this, "Error creating file for image", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        if (photoFile != null) {
+            currentPhotoUri = FileProvider.getUriForFile(this,
+                    getApplicationContext().getPackageName() + ".fileprovider",
+                    photoFile);
+            takePictureIntent.putExtra(MediaStore.EXTRA_OUTPUT, currentPhotoUri);
+            cameraLauncher.launch(takePictureIntent);
+        }
     }
 
-    private void updateParticipantChecklist(LinearLayout container, TextView header, boolean isEqualSplit) {
+    private void updateParticipantChecklist(LinearLayout container, TextView header, boolean isEqualSplit, List<String> memberUids) {
         container.removeAllViews();
         selectedParticipants.clear();
-        
-        for (Map.Entry<String, String> entry : memberNames.entrySet()) {
-            String memberUid = entry.getKey();
-            String memberName = entry.getValue();
+
+        for (String memberUid : memberUids) {
+            String memberName = memberNames.containsKey(memberUid)
+                    ? memberNames.get(memberUid)
+                    : memberUid.substring(0, Math.min(6, memberUid.length()));
             
-            LinearLayout participantLayout = new LinearLayout(GroupLobbyActivity.this);
+            LinearLayout participantLayout = new LinearLayout(this);
             participantLayout.setOrientation(LinearLayout.HORIZONTAL);
             participantLayout.setPadding(8, 8, 8, 8);
             participantLayout.setLayoutParams(new LinearLayout.LayoutParams(
                 LinearLayout.LayoutParams.MATCH_PARENT, 
                 LinearLayout.LayoutParams.WRAP_CONTENT));
             
-            CheckBox checkBox = new CheckBox(GroupLobbyActivity.this);
+            CheckBox checkBox = new CheckBox(this);
             checkBox.setText(memberName);
             checkBox.setLayoutParams(new LinearLayout.LayoutParams(
                 0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f));
@@ -800,7 +753,7 @@ public class GroupLobbyActivity extends AppCompatActivity {
             
             // Add percentage input for unequal split
             if (!isEqualSplit) {
-                TextInputEditText percentageInput = new TextInputEditText(GroupLobbyActivity.this);
+                TextInputEditText percentageInput = new TextInputEditText(this);
                 percentageInput.setHint("0%");
                 percentageInput.setInputType(InputType.TYPE_CLASS_NUMBER | InputType.TYPE_NUMBER_FLAG_DECIMAL);
                 percentageInput.setLayoutParams(new LinearLayout.LayoutParams(
@@ -833,19 +786,9 @@ public class GroupLobbyActivity extends AppCompatActivity {
                     if (group.getId().equals(groupId)) {
                         currentGroup = group;
                         updateUI();
-                        
-                        // Force 'Mark as Accomplished' Visibility
-                        if (currentGroup.getCreatedBy() == null) {
-                            Log.e("DEBUG", "CreatorID is NULL");
+                        if (currentGroup.getMembers() != null) {
+                            loadMemberNames(currentGroup.getMembers());
                         }
-                        FirebaseUser currentUser = FirebaseAuth.getInstance().getCurrentUser();
-                        String currentUserId = currentUser != null ? currentUser.getUid() : null;
-                        btnMarkAsAccomplished.setVisibility(
-                            currentGroup != null && 
-                            currentUserId.equals(currentGroup.getCreatedBy()) && 
-                            !"settled".equals(currentGroup.getStatus()) ? 
-                            View.VISIBLE : View.GONE
-                        );
                         break;
                     }
                 }
@@ -853,63 +796,70 @@ public class GroupLobbyActivity extends AppCompatActivity {
         });
     }
 
-    private void updateUI() {
-        if (currentGroup == null) return;
+private void updateUI() {
+    if (currentGroup == null) return;
 
-        FirebaseUser currentUser = FirebaseAuth.getInstance().getCurrentUser();
-        String currentUserId = currentUser != null ? currentUser.getUid() : null;
+    FirebaseUser currentUser = FirebaseAuth.getInstance().getCurrentUser();
+    String currentUserId = currentUser != null ? currentUser.getUid() : null;
 
-        // Button visibility is now handled ONLY in loadGroupData() to prevent conflicts
-
-        // Control FAB visibility based on group status
-        if (currentGroup.isActive()) {
-            if (fabAddExpense != null) {
-                fabAddExpense.setVisibility(View.VISIBLE);
-                Log.d("GroupLobby", "FAB made visible for active group: " + currentGroup.getName());
-            }
-        } else if (currentGroup.isSettled()) {
-            // Disable functionality for settled groups
-            disableAllInputElements();
-            Log.d("GroupLobby", "FAB hidden for settled group: " + currentGroup.getName());
-        }
+    // Show/hide Mark as Accomplished button based on creator and status
+    if (currentUserId != null && currentUserId.equals(currentGroup.getCreatedBy()) 
+            && currentGroup.isActive()) {
+        btnMarkAsAccomplished.setVisibility(View.VISIBLE);
+    } else {
+        btnMarkAsAccomplished.setVisibility(View.GONE);
     }
 
-    private void markGroupAsAccomplished() {
-        if (groupId == null || currentGroup == null) return;
-
-        groupRepository.updateGroupStatus(groupId, "settled", new GroupRepository.OnCompleteCallback() {
-            @Override
-            public void onSuccess(String message) {
-                Toast.makeText(GroupLobbyActivity.this, "Group marked as accomplished!", Toast.LENGTH_SHORT).show();
-                // UI will update automatically when group data changes
-            }
-
-            @Override
-            public void onError(String error) {
-                Toast.makeText(GroupLobbyActivity.this, "Error: " + error, Toast.LENGTH_SHORT).show();
-            }
-        });
-    }
-
-    private void disableAllInputElements() {
-        // Disable Mark as Accomplished button
-        if (btnMarkAsAccomplished != null) {
-            btnMarkAsAccomplished.setEnabled(false);
-            btnMarkAsAccomplished.setVisibility(View.GONE);
-        }
-
-        // Hide FAB for settled groups
+    // Control FAB visibility based on group status
+    if (currentGroup.isActive()) {
         if (fabAddExpense != null) {
-            fabAddExpense.setVisibility(View.GONE);
+            fabAddExpense.setVisibility(View.VISIBLE);
+            Log.d("GroupLobby", "FAB made visible for active group: " + currentGroup.getName());
         }
-
-        // Disable any other interactive elements if they exist
-        // For now, main restriction is preventing the add expense dialog
-    }
-
-    @Override
-    protected void onDestroy() {
-        super.onDestroy();
-        groupRepository.removeListeners();
+    } else if (currentGroup.isSettled()) {
+        // Disable functionality for settled groups
+        disableAllInputElements();
+        Log.d("GroupLobby", "FAB hidden for settled group: " + currentGroup.getName());
     }
 }
+
+private void markGroupAsAccomplished() {
+    if (groupId == null || currentGroup == null) return;
+
+    groupRepository.updateGroupStatus(groupId, "settled", new GroupRepository.OnCompleteCallback() {
+        @Override
+        public void onSuccess(String message) {
+            Toast.makeText(GroupLobbyActivity.this, "Group marked as accomplished!", Toast.LENGTH_SHORT).show();
+            // UI will update automatically when group data changes
+        }
+
+        @Override
+        public void onError(String error) {
+            Toast.makeText(GroupLobbyActivity.this, "Error: " + error, Toast.LENGTH_SHORT).show();
+        }
+    });
+}
+
+private void disableAllInputElements() {
+    // Disable Mark as Accomplished button
+    if (btnMarkAsAccomplished != null) {
+        btnMarkAsAccomplished.setEnabled(false);
+        btnMarkAsAccomplished.setVisibility(View.GONE);
+    }
+
+    // Hide FAB for settled groups
+    if (fabAddExpense != null) {
+        fabAddExpense.setVisibility(View.GONE);
+    }
+
+    // Disable any other interactive elements if they exist
+    // For now, the main restriction is preventing the add expense dialog
+}
+
+@Override
+protected void onDestroy() {
+    super.onDestroy();
+    groupRepository.removeListeners();
+    }
+}
+

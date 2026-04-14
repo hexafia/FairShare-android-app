@@ -95,6 +95,33 @@
 
         </FrameLayout>
 
+        <!-- Settle button -->
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnSettle"
+            android:layout_width="wrap_content"
+            android:layout_height="36dp"
+            android:text="Settle"
+            android:textAllCaps="false"
+            android:textSize="12sp"
+            android:layout_marginStart="8dp"
+            android:minWidth="0dp"
+            android:paddingStart="12dp"
+            android:paddingEnd="12dp"
+            app:backgroundTint="#38BDB0"
+            app:cornerRadius="18dp" />
+
+        <!-- Settled label (shown when already settled) -->
+        <TextView
+            android:id="@+id/tvSettledLabel"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="✓ Settled"
+            android:textColor="@color/income_green"
+            android:textSize="12sp"
+            android:textStyle="bold"
+            android:layout_marginStart="8dp"
+            android:visibility="gone" />
+
     </LinearLayout>
 
 </com.google.android.material.card.MaterialCardView>

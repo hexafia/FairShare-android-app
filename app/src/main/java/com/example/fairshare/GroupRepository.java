@@ -377,6 +377,19 @@ public class GroupRepository {
                 .addOnFailureListener(e -> Log.w(TAG, "Error adding expense", e));
     }
 
+    public void markSettled(String expenseId, String debtorUid, OnCompleteCallback callback) {
+        db.collection(GROUP_EXPENSES_COLLECTION).document(expenseId)
+                .update("settledStatus." + debtorUid, true)
+                .addOnSuccessListener(aVoid -> {
+                    Log.d(TAG, "Marked settled for " + debtorUid + " on expense " + expenseId);
+                    callback.onSuccess("Settled!");
+                })
+                .addOnFailureListener(e -> {
+                    Log.w(TAG, "Error marking settled", e);
+                    callback.onError(e.getMessage());
+                });
+    }
+
     public void getGroupMembers(String groupId, OnMembersCallback callback) {
         db.collection(GROUPS_COLLECTION).document(groupId).get()
                 .addOnSuccessListener(documentSnapshot -> {

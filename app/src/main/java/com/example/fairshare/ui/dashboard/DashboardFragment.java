@@ -12,6 +12,17 @@ import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AlertDialog;
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContracts;
+import androidx.core.content.FileProvider;
+import android.content.Intent;
+import android.net.Uri;
+import android.provider.MediaStore;
+import java.io.File;
+import java.io.IOException;
+import java.text.SimpleDateFormat;
+import java.util.Locale;
+
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.LinearLayoutManager;
@@ -45,6 +56,11 @@ public class DashboardFragment extends Fragment implements com.example.fairshare
     private List<GroupExpense> currentGroupExpenses = new ArrayList<>();
     private List<com.example.fairshare.Group> currentGroups = new ArrayList<>();
 
+    // OCR and Camera
+    private ActivityResultLauncher<Intent> cameraLauncher;
+    private Uri currentPhotoUri;
+    private TextInputEditText activeAmountEditText;
+
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
@@ -55,6 +71,30 @@ public class DashboardFragment extends Fragment implements com.example.fairshare
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
+
+        // Register camera launcher
+        cameraLauncher = registerForActivityResult(
+            new ActivityResultContracts.StartActivityForResult(),
+            result -> {
+                if (result.getResultCode() == android.app.Activity.RESULT_OK && currentPhotoUri != null && activeAmountEditText != null) {
+                    com.example.fairshare.OcrHelper.extractAmountFromReceipt(requireContext(), currentPhotoUri, new com.example.fairshare.OcrHelper.OcrCallback() {
+                        @Override
+                        public void onSuccess(String amount) {
+                            if (amount != null && !amount.isEmpty()) {
+                                activeAmountEditText.setText(amount);
+                                Toast.makeText(requireContext(), "Scan successful", Toast.LENGTH_SHORT).show();
+                            } else {
+                                Toast.makeText(requireContext(), "Could not detect total amount", Toast.LENGTH_SHORT).show();
+                            }
+                        }
+
+                        @Override
+                        public void onError(Exception e) {
+                            Toast.makeText(requireContext(), "Scan failed: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                        }
+                    });
+                }
+            });
 
         setupRecyclerView();
         setupViewModel();
@@ -205,6 +245,14 @@ public class DashboardFragment extends Fragment implements com.example.fairshare
         dialog.setContentView(dialogView);
         dialog.setCancelable(true);
 
+        com.google.android.material.button.MaterialButton btnScanReceipt = dialogView.findViewById(R.id.btnScanReceipt);
+        if (btnScanReceipt != null) {
+            btnScanReceipt.setOnClickListener(v -> {
+                activeAmountEditText = etAmount;
+                launchCamera();
+            });
+        }
+
         btnCancel.setOnClickListener(v -> dialog.dismiss());
 
         btnSave.setOnClickListener(v -> {
@@ -241,6 +289,30 @@ public class DashboardFragment extends Fragment implements com.example.fairshare
         if (dialog.getWindow() != null) {
             int width = (int) (350 * getResources().getDisplayMetrics().density);
             dialog.getWindow().setLayout(width, ViewGroup.LayoutParams.WRAP_CONTENT);
+        }
+    }
+
+    private void launchCamera() {
+        Intent takePictureIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
+        File photoFile = null;
+        try {
+            String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss", Locale.US).format(new Date());
+            File storageDir = new File(requireContext().getCacheDir(), "images");
+            if (!storageDir.exists()) {
+                storageDir.mkdirs();
+            }
+            photoFile = File.createTempFile("JPEG_" + timeStamp + "_", ".jpg", storageDir);
+        } catch (IOException ex) {
+            Toast.makeText(requireContext(), "Error creating file for image", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        if (photoFile != null) {
+            currentPhotoUri = FileProvider.getUriForFile(requireContext(),
+                    requireContext().getPackageName() + ".fileprovider",
+                    photoFile);
+            takePictureIntent.putExtra(MediaStore.EXTRA_OUTPUT, currentPhotoUri);
+            cameraLauncher.launch(takePictureIntent);
         }
     }
 

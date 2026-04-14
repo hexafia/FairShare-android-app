@@ -32,10 +32,11 @@ public class SettlementCalculator {
         public final String debtorUid;      // The user who owes
         public final String creditorUid;    // The user who is owed
         public final double settlementAmount;
+        public final boolean settled;       // Whether this debt has been marked as settled
 
         public SettlementDetail(String expenseId, String expenseTitle, String payerUid, 
                                String payerName, double amount, String debtorUid, 
-                               String creditorUid, double settlementAmount) {
+                               String creditorUid, double settlementAmount, boolean settled) {
             this.expenseId = expenseId;
             this.expenseTitle = expenseTitle;
             this.payerUid = payerUid;
@@ -44,6 +45,7 @@ public class SettlementCalculator {
             this.debtorUid = debtorUid;
             this.creditorUid = creditorUid;
             this.settlementAmount = settlementAmount;
+            this.settled = settled;
         }
     }
 
@@ -97,6 +99,7 @@ public class SettlementCalculator {
                     Double owed = entry.getValue();
                     if (!debtorUid.equals(payerUid) && owed != null && owed > 0) {
                         String debtorName = memberNames.getOrDefault(debtorUid, debtorUid);
+                        boolean isSettled = expense.isSettledFor(debtorUid);
                         settlements.add(new SettlementDetail(
                                 expenseId,
                                 expenseTitle,
@@ -105,7 +108,8 @@ public class SettlementCalculator {
                                 expenseAmount,
                                 debtorUid,      // This person owes
                                 payerUid,       // To the payer
-                                owed            // This specific amount
+                                owed,           // This specific amount
+                                isSettled       // Settlement status
                         ));
                     }
                 }
@@ -115,6 +119,7 @@ public class SettlementCalculator {
                 // They owe the specific amount in breakdown to the payer
                 Double owed = breakdown.get(currentUserId);
                 if (owed != null && owed > 0) {
+                    boolean isSettled = expense.isSettledFor(currentUserId);
                     settlements.add(new SettlementDetail(
                             expenseId,
                             expenseTitle,
@@ -123,7 +128,8 @@ public class SettlementCalculator {
                             expenseAmount,
                             currentUserId,  // Current user owes
                             payerUid,       // To the payer
-                            owed            // This specific amount
+                            owed,           // This specific amount
+                            isSettled       // Settlement status
                     ));
                 }
             }

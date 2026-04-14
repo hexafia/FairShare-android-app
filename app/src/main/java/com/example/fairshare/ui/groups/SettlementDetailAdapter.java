@@ -13,6 +13,7 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.example.fairshare.CurrencyHelper;
 import com.example.fairshare.R;
 import com.example.fairshare.SettlementCalculator;
+import com.google.android.material.button.MaterialButton;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -25,6 +26,11 @@ import java.util.Objects;
 public class SettlementDetailAdapter extends ListAdapter<SettlementCalculator.SettlementDetail, SettlementDetailAdapter.ViewHolder> {
 
     private Map<String, String> memberNames = new HashMap<>();
+    private OnSettleClickListener settleClickListener;
+
+    public interface OnSettleClickListener {
+        void onSettleClick(SettlementCalculator.SettlementDetail settlement);
+    }
 
     public SettlementDetailAdapter() {
         super(DIFF_CALLBACK);
@@ -32,6 +38,10 @@ public class SettlementDetailAdapter extends ListAdapter<SettlementCalculator.Se
 
     public void setMemberNames(Map<String, String> names) {
         this.memberNames = names;
+    }
+
+    public void setOnSettleClickListener(OnSettleClickListener listener) {
+        this.settleClickListener = listener;
     }
 
     private static final DiffUtil.ItemCallback<SettlementCalculator.SettlementDetail> DIFF_CALLBACK =
@@ -46,9 +56,10 @@ public class SettlementDetailAdapter extends ListAdapter<SettlementCalculator.Se
 
                 @Override
                 public boolean areContentsTheSame(@NonNull SettlementCalculator.SettlementDetail old, 
-                                                 @NonNull SettlementCalculator.SettlementDetail newItem) {
+                                                  @NonNull SettlementCalculator.SettlementDetail newItem) {
                     return old.settlementAmount == newItem.settlementAmount
-                            && Objects.equals(old.expenseTitle, newItem.expenseTitle);
+                            && Objects.equals(old.expenseTitle, newItem.expenseTitle)
+                            && old.settled == newItem.settled;
                 }
             };
 
@@ -69,6 +80,8 @@ public class SettlementDetailAdapter extends ListAdapter<SettlementCalculator.Se
         private final TextView tvDebtorInitial, tvCreditorInitial;
         private final TextView tvSettlementDescription, tvSettlementAmount;
         private final TextView tvExpenseTitle;
+        private final MaterialButton btnSettle;
+        private final TextView tvSettledLabel;
 
         ViewHolder(@NonNull View itemView) {
             super(itemView);
@@ -77,6 +90,8 @@ public class SettlementDetailAdapter extends ListAdapter<SettlementCalculator.Se
             tvSettlementDescription = itemView.findViewById(R.id.tvSettlementDescription);
             tvSettlementAmount = itemView.findViewById(R.id.tvSettlementAmount);
             tvExpenseTitle = itemView.findViewById(R.id.tvExpenseTitle);
+            btnSettle = itemView.findViewById(R.id.btnSettle);
+            tvSettledLabel = itemView.findViewById(R.id.tvSettledLabel);
         }
 
         void bind(SettlementCalculator.SettlementDetail settlement) {
@@ -96,6 +111,23 @@ public class SettlementDetailAdapter extends ListAdapter<SettlementCalculator.Se
                 tvExpenseTitle.setVisibility(View.VISIBLE);
             } else {
                 tvExpenseTitle.setVisibility(View.GONE);
+            }
+
+            // Handle settled state
+            if (settlement.settled) {
+                btnSettle.setVisibility(View.GONE);
+                tvSettledLabel.setVisibility(View.VISIBLE);
+                itemView.setAlpha(0.5f);
+            } else {
+                btnSettle.setVisibility(View.VISIBLE);
+                tvSettledLabel.setVisibility(View.GONE);
+                itemView.setAlpha(1.0f);
+
+                btnSettle.setOnClickListener(v -> {
+                    if (settleClickListener != null) {
+                        settleClickListener.onSettleClick(settlement);
+                    }
+                });
             }
         }
 

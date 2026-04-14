@@ -24,10 +24,12 @@ public class GroupExpense {
     private Map<String, Double> splitAmounts; // uid -> exact amount owed (breakdown map)
     private List<String> involvedUsers; // payerUid + all participants (for efficient querying)
     private long timestamp;
+    private Map<String, Boolean> settledStatus; // uid -> true if that person's share is settled
 
     // Required empty constructor for Firebase deserialization
     public GroupExpense() {
         participants = new ArrayList<>();
+        settledStatus = new HashMap<>();
     }
 
     public GroupExpense(String groupId, String title, String payerUid, String payerName, double amount) {
@@ -133,5 +135,17 @@ public class GroupExpense {
 
     public void setInvolvedUsers(List<String> involvedUsers) {
         this.involvedUsers = involvedUsers;
+    }
+
+    public Map<String, Boolean> getSettledStatus() {
+        return settledStatus;
+    }
+
+    public void setSettledStatus(Map<String, Boolean> settledStatus) {
+        this.settledStatus = settledStatus;
+    }
+
+    public boolean isSettledFor(String uid) {
+        return settledStatus != null && Boolean.TRUE.equals(settledStatus.get(uid));
     }
 }

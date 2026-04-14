@@ -83,6 +83,20 @@
             android:layout_marginBottom="16dp" />
 
         <!-- Type toggle removed: App only supports expenses -->
+        
+        <!-- Scan Receipt Button -->
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnScanReceipt"
+            android:layout_width="match_parent"
+            android:layout_height="56dp"
+            android:text="Scan Receipt"
+            android:textAllCaps="false"
+            android:textStyle="bold"
+            app:backgroundTint="#38BDB0"
+            app:icon="@android:drawable/ic_menu_camera"
+            app:iconGravity="textStart"
+            android:layout_marginBottom="16dp" />
+
         <!-- Action buttons -->
         <LinearLayout
             android:layout_width="match_parent"
