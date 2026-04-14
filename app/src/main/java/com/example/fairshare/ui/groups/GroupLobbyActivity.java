@@ -410,10 +410,16 @@ public class GroupLobbyActivity extends AppCompatActivity {
                 settlementStrings.add(settlementString);
 
                 // Create SettlementDetail for adapter
-                SettlementCalculator.SettlementDetail detail = new SettlementCalculator.SettlementDetail();
-                detail.debtorUid = debtor.getKey();
-                detail.creditorUid = creditor.getKey();
-                detail.settlementAmount = settlementAmount;
+                SettlementCalculator.SettlementDetail detail = new SettlementCalculator.SettlementDetail(
+                    "settlement", // expenseId
+                    "Group Settlement", // expenseTitle  
+                    debtor.getKey(), // payerUid (using debtor as payer for this context)
+                    memberNames.get(debtor.getKey()), // payerName
+                    settlementAmount, // amount
+                    debtor.getKey(), // debtorUid
+                    creditor.getKey(), // creditorUid
+                    settlementAmount // settlementAmount
+                );
                 settlements.add(detail);
 
                 // Update balances
