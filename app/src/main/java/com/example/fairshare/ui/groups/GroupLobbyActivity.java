@@ -116,7 +116,30 @@ public class GroupLobbyActivity extends AppCompatActivity {
         rvDebts = findViewById(R.id.rvDebts);
         rvMembers = findViewById(R.id.rvMembers);
         btnMarkAsAccomplished = findViewById(R.id.btnMarkAsAccomplished);
-        btnMarkAsAccomplished.setOnClickListener(v -> markGroupAsAccomplished());
+        btnMarkAsAccomplished.setOnClickListener(v -> {
+            // Show confirmation dialog
+            new AlertDialog.Builder(GroupLobbyActivity.this)
+                .setTitle("Settle Group")
+                .setMessage("Are you sure you want to settle this group? This will make the ledger read-only.")
+                .setPositiveButton("Yes", (dialog, which) -> {
+                    // Call updateGroupStatus with callback
+                    groupRepository.updateGroupStatus(groupId, "settled", new GroupRepository.OnCompleteCallback() {
+                        @Override
+                        public void onSuccess(String message) {
+                            Toast.makeText(GroupLobbyActivity.this, "Group has been archived.", Toast.LENGTH_SHORT).show();
+                            // Immediately refresh UI to hide FAB and input fields
+                            updateUI();
+                        }
+
+                        @Override
+                        public void onError(String error) {
+                            Toast.makeText(GroupLobbyActivity.this, "Error: " + error, Toast.LENGTH_SHORT).show();
+                        }
+                    });
+                })
+                .setNegativeButton("No", null)
+                .show();
+        });
 
         TabLayout tabLayout = findViewById(R.id.tabLayout);
         tabLayout.addOnTabSelectedListener(new TabLayout.OnTabSelectedListener() {
@@ -815,7 +838,14 @@ public class GroupLobbyActivity extends AppCompatActivity {
                         if (currentGroup.getCreatedBy() == null) {
                             Log.e("DEBUG", "CreatorID is NULL");
                         }
-                        btnMarkAsAccomplished.setVisibility(FirebaseAuth.getInstance().getUid().equals(currentGroup.getCreatedBy()) ? View.VISIBLE : View.GONE);
+                        FirebaseUser currentUser = FirebaseAuth.getInstance().getCurrentUser();
+                        String currentUserId = currentUser != null ? currentUser.getUid() : null;
+                        btnMarkAsAccomplished.setVisibility(
+                            currentGroup != null && 
+                            currentUserId.equals(currentGroup.getCreatedBy()) && 
+                            !"settled".equals(currentGroup.getStatus()) ? 
+                            View.VISIBLE : View.GONE
+                        );
                         break;
                     }
                 }
