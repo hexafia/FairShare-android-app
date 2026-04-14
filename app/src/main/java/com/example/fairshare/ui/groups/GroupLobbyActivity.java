@@ -37,9 +37,12 @@ import com.google.android.material.textfield.TextInputEditText;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 
+import android.widget.ArrayAdapter;
+import android.widget.AdapterView;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.ArrayList;
 
 public class GroupLobbyActivity extends AppCompatActivity {
 
@@ -63,6 +66,9 @@ public class GroupLobbyActivity extends AppCompatActivity {
 
     // Maps UID → display name for the Settle Up tab
     private final Map<String, String> memberNames = new HashMap<>();
+    
+    // Track selected participants for expense splitting
+    private final Map<String, Boolean> selectedParticipants = new HashMap<>();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -301,7 +307,6 @@ public class GroupLobbyActivity extends AppCompatActivity {
     }
 
     private void showAddExpenseDialog() {
-        double amount; // Declare amount at method level
         try {
             Log.d("FAB_DEBUG", "Starting inflation");
             LayoutInflater inflater = getLayoutInflater();
@@ -315,92 +320,76 @@ public class GroupLobbyActivity extends AppCompatActivity {
             dialog.show();
             Log.d("FAB_DEBUG", "Dialog show() called");
             
-            // Declare views before using them
+            // Declare views
             TextInputEditText etTitle = dialogView.findViewById(R.id.etTitle);
             TextInputEditText etAmount = dialogView.findViewById(R.id.etAmount);
-            TextView tvSplitInfo = dialogView.findViewById(R.id.tvSplitInfo);
-            MaterialButton btnCancel = dialogView.findViewById(R.id.btnCancel);
+            TextInputEditText etNotes = dialogView.findViewById(R.id.etNotes);
+            TextView tvParticipatedHeader = dialogView.findViewById(R.id.tvParticipatedHeader);
             MaterialButton btnAddExpense = dialogView.findViewById(R.id.btnAddExpense);
+            ImageView btnClose = dialogView.findViewById(R.id.btnClose);
             
-            // Additional dialog components
+            // Spinner components
             Spinner spinnerWhoPaid = dialogView.findViewById(R.id.spinnerWhoPaid);
             Spinner spinnerCategory = dialogView.findViewById(R.id.spinnerCategory);
             LinearLayout containerParticipants = dialogView.findViewById(R.id.containerParticipants);
             
-            // Setup participants checkboxes
-            containerParticipants.removeAllViews();
-            java.util.List<String> selectedMembers = new java.util.ArrayList<>();
-            for (String memberUid : memberNames.keySet()) {
-                CheckBox checkBox = new CheckBox(this);
-                checkBox.setText(memberNames.get(memberUid));
-                checkBox.setTag(memberUid);
-                checkBox.setOnCheckedChangeListener((buttonView, isChecked) -> {
-                    if (isChecked) {
-                        selectedMembers.add(memberUid);
-                    } else {
-                        selectedMembers.remove(memberUid);
-                    }
-                });
-                containerParticipants.addView(checkBox);
-            }
-
-            tvSplitInfo.setText("Split equally among all group members");
-
             // Split method buttons
             Button btnEqualSplit = dialogView.findViewById(R.id.btnEqualSplit);
             Button btnUnequalSplit = dialogView.findViewById(R.id.btnUnequalSplit);
             
+            // 1. SPINNER INITIALIZATION
+            // Who Paid Spinner - populate with group members
+            ArrayList<String> memberNamesList = new ArrayList<>(memberNames.values());
+            ArrayAdapter<String> whoPaidAdapter = new ArrayAdapter<>(this, 
+                android.R.layout.simple_spinner_item, memberNamesList);
+            whoPaidAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+            spinnerWhoPaid.setAdapter(whoPaidAdapter);
+            spinnerWhoPaid.setClickable(true);
+            spinnerWhoPaid.setEnabled(true);
+            
+            // Category Spinner - populate with predefined categories
+            String[] categories = {"Food", "Transport", "Bills", "Others"};
+            ArrayAdapter<String> categoryAdapter = new ArrayAdapter<>(this,
+                android.R.layout.simple_spinner_item, categories);
+            categoryAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+            spinnerCategory.setAdapter(categoryAdapter);
+            spinnerCategory.setClickable(true);
+            spinnerCategory.setEnabled(true);
+            
+            // 2. TOUCH EVENT FIX FOR NESTEDSCROLLVIEW
+            spinnerWhoPaid.setOnTouchListener((v, event) -> {
+                v.getParent().requestDisallowInterceptTouchEvent(true);
+                return false;
+            });
+            
+            spinnerCategory.setOnTouchListener((v, event) -> {
+                v.getParent().requestDisallowInterceptTouchEvent(true);
+                return false;
+            });
+            
+            // 3. PARTICIPANT CHECKLIST (Dynamic Inflation)
+            selectedParticipants.clear();
+            updateParticipantChecklist(containerParticipants, tvParticipatedHeader, true);
+            
+            // 4. EQUAL/UNEQUAL SPLIT TOGGLE
             btnEqualSplit.setOnClickListener(v -> {
-                // Handle equal split logic
-                if (selectedMembers.size() > 0 && amount > 0) {
-                    double amountPerPerson = amount / selectedMembers.size();
-                    tvSplitInfo.setText("Split equally among " + selectedMembers.size() + " members: ₱" + String.format("%.2f", amountPerPerson) + " each");
-                } else {
-                    tvSplitInfo.setText("Split equally among all group members (Equal selected)");
-                }
-                // Set active button background
                 btnEqualSplit.setBackgroundColor(Color.parseColor("#38BDB0"));
+                btnEqualSplit.setTextColor(Color.WHITE);
                 btnUnequalSplit.setBackgroundColor(Color.parseColor("#EFFFFD"));
+                btnUnequalSplit.setTextColor(Color.parseColor("#2D3142"));
+                updateParticipantChecklist(containerParticipants, tvParticipatedHeader, true);
             });
             
             btnUnequalSplit.setOnClickListener(v -> {
-                // Handle unequal split logic  
-                tvSplitInfo.setText("Custom split amounts (Unequal selected)");
-                
-                // Generate individual amount inputs for each member
-                containerParticipants.removeAllViews();
-                for (String memberUid : memberNames.keySet()) {
-                    LinearLayout memberLayout = new LinearLayout(this);
-                    memberLayout.setOrientation(LinearLayout.HORIZONTAL);
-                    memberLayout.setPadding(8, 8, 8, 8);
-                    
-                    TextView memberName = new TextView(this);
-                    memberName.setText(memberNames.get(memberUid));
-                    memberName.setLayoutParams(new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT));
-                    memberName.setTextColor(getResources().getColor(android.R.color.black));
-                    
-                    TextInputEditText memberAmount = new TextInputEditText(this);
-                    memberAmount.setHint("Amount");
-                    memberAmount.setInputType(InputType.TYPE_CLASS_NUMBER | InputType.TYPE_NUMBER_FLAG_DECIMAL);
-                    memberAmount.setLayoutParams(new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT));
-                    memberAmount.setWidth(120);
-                    memberAmount.setTag(memberUid);
-                    
-                    memberLayout.addView(memberName);
-                    memberLayout.addView(memberAmount);
-                    containerParticipants.addView(memberLayout);
-                }
-                
-                // Set active button background
-                btnUnequalSplit.setBackgroundColor(getResources().getColor(android.R.color.holo_blue_light));
-                btnEqualSplit.setBackgroundColor(getResources().getColor(android.R.color.darker_gray));
+                btnUnequalSplit.setBackgroundColor(Color.parseColor("#38BDB0"));
+                btnUnequalSplit.setTextColor(Color.WHITE);
+                btnEqualSplit.setBackgroundColor(Color.parseColor("#EFFFFD"));
+                btnEqualSplit.setTextColor(Color.parseColor("#2D3142"));
+                updateParticipantChecklist(containerParticipants, tvParticipatedHeader, false);
             });
-
-            btnCancel.setOnClickListener(v -> dialog.dismiss());
-
-            // Explicitly request focus on title input
-            etTitle.setFocusableInTouchMode(true);
-            etTitle.requestFocus();
+            
+            // Close button
+            btnClose.setOnClickListener(v -> dialog.dismiss());
             
             // Clear window flags and set soft input mode
             if (dialog.getWindow() != null) {
@@ -410,93 +399,65 @@ public class GroupLobbyActivity extends AppCompatActivity {
                 dialog.getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_VISIBLE);
             }
 
-            tvSplitInfo.setText("Split equally among all group members");
-
-            btnCancel.setOnClickListener(v -> dialog.dismiss());
-
             btnAddExpense.setOnClickListener(v -> {
                 String title = etTitle.getText() != null ? etTitle.getText().toString().trim() : "";
                 String amountStr = etAmount.getText() != null ? etAmount.getText().toString().trim() : "";
-                final String finalTitle = title;
-                final String finalAmountStr = amountStr;
+                String notes = etNotes.getText() != null ? etNotes.getText().toString().trim() : "";
 
-                // Validate inputs before processing
-                if (finalTitle.isEmpty()) {
+                // Validate inputs
+                if (title.isEmpty()) {
                     etTitle.setError("Title is required");
                     return;
                 }
-                if (finalAmountStr.isEmpty()) {
+                if (amountStr.isEmpty()) {
                     etAmount.setError("Amount is required");
                     return;
                 }
 
                 double amount;
                 try {
-                    amount = Double.parseDouble(finalAmountStr);
+                    amount = Double.parseDouble(amountStr);
                 } catch (NumberFormatException e) {
                     etAmount.setError("Invalid amount");
                     return;
                 }
 
-                FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
-                if (user == null) return;
-
-                String payerName = memberNames.getOrDefault(user.getUid(), "You");
-                GroupExpense expense = new GroupExpense(groupId, title, user.getUid(), payerName, amount);
-
-                // Add all current group members as participants
-                java.util.List<String> participants = new java.util.ArrayList<>();
-                for (String uid : memberNames.keySet()) {
-                    participants.add(uid);
+                // Get selected payer
+                String selectedPayerName = (String) spinnerWhoPaid.getSelectedItem();
+                String payerUid = null;
+                for (Map.Entry<String, String> entry : memberNames.entrySet()) {
+                    if (entry.getValue().equals(selectedPayerName)) {
+                        payerUid = entry.getKey();
+                        break;
+                    }
                 }
+
+                if (payerUid == null) {
+                    Toast.makeText(this, "Please select who paid", Toast.LENGTH_SHORT).show();
+                    return;
+                }
+
+                // Get selected participants
+                List<String> participants = new ArrayList<>();
+                for (Map.Entry<String, Boolean> entry : selectedParticipants.entrySet()) {
+                    if (entry.getValue() != null && entry.getValue()) {
+                        participants.add(entry.getKey());
+                    }
+                }
+
+                if (participants.isEmpty()) {
+                    Toast.makeText(this, "Please select at least one participant", Toast.LENGTH_SHORT).show();
+                    return;
+                }
+
+                // Create expense
+                String category = (String) spinnerCategory.getSelectedItem();
+                GroupExpense expense = new GroupExpense(groupId, title, payerUid, selectedPayerName, amount);
+                expense.setCategory(category);
+                expense.setNotes(notes);
                 expense.setParticipants(participants);
                 
-                // Validate split amounts before saving
-                if (btnEqualSplit.getBackground().equals(Color.parseColor("#38BDB0"))) {
-                    // Equal split - validate amounts
-                    double totalPercentage = 0.0;
-                    for (int i = 0; i < containerParticipants.getChildCount(); i++) {
-                        LinearLayout memberLayout = (LinearLayout) containerParticipants.getChildAt(i);
-                        if (memberLayout != null && memberLayout.getChildCount() >= 2) {
-                            TextInputEditText memberAmount = (TextInputEditText) memberLayout.getChildAt(1);
-                            if (memberAmount != null && memberAmount.getText() != null) {
-                                try {
-                                    double memberAmountValue = Double.parseDouble(memberAmount.getText().toString());
-                                    totalPercentage += memberAmountValue;
-                                } catch (NumberFormatException e) {
-                                    // Skip invalid amounts
-                                }
-                            }
-                        }
-                    }
-                    if (Math.abs(totalPercentage - 100.0) > 0.01) {
-                        Toast.makeText(this, "Total percentage must be 100%", Toast.LENGTH_SHORT).show();
-                        return;
-                    }
-                } else {
-                    // Unequal split - validate individual amounts
-                    double totalAmount = 0.0;
-                    for (int i = 0; i < containerParticipants.getChildCount(); i++) {
-                        LinearLayout memberLayout = (LinearLayout) containerParticipants.getChildAt(i);
-                        if (memberLayout != null && memberLayout.getChildCount() >= 2) {
-                            TextInputEditText memberAmount = (TextInputEditText) memberLayout.getChildAt(1);
-                            if (memberAmount != null && memberAmount.getText() != null) {
-                                try {
-                                    double memberAmountValue = Double.parseDouble(memberAmount.getText().toString());
-                                    totalAmount += memberAmountValue;
-                                } catch (NumberFormatException e) {
-                                    // Skip invalid amounts
-                                }
-                            }
-                        }
-                    }
-                    if (Math.abs(totalAmount - amount) > 0.01) {
-                        Toast.makeText(this, "Individual amounts must equal total amount", Toast.LENGTH_SHORT).show();
-                        return;
-                    }
-                }
-
-                // Save the expense to repository
+                // Save the expense
                 groupRepository.addGroupExpense(groupId, expense);
                 
                 Toast.makeText(this, "Expense added!", Toast.LENGTH_SHORT).show();
@@ -506,6 +467,62 @@ public class GroupLobbyActivity extends AppCompatActivity {
             Log.e("FAB_ERROR", "Crash in showAddExpenseDialog: " + e.getMessage());
             e.printStackTrace();
         }
+    }
+    
+    private void updateParticipantChecklist(LinearLayout container, TextView header, boolean isEqualSplit) {
+        container.removeAllViews();
+        selectedParticipants.clear();
+        
+        for (Map.Entry<String, String> entry : memberNames.entrySet()) {
+            String memberUid = entry.getKey();
+            String memberName = entry.getValue();
+            
+            LinearLayout participantLayout = new LinearLayout(this);
+            participantLayout.setOrientation(LinearLayout.HORIZONTAL);
+            participantLayout.setPadding(8, 8, 8, 8);
+            participantLayout.setLayoutParams(new LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.MATCH_PARENT, 
+                LinearLayout.LayoutParams.WRAP_CONTENT));
+            
+            CheckBox checkBox = new CheckBox(this);
+            checkBox.setText(memberName);
+            checkBox.setLayoutParams(new LinearLayout.LayoutParams(
+                0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f));
+            
+            selectedParticipants.put(memberUid, false);
+            
+            checkBox.setOnCheckedChangeListener((buttonView, isChecked) -> {
+                selectedParticipants.put(memberUid, isChecked);
+                updateParticipatedHeader(header);
+            });
+            
+            participantLayout.addView(checkBox);
+            
+            // Add percentage input for unequal split
+            if (!isEqualSplit) {
+                TextInputEditText percentageInput = new TextInputEditText(this);
+                percentageInput.setHint("0%");
+                percentageInput.setInputType(InputType.TYPE_CLASS_NUMBER | InputType.TYPE_NUMBER_FLAG_DECIMAL);
+                percentageInput.setLayoutParams(new LinearLayout.LayoutParams(
+                    120, LinearLayout.LayoutParams.WRAP_CONTENT));
+                percentageInput.setTag(memberUid + "_percentage");
+                participantLayout.addView(percentageInput);
+            }
+            
+            container.addView(participantLayout);
+        }
+        
+        updateParticipatedHeader(header);
+    }
+    
+    private void updateParticipatedHeader(TextView header) {
+        int selectedCount = 0;
+        for (Boolean isSelected : selectedParticipants.values()) {
+            if (isSelected != null && isSelected) {
+                selectedCount++;
+            }
+        }
+        header.setText("Who Participated? (" + selectedCount + " selected)");
     }
 
 private void loadGroupData() {
