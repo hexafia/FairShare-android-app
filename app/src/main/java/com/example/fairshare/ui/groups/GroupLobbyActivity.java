@@ -147,42 +147,16 @@ public class GroupLobbyActivity extends AppCompatActivity {
         rvLedger.setLayoutManager(new LinearLayoutManager(this));
         rvLedger.setAdapter(expenseAdapter);
 
-        // Setup tabs
-        layoutLedger = findViewById(R.id.layoutLedger);
-        layoutSettleUp = findViewById(R.id.layoutSettleUp);
-        layoutMembers = findViewById(R.id.layoutMembers);
-        tvLedgerEmpty = findViewById(R.id.tvLedgerEmpty);
-        tvSettleEmpty = findViewById(R.id.tvSettleEmpty);
-        tvMembersEmpty = findViewById(R.id.tvMembersEmpty);
-        rvLedger = findViewById(R.id.rvLedger);
-        rvDebts = findViewById(R.id.rvDebts);
-        rvMembers = findViewById(R.id.rvMembers);
-        btnMarkAsAccomplished = findViewById(R.id.btnMarkAsAccomplished);
+        settlementAdapter = new SettlementDetailAdapter();
+        rvDebts.setLayoutManager(new LinearLayoutManager(this));
+        rvDebts.setAdapter(settlementAdapter);
 
-        TabLayout tabLayout = findViewById(R.id.tabLayout);
-        tabLayout.addOnTabSelectedListener(new TabLayout.OnTabSelectedListener() {
-            @Override
-            public void onTabSelected(TabLayout.Tab tab) {
-                // Hide all layouts first
-                layoutLedger.setVisibility(View.GONE);
-                layoutSettleUp.setVisibility(View.GONE);
-                layoutMembers.setVisibility(View.GONE);
-                
-                if (tab.getPosition() == 0) {
-                    layoutLedger.setVisibility(View.VISIBLE);
-                } else if (tab.getPosition() == 1) {
-                    layoutSettleUp.setVisibility(View.VISIBLE);
-                } else if (tab.getPosition() == 2) {
-                    layoutMembers.setVisibility(View.VISIBLE);
-                }
-            }
-
-            @Override
-            public void onTabUnselected(TabLayout.Tab tab) {}
-
-            @Override
-            public void onTabReselected(TabLayout.Tab tab) {}
-        });
+        membersAdapter = new MembersAdapter(memberNames, null); // Will update with group data
+        rvMembers.setLayoutManager(new LinearLayoutManager(this));
+        rvMembers.setAdapter(membersAdapter);
+        
+        // Set up member click listener
+        membersAdapter.setOnMemberClickListener(this::showMemberProfileDialog);
 
         // Initialize FAB
         fabAddExpense = findViewById(R.id.fabAddExpense);
@@ -270,34 +244,35 @@ public class GroupLobbyActivity extends AppCompatActivity {
         } else {
             tvMembersEmpty.setVisibility(View.GONE);
             rvMembers.setVisibility(View.VISIBLE);
-
+            
             // Update members adapter with current group data
             if (membersAdapter != null && currentGroup != null) {
                 membersAdapter = new MembersAdapter(memberNames, currentGroup.getCreatedBy());
                 rvMembers.setAdapter(membersAdapter);
-
+                
                 // Set up member click listener
                 membersAdapter.setOnMemberClickListener(this::showMemberProfileDialog);
-
+                
                 java.util.List<String> memberList = new java.util.ArrayList<>(memberNames.keySet());
                 membersAdapter.updateMembers(memberList);
             }
         }
+    }
 
     private void showMemberProfileDialog(String memberUid) {
         LayoutInflater inflater = getLayoutInflater();
         View dialogView = inflater.inflate(R.layout.dialog_member_profile, null);
-
+        
         AlertDialog.Builder builder = new AlertDialog.Builder(GroupLobbyActivity.this);
         builder.setView(dialogView);
         AlertDialog dialog = builder.create();
         dialog.show();
-
+        
         // Get dialog views
         TextInputEditText etDisplayName = dialogView.findViewById(R.id.etDisplayName);
         TextInputEditText etTagline = dialogView.findViewById(R.id.etTagline);
         MaterialButton btnClose = dialogView.findViewById(R.id.btnClose);
-
+        
         // Fetch member data from Firestore
         com.google.firebase.firestore.FirebaseFirestore.getInstance()
                 .collection("users").document(memberUid).get()
@@ -305,7 +280,7 @@ public class GroupLobbyActivity extends AppCompatActivity {
                     if (doc.exists()) {
                         String displayName = doc.getString("displayName");
                         String tagline = doc.getString("tagline");
-
+                        
                         // Set the data in the dialog
                         if (displayName != null) {
                             etDisplayName.setText(displayName);
@@ -321,10 +296,10 @@ public class GroupLobbyActivity extends AppCompatActivity {
                     etDisplayName.setText("Error loading profile");
                     etTagline.setText("Please try again");
                 });
-
+        
         // Set up close button
         btnClose.setOnClickListener(v -> dialog.dismiss());
-
+        
         // Set dialog size
         if (dialog.getWindow() != null) {
             int width = (int) (350 * getResources().getDisplayMetrics().density);
@@ -367,9 +342,9 @@ public class GroupLobbyActivity extends AppCompatActivity {
         FirebaseUser currentUser = FirebaseAuth.getInstance().getCurrentUser();
         if (currentUser == null) return;
 
-        List<SettlementCalculator.SettlementDetail> settlements =
+        List<SettlementCalculator.SettlementDetail> settlements = 
                 SettlementCalculator.calculateSettlements(currentUser.getUid(), expenses, memberNames);
-
+        
         settlementAdapter.setMemberNames(memberNames);
         settlementAdapter.submitList(settlements);
 
@@ -381,3 +356,383 @@ public class GroupLobbyActivity extends AppCompatActivity {
             rvDebts.setVisibility(View.VISIBLE);
         }
     }
+
+    private void showAddExpenseDialog() {
+        try {
+            Log.d("FAB_DEBUG", "Starting inflation");
+            LayoutInflater inflater = getLayoutInflater();
+            View dialogView = inflater.inflate(R.layout.dialog_add_group_expense, null);
+            Log.d("FAB_DEBUG", "Inflation successful");
+            
+            AlertDialog.Builder builder = new AlertDialog.Builder(GroupLobbyActivity.this);
+            builder.setView(dialogView);
+            AlertDialog dialog = builder.create();
+            Log.d("FAB_DEBUG", "Dialog created, about to show");
+            dialog.show();
+            Log.d("FAB_DEBUG", "Dialog show() called");
+            
+            // Declare views
+            TextInputEditText etTitle = dialogView.findViewById(R.id.etTitle);
+            TextInputEditText etAmount = dialogView.findViewById(R.id.etAmount);
+            TextInputEditText etNotes = dialogView.findViewById(R.id.etNotes);
+            TextView tvParticipatedHeader = dialogView.findViewById(R.id.tvParticipatedHeader);
+            MaterialButton btnAddExpense = dialogView.findViewById(R.id.btnAddExpense);
+            ImageView btnClose = dialogView.findViewById(R.id.btnClose);
+            
+            // Spinner components
+            Spinner spinnerSelectGroup = dialogView.findViewById(R.id.spinnerSelectGroup);
+            Spinner spinnerWhoPaid = dialogView.findViewById(R.id.spinnerWhoPaid);
+            Spinner spinnerCategory = dialogView.findViewById(R.id.spinnerCategory);
+            LinearLayout containerParticipants = dialogView.findViewById(R.id.containerParticipants);
+            
+            // Track selected group ID for expense creation
+            final String[] selectedGroupId = {groupId}; // Default to current group
+            
+            // Split method buttons
+            Button btnEqualSplit = dialogView.findViewById(R.id.btnEqualSplit);
+            Button btnUnequalSplit = dialogView.findViewById(R.id.btnUnequalSplit);
+            
+            // 1. SPINNER SELECT GROUP INITIALIZATION
+            // Fetch only active groups for the spinner
+            groupRepository.getGroups().observe(this, groups -> {
+                if (groups != null) {
+                    ArrayList<String> activeGroupNames = new ArrayList<>();
+                    ArrayList<String> activeGroupIds = new ArrayList<>();
+                    
+                    // Filter out archived groups (status != "active")
+                    for (Group group : groups) {
+                        if (group.isActive()) {
+                            activeGroupNames.add(group.getName());
+                            activeGroupIds.add(group.getId());
+                        }
+                    }
+                    
+                    // Create adapter for spinner
+                    ArrayAdapter<String> groupAdapter = new ArrayAdapter<>(GroupLobbyActivity.this,
+                        android.R.layout.simple_spinner_item, activeGroupNames);
+                    groupAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+                    spinnerSelectGroup.setAdapter(groupAdapter);
+                    spinnerSelectGroup.setClickable(true);
+                    spinnerSelectGroup.setEnabled(true);
+                    
+                    // Default to current group if it's active
+                    int currentPosition = activeGroupIds.indexOf(groupId);
+                    if (currentPosition >= 0) {
+                        spinnerSelectGroup.setSelection(currentPosition);
+                    }
+                    
+                    // Set up selection listener to sync groupId
+                    spinnerSelectGroup.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+                        @Override
+                        public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                            selectedGroupId[0] = activeGroupIds.get(position);
+                            // Reload member names for the selected group
+                            loadMemberNamesForGroup(selectedGroupId[0]);
+                        }
+                        
+                        @Override
+                        public void onNothingSelected(AdapterView<?> parent) {}
+                    });
+                }
+            });
+            
+            // Touch event fix for spinnerSelectGroup
+            spinnerSelectGroup.setOnTouchListener((v, event) -> {
+                v.getParent().requestDisallowInterceptTouchEvent(true);
+                return false;
+            });
+            
+            // 2. WHO PAID SPINNER INITIALIZATION
+            // Who Paid Spinner - populate with group members
+            ArrayList<String> memberNamesList = new ArrayList<>(memberNames.values());
+            ArrayAdapter<String> whoPaidAdapter = new ArrayAdapter<>(GroupLobbyActivity.this, 
+                android.R.layout.simple_spinner_item, memberNamesList);
+            whoPaidAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+            spinnerWhoPaid.setAdapter(whoPaidAdapter);
+            spinnerWhoPaid.setClickable(true);
+            spinnerWhoPaid.setEnabled(true);
+            
+            // Category Spinner - populate with predefined categories
+            String[] categories = {"Food", "Transport", "Bills", "Others"};
+            ArrayAdapter<String> categoryAdapter = new ArrayAdapter<>(GroupLobbyActivity.this,
+                android.R.layout.simple_spinner_item, categories);
+            categoryAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+            spinnerCategory.setAdapter(categoryAdapter);
+            spinnerCategory.setClickable(true);
+            spinnerCategory.setEnabled(true);
+            
+            // 3. TOUCH EVENT FIX FOR NESTEDSCROLLVIEW
+            spinnerWhoPaid.setOnTouchListener((v, event) -> {
+                v.getParent().requestDisallowInterceptTouchEvent(true);
+                return false;
+            });
+            
+            spinnerCategory.setOnTouchListener((v, event) -> {
+                v.getParent().requestDisallowInterceptTouchEvent(true);
+                return false;
+            });
+            
+            // 4. PARTICIPANT CHECKLIST (Dynamic Inflation)
+            selectedParticipants.clear();
+            updateParticipantChecklist(containerParticipants, tvParticipatedHeader, true);
+            
+            // 5. EQUAL/UNEQUAL SPLIT TOGGLE
+            btnEqualSplit.setOnClickListener(v -> {
+                btnEqualSplit.setBackgroundColor(Color.parseColor("#38BDB0"));
+                btnEqualSplit.setTextColor(Color.WHITE);
+                btnUnequalSplit.setBackgroundColor(Color.parseColor("#EFFFFD"));
+                btnUnequalSplit.setTextColor(Color.parseColor("#2D3142"));
+                updateParticipantChecklist(containerParticipants, tvParticipatedHeader, true);
+            });
+            
+            btnUnequalSplit.setOnClickListener(v -> {
+                btnUnequalSplit.setBackgroundColor(Color.parseColor("#38BDB0"));
+                btnUnequalSplit.setTextColor(Color.WHITE);
+                btnEqualSplit.setBackgroundColor(Color.parseColor("#EFFFFD"));
+                btnEqualSplit.setTextColor(Color.parseColor("#2D3142"));
+                updateParticipantChecklist(containerParticipants, tvParticipatedHeader, false);
+            });
+            
+            // Close button
+            btnClose.setOnClickListener(v -> dialog.dismiss());
+            
+            // Clear window flags and set soft input mode
+            if (dialog.getWindow() != null) {
+                int width = (int) (350 * getResources().getDisplayMetrics().density);
+                dialog.getWindow().setLayout(width, ViewGroup.LayoutParams.WRAP_CONTENT);
+                dialog.getWindow().clearFlags(WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE | WindowManager.LayoutParams.FLAG_ALT_FOCUSABLE_IM);
+                dialog.getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_VISIBLE);
+            }
+
+            btnAddExpense.setOnClickListener(v -> {
+                String title = etTitle.getText() != null ? etTitle.getText().toString().trim() : "";
+                String amountStr = etAmount.getText() != null ? etAmount.getText().toString().trim() : "";
+                String notes = etNotes.getText() != null ? etNotes.getText().toString().trim() : "";
+
+                // Validate inputs
+                if (title.isEmpty()) {
+                    etTitle.setError("Title is required");
+                    return;
+                }
+                if (amountStr.isEmpty()) {
+                    etAmount.setError("Amount is required");
+                    return;
+                }
+
+                double amount;
+                try {
+                    amount = Double.parseDouble(amountStr);
+                } catch (NumberFormatException e) {
+                    etAmount.setError("Invalid amount");
+                    return;
+                }
+
+                // Get selected payer
+                String selectedPayerName = (String) spinnerWhoPaid.getSelectedItem();
+                String payerUid = null;
+                for (Map.Entry<String, String> entry : memberNames.entrySet()) {
+                    if (entry.getValue().equals(selectedPayerName)) {
+                        payerUid = entry.getKey();
+                        break;
+                    }
+                }
+
+                if (payerUid == null) {
+                    Toast.makeText(GroupLobbyActivity.this, "Please select who paid", Toast.LENGTH_SHORT).show();
+                    return;
+                }
+
+                // Get selected participants
+                List<String> participants = new ArrayList<>();
+                for (Map.Entry<String, Boolean> entry : selectedParticipants.entrySet()) {
+                    if (entry.getValue() != null && entry.getValue()) {
+                        participants.add(entry.getKey());
+                    }
+                }
+
+                if (participants.isEmpty()) {
+                    Toast.makeText(GroupLobbyActivity.this, "Please select at least one participant", Toast.LENGTH_SHORT).show();
+                    return;
+                }
+
+                // Create expense
+                String category = (String) spinnerCategory.getSelectedItem();
+                GroupExpense expense = new GroupExpense(selectedGroupId[0], title, payerUid, selectedPayerName, amount);
+                expense.setParticipants(participants);
+                
+                // Save the expense
+                groupRepository.addGroupExpense(selectedGroupId[0], expense);
+                
+                Toast.makeText(GroupLobbyActivity.this, "Expense added!", Toast.LENGTH_SHORT).show();
+                dialog.dismiss();
+            });
+        } catch (Exception e) {
+            Log.e("FAB_ERROR", "Crash in showAddExpenseDialog: " + e.getMessage());
+            e.printStackTrace();
+        }
+    }
+    
+    private void loadMemberNamesForGroup(String targetGroupId) {
+        // Clear current member names
+        memberNames.clear();
+        selectedParticipants.clear();
+        
+        // Load member names for the selected group
+        groupRepository.getGroupMembers(targetGroupId, memberUids -> {
+            for (String uid : memberUids) {
+                com.google.firebase.firestore.FirebaseFirestore.getInstance()
+                        .collection("users").document(uid).get()
+                        .addOnSuccessListener(doc -> {
+                            if (doc.exists()) {
+                                String name = doc.getString("displayName");
+                                if (name != null) {
+                                    memberNames.put(uid, name);
+                                    // Refresh settlement display with new names
+                                    if (settlementAdapter != null) {
+                                        settlementAdapter.setMemberNames(memberNames);
+                                        settlementAdapter.notifyDataSetChanged();
+                                    }
+                                }
+                            }
+                        });
+            }
+        });
+    }
+
+    private void updateParticipantChecklist(LinearLayout container, TextView header, boolean isEqualSplit) {
+        container.removeAllViews();
+        selectedParticipants.clear();
+        
+        for (Map.Entry<String, String> entry : memberNames.entrySet()) {
+            String memberUid = entry.getKey();
+            String memberName = entry.getValue();
+            
+            LinearLayout participantLayout = new LinearLayout(GroupLobbyActivity.this);
+            participantLayout.setOrientation(LinearLayout.HORIZONTAL);
+            participantLayout.setPadding(8, 8, 8, 8);
+            participantLayout.setLayoutParams(new LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.MATCH_PARENT, 
+                LinearLayout.LayoutParams.WRAP_CONTENT));
+            
+            CheckBox checkBox = new CheckBox(GroupLobbyActivity.this);
+            checkBox.setText(memberName);
+            checkBox.setLayoutParams(new LinearLayout.LayoutParams(
+                0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f));
+            
+            selectedParticipants.put(memberUid, false);
+            
+            checkBox.setOnCheckedChangeListener((buttonView, isChecked) -> {
+                selectedParticipants.put(memberUid, isChecked);
+                updateParticipatedHeader(header);
+            });
+            
+            participantLayout.addView(checkBox);
+            
+            // Add percentage input for unequal split
+            if (!isEqualSplit) {
+                TextInputEditText percentageInput = new TextInputEditText(GroupLobbyActivity.this);
+                percentageInput.setHint("0%");
+                percentageInput.setInputType(InputType.TYPE_CLASS_NUMBER | InputType.TYPE_NUMBER_FLAG_DECIMAL);
+                percentageInput.setLayoutParams(new LinearLayout.LayoutParams(
+                    120, LinearLayout.LayoutParams.WRAP_CONTENT));
+                percentageInput.setTag(memberUid + "_percentage");
+                participantLayout.addView(percentageInput);
+            }
+            
+            container.addView(participantLayout);
+        }
+        
+        updateParticipatedHeader(header);
+    }
+    
+    private void updateParticipatedHeader(TextView header) {
+        int selectedCount = 0;
+        for (Boolean isSelected : selectedParticipants.values()) {
+            if (isSelected != null && isSelected) {
+                selectedCount++;
+            }
+        }
+        header.setText("Who Participated? (" + selectedCount + " selected)");
+    }
+
+    private void loadGroupData() {
+        // Load group data to check status and creator
+        groupRepository.getGroups().observe(this, groups -> {
+            if (groups != null) {
+                for (Group group : groups) {
+                    if (group.getId().equals(groupId)) {
+                        currentGroup = group;
+                        updateUI();
+                        break;
+                    }
+                }
+            }
+        });
+    }
+
+    private void updateUI() {
+        if (currentGroup == null) return;
+
+        FirebaseUser currentUser = FirebaseAuth.getInstance().getCurrentUser();
+        String currentUserId = currentUser != null ? currentUser.getUid() : null;
+
+        // Show/hide Mark as Accomplished button based on creator and status
+        if (currentUserId != null && currentUserId.equals(currentGroup.getCreatedBy()) 
+                && currentGroup.isActive()) {
+            btnMarkAsAccomplished.setVisibility(View.VISIBLE);
+        } else {
+            btnMarkAsAccomplished.setVisibility(View.GONE);
+        }
+
+        // Control FAB visibility based on group status
+        if (currentGroup.isActive()) {
+            if (fabAddExpense != null) {
+                fabAddExpense.setVisibility(View.VISIBLE);
+                Log.d("GroupLobby", "FAB made visible for active group: " + currentGroup.getName());
+            }
+        } else if (currentGroup.isSettled()) {
+            // Disable functionality for settled groups
+            disableAllInputElements();
+            Log.d("GroupLobby", "FAB hidden for settled group: " + currentGroup.getName());
+        }
+    }
+
+    private void markGroupAsAccomplished() {
+        if (groupId == null || currentGroup == null) return;
+
+        groupRepository.updateGroupStatus(groupId, "settled", new GroupRepository.OnCompleteCallback() {
+            @Override
+            public void onSuccess(String message) {
+                Toast.makeText(GroupLobbyActivity.this, "Group marked as accomplished!", Toast.LENGTH_SHORT).show();
+                // UI will update automatically when group data changes
+            }
+
+            @Override
+            public void onError(String error) {
+                Toast.makeText(GroupLobbyActivity.this, "Error: " + error, Toast.LENGTH_SHORT).show();
+            }
+        });
+    }
+
+    private void disableAllInputElements() {
+        // Disable Mark as Accomplished button
+        if (btnMarkAsAccomplished != null) {
+            btnMarkAsAccomplished.setEnabled(false);
+            btnMarkAsAccomplished.setVisibility(View.GONE);
+        }
+
+        // Hide FAB for settled groups
+        if (fabAddExpense != null) {
+            fabAddExpense.setVisibility(View.GONE);
+        }
+
+        // Disable any other interactive elements if they exist
+        // For now, main restriction is preventing the add expense dialog
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        groupRepository.removeListeners();
+    }
+}
