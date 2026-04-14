@@ -421,12 +421,15 @@ public class GroupLobbyActivity extends AppCompatActivity {
         FirebaseUser currentUser = FirebaseAuth.getInstance().getCurrentUser();
         if (currentUser == null) return;
 
+        // Calculate aggregated settlements for all expenses
         List<SettlementCalculator.SettlementDetail> settlements = 
                 SettlementCalculator.calculateSettlements(currentUser.getUid(), expenses, memberNames);
         
+        // Update UI with aggregated settlements
         settlementAdapter.setMemberNames(memberNames);
         settlementAdapter.submitList(settlements);
 
+        // Show empty state if no outstanding debts
         if (settlements.isEmpty()) {
             tvSettleEmpty.setVisibility(View.VISIBLE);
             rvDebts.setVisibility(View.GONE);
@@ -643,9 +646,34 @@ public class GroupLobbyActivity extends AppCompatActivity {
                 
                 // Create expense object
                 GroupExpense expense = new GroupExpense(
-                    title, amount, notes, payerUid, selectedPayerName, 
-                    participants, selectedCategory, selectedGroupId[0]
+                    selectedGroupId[0], title, payerUid, selectedPayerName, amount
                 );
+                
+                // Set additional properties
+                expense.setParticipants(participants);
+                expense.setSplitType(isEqualSplit ? "EQUAL" : "SELECTIVE");
+                
+                // Calculate and set split amounts for proper debt aggregation
+                Map<String, Double> splitAmounts = new HashMap<>();
+                if (isEqualSplit) {
+                    // Equal split among all participants
+                    double shareAmount = amount / participants.size();
+                    shareAmount = Math.round(shareAmount * 100.0) / 100.0; // Round to 2 decimal places
+                    
+                    for (String participantUid : participants) {
+                        splitAmounts.put(participantUid, shareAmount);
+                    }
+                } else {
+                    // For selective split, we need to implement percentage/amount input logic
+                    // For now, fall back to equal split among selected participants
+                    double shareAmount = amount / participants.size();
+                    shareAmount = Math.round(shareAmount * 100.0) / 100.0;
+                    
+                    for (String participantUid : participants) {
+                        splitAmounts.put(participantUid, shareAmount);
+                    }
+                }
+                expense.setSplitAmounts(splitAmounts);
                 
                 // Add expense to repository
                 groupRepository.addGroupExpense(selectedGroupId[0], expense);
