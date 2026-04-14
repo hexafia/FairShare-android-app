@@ -413,7 +413,7 @@ public class GroupLobbyActivity extends AppCompatActivity {
             }
         }
 
-        tvGroupTotal.setText(CurrencyHelper.formatWholeNumber(total));
+        tvGroupTotal.setText(CurrencyHelper.format(total));
         tvMyBalance.setText(CurrencyHelper.formatBalance(myBalance));
     }
 
@@ -636,56 +636,6 @@ public class GroupLobbyActivity extends AppCompatActivity {
                     if (entry.getValue() != null && entry.getValue()) {
                         participants.add(entry.getKey());
                     }
-                }
-
-                if (participants.isEmpty()) {
-                    Toast.makeText(this, "Please select at least one participant", Toast.LENGTH_SHORT).show();
-                    return;
-                }
-
-                // Create expense
-                String category = (String) spinnerCategory.getSelectedItem();
-                GroupExpense expense = new GroupExpense(selectedGroupId[0], title, payerUid, selectedPayerName, amount);
-                expense.setParticipants(participants);
-
-                // Compute splitAmounts based on split method
-                Map<String, Double> splitAmounts = new HashMap<>();
-                if (isEqualSplit) {
-                    expense.setSplitType("EQUAL");
-                    double sharePerPerson = Math.round(amount / participants.size() * 100.0) / 100.0;
-                    for (String uid : participants) {
-                        splitAmounts.put(uid, sharePerPerson);
-                    }
-                } else {
-                    expense.setSplitType("UNEQUAL");
-                    double totalPct = 0;
-                    Map<String, Double> pctMap = new HashMap<>();
-                    for (String uid : participants) {
-                        View pctInput = containerParticipants.findViewWithTag(uid + "_percentage");
-                        double pct = 0;
-                        if (pctInput instanceof TextInputEditText) {
-                            String pctStr = ((TextInputEditText) pctInput).getText() != null ?
-                                    ((TextInputEditText) pctInput).getText().toString().trim() : "";
-                            if (!pctStr.isEmpty()) {
-                                try { pct = Double.parseDouble(pctStr); } catch (NumberFormatException ignored) {}
-                            }
-                        }
-                        pctMap.put(uid, pct);
-                        totalPct += pct;
-                    }
-                    // Validate percentages add up to 100
-                    if (Math.abs(totalPct - 100.0) > 0.5) {
-                        Toast.makeText(this, "Percentages must add up to 100% (currently " + String.format(Locale.US, "%.0f", totalPct) + "%)", Toast.LENGTH_LONG).show();
-                        return;
-                    }
-                    for (Map.Entry<String, Double> pctEntry : pctMap.entrySet()) {
-                        double shareAmount = Math.round(amount * pctEntry.getValue() / 100.0 * 100.0) / 100.0;
-                        splitAmounts.put(pctEntry.getKey(), shareAmount);
-                    }
-                }
-                expense.setSplitAmounts(splitAmounts);
-                
-                // Save the expense
                 groupRepository.addGroupExpense(groupId, expense);
                 
                 Toast.makeText(this, "Expense added!", Toast.LENGTH_SHORT).show();
