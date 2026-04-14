@@ -251,20 +251,29 @@ public class GroupLobbyActivity extends AppCompatActivity {
 
         // Observe group expenses
         groupRepository.getGroupExpenses(groupId).observe(this, expenses -> {
+            Log.d("SETTLE_UP_SYNC", "Expenses updated: " + (expenses != null ? expenses.size() : 0) + " items");
+            
+            // Update expense adapter first
             expenseAdapter.submitList(expenses);
 
+            // Always call updateDebts to ensure real-time sync for Settle Up tab
             if (expenses == null || expenses.isEmpty()) {
+                Log.d("SETTLE_UP_SYNC", "No expenses, showing empty state");
                 tvLedgerEmpty.setVisibility(View.VISIBLE);
                 rvLedger.setVisibility(View.GONE);
-                tvGroupTotal.setText("Γé▒0");
-                tvMyBalance.setText("Γé▒0");
+                tvGroupTotal.setText("â¥0");
+                tvMyBalance.setText("â¥0");
                 tvSettleEmpty.setVisibility(View.VISIBLE);
                 rvDebts.setVisibility(View.GONE);
+                
+                // Clear settlement adapter when no expenses
+                settlementAdapter.submitList(new ArrayList<>());
             } else {
+                Log.d("SETTLE_UP_SYNC", "Updating stats and debts for " + expenses.size() + " expenses");
                 tvLedgerEmpty.setVisibility(View.GONE);
                 rvLedger.setVisibility(View.VISIBLE);
                 updateStats(expenses);
-                updateDebts(expenses);
+                updateDebts(expenses); // Explicit call to trigger aggregation
             }
         });
     }
@@ -418,25 +427,36 @@ public class GroupLobbyActivity extends AppCompatActivity {
     }
 
     private void updateDebts(List<GroupExpense> expenses) {
+        Log.d("SETTLE_UP_SYNC", "updateDebts called with " + (expenses != null ? expenses.size() : 0) + " expenses");
+        
         FirebaseUser currentUser = FirebaseAuth.getInstance().getCurrentUser();
         if (currentUser == null) return;
 
+        // Clear previous state to ensure fresh calculation
+        settlementAdapter.setMemberNames(memberNames);
+        
         // Calculate aggregated settlements for all expenses
         List<SettlementCalculator.SettlementDetail> settlements = 
                 SettlementCalculator.calculateSettlements(currentUser.getUid(), expenses, memberNames);
         
-        // Update UI with aggregated settlements
-        settlementAdapter.setMemberNames(memberNames);
-        settlementAdapter.submitList(settlements);
+        Log.d("SETTLE_UP_SYNC", "Calculated " + settlements.size() + " settlement transactions");
+        
+        // Ensure UI thread safety for adapter updates
+        runOnUiThread(() -> {
+            // Update UI with aggregated settlements
+            settlementAdapter.submitList(settlements);
 
-        // Show empty state if no outstanding debts
-        if (settlements.isEmpty()) {
-            tvSettleEmpty.setVisibility(View.VISIBLE);
-            rvDebts.setVisibility(View.GONE);
-        } else {
-            tvSettleEmpty.setVisibility(View.GONE);
-            rvDebts.setVisibility(View.VISIBLE);
-        }
+            // Show empty state if no outstanding debts
+            if (settlements.isEmpty()) {
+                Log.d("SETTLE_UP_SYNC", "No outstanding debts, showing empty state");
+                tvSettleEmpty.setVisibility(View.VISIBLE);
+                rvDebts.setVisibility(View.GONE);
+            } else {
+                Log.d("SETTLE_UP_SYNC", "Showing " + settlements.size() + " settlement transactions");
+                tvSettleEmpty.setVisibility(View.GONE);
+                rvDebts.setVisibility(View.VISIBLE);
+            }
+        });
     }
 
     private void showAddExpenseDialog() {
