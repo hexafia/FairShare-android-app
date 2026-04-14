@@ -330,15 +330,69 @@ public class GroupLobbyActivity extends AppCompatActivity {
             ImageView btnClose = dialogView.findViewById(R.id.btnClose);
             
             // Spinner components
+            Spinner spinnerSelectGroup = dialogView.findViewById(R.id.spinnerSelectGroup);
             Spinner spinnerWhoPaid = dialogView.findViewById(R.id.spinnerWhoPaid);
             Spinner spinnerCategory = dialogView.findViewById(R.id.spinnerCategory);
             LinearLayout containerParticipants = dialogView.findViewById(R.id.containerParticipants);
+            
+            // Track selected group ID for expense creation
+            final String[] selectedGroupId = {groupId}; // Default to current group
             
             // Split method buttons
             Button btnEqualSplit = dialogView.findViewById(R.id.btnEqualSplit);
             Button btnUnequalSplit = dialogView.findViewById(R.id.btnUnequalSplit);
             
-            // 1. SPINNER INITIALIZATION
+            // 1. SPINNER SELECT GROUP INITIALIZATION
+            // Fetch only active groups for the spinner
+            groupRepository.getGroups().observe(this, groups -> {
+                if (groups != null) {
+                    ArrayList<String> activeGroupNames = new ArrayList<>();
+                    ArrayList<String> activeGroupIds = new ArrayList<>();
+                    
+                    // Filter out archived groups (status != "active")
+                    for (Group group : groups) {
+                        if (group.isActive()) {
+                            activeGroupNames.add(group.getName());
+                            activeGroupIds.add(group.getId());
+                        }
+                    }
+                    
+                    // Create adapter for spinner
+                    ArrayAdapter<String> groupAdapter = new ArrayAdapter<>(this,
+                        android.R.layout.simple_spinner_item, activeGroupNames);
+                    groupAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+                    spinnerSelectGroup.setAdapter(groupAdapter);
+                    spinnerSelectGroup.setClickable(true);
+                    spinnerSelectGroup.setEnabled(true);
+                    
+                    // Default to current group if it's active
+                    int currentPosition = activeGroupIds.indexOf(groupId);
+                    if (currentPosition >= 0) {
+                        spinnerSelectGroup.setSelection(currentPosition);
+                    }
+                    
+                    // Set up selection listener to sync groupId
+                    spinnerSelectGroup.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+                        @Override
+                        public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                            selectedGroupId[0] = activeGroupIds.get(position);
+                            // Reload member names for the selected group
+                            loadMemberNamesForGroup(selectedGroupId[0]);
+                        }
+                        
+                        @Override
+                        public void onNothingSelected(AdapterView<?> parent) {}
+                    });
+                }
+            });
+            
+            // Touch event fix for spinnerSelectGroup
+            spinnerSelectGroup.setOnTouchListener((v, event) -> {
+                v.getParent().requestDisallowInterceptTouchEvent(true);
+                return false;
+            });
+            
+            // 2. WHO PAID SPINNER INITIALIZATION
             // Who Paid Spinner - populate with group members
             ArrayList<String> memberNamesList = new ArrayList<>(memberNames.values());
             ArrayAdapter<String> whoPaidAdapter = new ArrayAdapter<>(this, 
@@ -357,7 +411,7 @@ public class GroupLobbyActivity extends AppCompatActivity {
             spinnerCategory.setClickable(true);
             spinnerCategory.setEnabled(true);
             
-            // 2. TOUCH EVENT FIX FOR NESTEDSCROLLVIEW
+            // 3. TOUCH EVENT FIX FOR NESTEDSCROLLVIEW
             spinnerWhoPaid.setOnTouchListener((v, event) -> {
                 v.getParent().requestDisallowInterceptTouchEvent(true);
                 return false;
@@ -368,11 +422,11 @@ public class GroupLobbyActivity extends AppCompatActivity {
                 return false;
             });
             
-            // 3. PARTICIPANT CHECKLIST (Dynamic Inflation)
+            // 4. PARTICIPANT CHECKLIST (Dynamic Inflation)
             selectedParticipants.clear();
             updateParticipantChecklist(containerParticipants, tvParticipatedHeader, true);
             
-            // 4. EQUAL/UNEQUAL SPLIT TOGGLE
+            // 5. EQUAL/UNEQUAL SPLIT TOGGLE
             btnEqualSplit.setOnClickListener(v -> {
                 btnEqualSplit.setBackgroundColor(Color.parseColor("#38BDB0"));
                 btnEqualSplit.setTextColor(Color.WHITE);
@@ -453,11 +507,11 @@ public class GroupLobbyActivity extends AppCompatActivity {
 
                 // Create expense
                 String category = (String) spinnerCategory.getSelectedItem();
-                GroupExpense expense = new GroupExpense(groupId, title, payerUid, selectedPayerName, amount);
+                GroupExpense expense = new GroupExpense(selectedGroupId[0], title, payerUid, selectedPayerName, amount);
                 expense.setParticipants(participants);
                 
                 // Save the expense
-                groupRepository.addGroupExpense(groupId, expense);
+                groupRepository.addGroupExpense(selectedGroupId[0], expense);
                 
                 Toast.makeText(this, "Expense added!", Toast.LENGTH_SHORT).show();
                 dialog.dismiss();
@@ -466,6 +520,33 @@ public class GroupLobbyActivity extends AppCompatActivity {
             Log.e("FAB_ERROR", "Crash in showAddExpenseDialog: " + e.getMessage());
             e.printStackTrace();
         }
+    }
+    
+    private void loadMemberNamesForGroup(String targetGroupId) {
+        // Clear current member names
+        memberNames.clear();
+        selectedParticipants.clear();
+        
+        // Load member names for the selected group
+        groupRepository.getGroupMembers(targetGroupId, memberUids -> {
+            for (String uid : memberUids) {
+                com.google.firebase.firestore.FirebaseFirestore.getInstance()
+                        .collection("users").document(uid).get()
+                        .addOnSuccessListener(doc -> {
+                            if (doc.exists()) {
+                                String name = doc.getString("displayName");
+                                if (name != null) {
+                                    memberNames.put(uid, name);
+                                    // Refresh settlement display with new names
+                                    if (settlementAdapter != null) {
+                                        settlementAdapter.setMemberNames(memberNames);
+                                        settlementAdapter.notifyDataSetChanged();
+                                    }
+                                }
+                            }
+                        });
+            }
+        });
     }
     
     private void updateParticipantChecklist(LinearLayout container, TextView header, boolean isEqualSplit) {
