@@ -269,11 +269,11 @@ public class GroupLobbyActivity extends AppCompatActivity {
         fabAddExpense.setOnClickListener(v -> {
             Log.d("FAB_DEBUG", "FAB clicked!");
             try {
-                Log.d("TEST_DEBUG", "About to call showAddExpenseDialog");
-                showAddExpenseDialog();
-                Log.d("TEST_DEBUG", "Returned from showAddExpenseDialog");
+                Log.d("TEST_DEBUG", "About to call showAddGroupExpenseDialog");
+                showAddGroupExpenseDialog();
+                Log.d("TEST_DEBUG", "Returned from showAddGroupExpenseDialog");
             } catch (Exception e) {
-                Log.e("FAB_ERROR", "Error in showAddExpenseDialog: " + e.getMessage());
+                Log.e("FAB_ERROR", "Error in showAddGroupExpenseDialog: " + e.getMessage());
                 e.printStackTrace();
             }
         });
@@ -541,19 +541,6 @@ public class GroupLobbyActivity extends AppCompatActivity {
                     layoutPaid.setVisibility(View.GONE);
                 } else {
                     layoutPaid.setVisibility(View.VISIBLE);
-                }
-            }
-        });
-    }
-
-    private void showAddExpenseDialog() {
-        try {
-            Log.d("FAB_DEBUG", "Starting inflation");
-            LayoutInflater inflater = getLayoutInflater();
-            View dialogView = inflater.inflate(R.layout.dialog_add_group_expense, null);
-            Log.d("FAB_DEBUG", "Inflation successful");
-            
-            AlertDialog.Builder builder = new AlertDialog.Builder(GroupLobbyActivity.this);
             builder.setView(dialogView);
             AlertDialog dialog = builder.create();
             Log.d("FAB_DEBUG", "Dialog created, about to show");
