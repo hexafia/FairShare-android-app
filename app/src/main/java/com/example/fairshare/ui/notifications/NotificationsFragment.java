@@ -84,6 +84,27 @@ public class NotificationsFragment extends Fragment implements com.example.fairs
         
         Log.d("NOTIFICATIONS", "Loading notifications for user: " + currentUserId);
         
+        // Test: Try a simple collection read first to check permissions
+        db.collection("notifications")
+            .limit(1)
+            .get()
+            .addOnSuccessListener(querySnapshot -> {
+                Log.d("NOTIFICATIONS", "Collection access test successful. Found " + querySnapshot.size() + " documents");
+                
+                // Now proceed with the actual query
+                loadNotificationsQuery();
+            })
+            .addOnFailureListener(e -> {
+                Log.e("NOTIFICATIONS", "Collection access test failed: " + e.getMessage(), e);
+                Toast.makeText(requireContext(), "Cannot access notifications collection. Check Firestore permissions.", Toast.LENGTH_LONG).show();
+                
+                // Fallback: Show empty state with instructions
+                showFallbackUI();
+            });
+    }
+    
+    private void loadNotificationsQuery() {
+        
         // Load all notifications for current user (simplified query to avoid index requirements)
         db.collection("notifications")
             .whereEqualTo("recipientUid", currentUserId)
@@ -92,6 +113,7 @@ public class NotificationsFragment extends Fragment implements com.example.fairs
                 if (error != null) {
                     Log.e("NOTIFICATIONS", "Error loading notifications: " + error.getMessage(), error);
                     Toast.makeText(requireContext(), "Error loading notifications: " + error.getMessage(), Toast.LENGTH_LONG).show();
+                    showFallbackUI();
                     return;
                 }
                 
@@ -179,5 +201,16 @@ public class NotificationsFragment extends Fragment implements com.example.fairs
     @Override
     public void onFastAction() {
         Toast.makeText(requireContext(), "No fast action available here", Toast.LENGTH_SHORT).show();
+    }
+    
+    private void showFallbackUI() {
+        // Show empty states with helpful messages
+        tvNudgesEmpty.setText("Notifications temporarily unavailable");
+        tvNudgesEmpty.setVisibility(View.VISIBLE);
+        rvNudges.setVisibility(View.GONE);
+        
+        tvPaymentHistoryEmpty.setText("Payment history temporarily unavailable");
+        tvPaymentHistoryEmpty.setVisibility(View.VISIBLE);
+        rvPaymentHistory.setVisibility(View.GONE);
     }
 }

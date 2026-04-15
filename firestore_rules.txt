@@ -1,0 +1,37 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Users can read their own data
+    match /users/{userId} {
+      allow read, write: if request.auth != null && request.auth.uid == userId;
+    }
+    
+    // Users can read group data if they are members
+    match /groups/{groupId} {
+      allow read: if request.auth != null && 
+        resource.data.members[request.auth.uid] == true;
+      allow write: if request.auth != null && 
+        resource.data.creator == request.auth.uid;
+    }
+    
+    // Users can read group expenses if they are involved
+    match /group_expenses/{expenseId} {
+      allow read: if request.auth != null && 
+        resource.data.involvedUsers[request.auth.uid] == true;
+      allow write: if request.auth != null && 
+        resource.data.payerUid == request.auth.uid;
+    }
+    
+    // Users can read notifications sent to them
+    match /notifications/{notificationId} {
+      allow read: if request.auth != null && 
+        resource.data.recipientUid == request.auth.uid;
+      allow create: if request.auth != null;
+    }
+    
+    // Deny all other reads/writes
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}
