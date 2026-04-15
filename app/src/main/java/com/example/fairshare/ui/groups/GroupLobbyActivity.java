@@ -55,7 +55,6 @@ import com.example.fairshare.SettlementCalculator;
 import com.example.fairshare.AddGroupExpenseDialog;
 import com.example.fairshare.Constants;
 import com.example.fairshare.FastActionHandler;
-import com.example.fairshare.ui.dashboard.AddGroupExpenseDialog;
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.tabs.TabLayout;
 import com.google.android.material.textfield.TextInputEditText;
