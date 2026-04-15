@@ -14,10 +14,10 @@
         app:layout_constraintTop_toTopOf="parent" />
 
     <ImageView
-        android:id="@+id/ivProfileIcon"
+        android:id="@+id/ivNotificationIcon"
         android:layout_width="24dp"
         android:layout_height="24dp"
-        android:src="@drawable/ic_profile"
+        android:src="@drawable/ic_notifications"
         app:layout_constraintBottom_toBottomOf="@id/profileIconBg"
         app:layout_constraintEnd_toEndOf="@id/profileIconBg"
         app:layout_constraintStart_toStartOf="@id/profileIconBg"
@@ -25,57 +25,26 @@
         app:tint="@color/teal" />
 
     <TextView
-        android:id="@+id/tvNotificationText"
+        android:id="@+id/tvNotificationMessage"
         style="@style/TextAppearance.MyApp.BodyNormal"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_marginStart="12dp"
         android:layout_marginEnd="8dp"
-        android:text="Matt added an expense"
+        android:text="Matt nudged you. You still have a remaining PHP450 for Dinner in Boracay 2026."
         android:textStyle="bold"
-        app:layout_constraintEnd_toStartOf="@id/tvDate"
+        app:layout_constraintEnd_toStartOf="@id/tvNotificationTimestamp"
         app:layout_constraintStart_toEndOf="@id/profileIconBg"
         app:layout_constraintTop_toTopOf="@id/profileIconBg" />
 
     <TextView
-        android:id="@+id/tvPostedAmount"
+        android:id="@+id/tvNotificationTimestamp"
         style="@style/TextAppearance.MyApp.BodySmaller"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Posted: ₱1,800"
-        android:textColor="@color/gray"
-        app:layout_constraintStart_toStartOf="@id/tvNotificationText"
-        app:layout_constraintTop_toBottomOf="@id/tvNotificationText" />
-
-    <TextView
-        android:id="@+id/tvOweAmount"
-        style="@style/TextAppearance.MyApp.BodySmaller"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="You owe: ₱450"
-        android:textColor="@color/gray"
-        app:layout_constraintStart_toStartOf="@id/tvNotificationText"
-        app:layout_constraintTop_toBottomOf="@id/tvPostedAmount" />
-
-    <TextView
-        android:id="@+id/tvDate"
-        style="@style/TextAppearance.MyApp.BodySmaller"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Today"
-        android:textStyle="bold"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_toTopOf="@id/tvNotificationText" />
-
-    <TextView
-        android:id="@+id/tvTime"
-        style="@style/TextAppearance.MyApp.BodySmaller"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="4dp"
-        android:text="Recently"
+        android:text="2h ago"
         android:textColor="@color/gray"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/tvDate" />
+        app:layout_constraintTop_toTopOf="@id/profileIconBg" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

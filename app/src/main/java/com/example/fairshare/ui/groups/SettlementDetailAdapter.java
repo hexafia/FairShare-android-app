@@ -3,6 +3,7 @@ package com.example.fairshare.ui.groups;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageButton;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
@@ -30,10 +31,16 @@ public class SettlementDetailAdapter extends ListAdapter<SettlementCalculator.Se
 
     private Map<String, String> memberNames = new HashMap<>();
     private OnSettleClickListener settleClickListener;
+    private OnNudgeClickListener nudgeClickListener;
     private boolean isGroupAccomplished = false;
+    private String currentUserId;
 
     public interface OnSettleClickListener {
         void onSettleClick(SettlementCalculator.SettlementDetail settlement);
+    }
+
+    public interface OnNudgeClickListener {
+        void onNudgeClick(SettlementCalculator.SettlementDetail settlement);
     }
 
     public SettlementDetailAdapter() {
@@ -46,6 +53,14 @@ public class SettlementDetailAdapter extends ListAdapter<SettlementCalculator.Se
 
     public void setOnSettleClickListener(OnSettleClickListener listener) {
         this.settleClickListener = listener;
+    }
+
+    public void setOnNudgeClickListener(OnNudgeClickListener listener) {
+        this.nudgeClickListener = listener;
+    }
+
+    public void setCurrentUserId(String userId) {
+        this.currentUserId = userId;
     }
 
     public void setGroupAccomplished(boolean accomplished) {
@@ -89,6 +104,7 @@ public class SettlementDetailAdapter extends ListAdapter<SettlementCalculator.Se
         private final TextView tvSettlementDescription, tvSettlementAmount;
         private final TextView tvExpenseName, tvDateAdded, tvSettledDate;
         private final MaterialButton btnSettle;
+        private final ImageButton btnNudge;
         private final TextView tvSettledLabel;
 
         ViewHolder(@NonNull View itemView) {
@@ -101,6 +117,7 @@ public class SettlementDetailAdapter extends ListAdapter<SettlementCalculator.Se
             tvDateAdded = itemView.findViewById(R.id.tvDateAdded);
             tvSettledDate = itemView.findViewById(R.id.tvSettledDate);
             btnSettle = itemView.findViewById(R.id.btnSettle);
+            btnNudge = itemView.findViewById(R.id.btnNudge);
             tvSettledLabel = itemView.findViewById(R.id.tvSettledLabel);
         }
 
@@ -140,6 +157,7 @@ public class SettlementDetailAdapter extends ListAdapter<SettlementCalculator.Se
             // Handle settled state and group accomplished status
             if (settlement.settled || isGroupAccomplished) {
                 btnSettle.setVisibility(View.GONE);
+                btnNudge.setVisibility(View.GONE);
                 tvSettledLabel.setVisibility(View.VISIBLE);
                 itemView.setAlpha(0.5f);
                 
@@ -153,9 +171,19 @@ public class SettlementDetailAdapter extends ListAdapter<SettlementCalculator.Se
                 tvSettledLabel.setVisibility(View.GONE);
                 itemView.setAlpha(1.0f);
 
+                // Show nudge button only if current user is the creditor (owed money)
+                boolean isCurrentUserCreditor = currentUserId != null && currentUserId.equals(settlement.creditorUid);
+                btnNudge.setVisibility(isCurrentUserCreditor ? View.VISIBLE : View.GONE);
+
                 btnSettle.setOnClickListener(v -> {
                     if (settleClickListener != null) {
                         settleClickListener.onSettleClick(settlement);
+                    }
+                });
+
+                btnNudge.setOnClickListener(v -> {
+                    if (nudgeClickListener != null) {
+                        nudgeClickListener.onNudgeClick(settlement);
                     }
                 });
             }

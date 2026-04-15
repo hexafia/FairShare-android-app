@@ -55,11 +55,13 @@ import com.example.fairshare.SettlementCalculator;
 import com.example.fairshare.ui.dashboard.AddGroupExpenseDialog;
 import com.example.fairshare.Constants;
 import com.example.fairshare.FastActionHandler;
+import com.example.fairshare.Notification;
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.tabs.TabLayout;
 import com.google.android.material.textfield.TextInputEditText;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.firestore.FirebaseFirestore;
 
 import android.widget.ArrayAdapter;
 import android.widget.AdapterView;
@@ -145,6 +147,9 @@ public class GroupLobbyActivity extends AppCompatActivity {
         groupId = getIntent().getStringExtra("GROUP_ID");
         groupName = getIntent().getStringExtra("GROUP_NAME");
         shareCode = getIntent().getStringExtra("SHARE_CODE");
+        
+        // Handle openSettleUpTab intent from notifications
+        boolean openSettleUpTab = getIntent().getBooleanExtra("openSettleUpTab", false);
 
         // Bind header views
         TextView tvGroupName = findViewById(R.id.tvGroupName);
@@ -225,6 +230,11 @@ public class GroupLobbyActivity extends AppCompatActivity {
             @Override
             public void onTabReselected(TabLayout.Tab tab) {}
         });
+        
+        // Auto-open Settle Up tab if requested (e.g., from notification)
+        if (openSettleUpTab) {
+            tabLayout.selectTab(tabLayout.getTabAt(1)); // Select Settle Up tab (index 1)
+        }
 
         // Setup RecyclerViews
         expenseAdapter = new GroupExpenseAdapter();
@@ -234,6 +244,12 @@ public class GroupLobbyActivity extends AppCompatActivity {
         // Setup two-section adapters
         toPayAdapter = new SettlementDetailAdapter();
         paidAdapter = new SettlementDetailAdapter();
+        
+        // Set current user ID for adapters
+        String currentUserId = FirebaseAuth.getInstance().getCurrentUser() != null ? 
+                              FirebaseAuth.getInstance().getCurrentUser().getUid() : "";
+        toPayAdapter.setCurrentUserId(currentUserId);
+        paidAdapter.setCurrentUserId(currentUserId);
         
         // Settle click listener for "To Pay" section
         toPayAdapter.setOnSettleClickListener(settlement -> {
@@ -250,6 +266,9 @@ public class GroupLobbyActivity extends AppCompatActivity {
                                 toPayAdapter.notifyDataSetChanged();
                                 paidAdapter.notifyDataSetChanged();
                                 updateDebts(currentExpensesList);
+                                
+                                // Create payment confirmation notification
+                                createPaymentConfirmationNotification(settlement);
                             }
                             @Override
                             public void onError(String error) {
@@ -259,6 +278,11 @@ public class GroupLobbyActivity extends AppCompatActivity {
                 })
                 .setNegativeButton("Cancel", null)
                 .show();
+        });
+        
+        // Nudge click listener for "To Pay" section
+        toPayAdapter.setOnNudgeClickListener(settlement -> {
+            sendNudge(settlement.debtorUid, settlement.settlementAmount, settlement.expenseTitle, groupName);
         });
         
         // Set up RecyclerViews for two sections
@@ -822,6 +846,85 @@ public class GroupLobbyActivity extends AppCompatActivity {
             takePictureIntent.putExtra(MediaStore.EXTRA_OUTPUT, currentPhotoUri);
             cameraLauncher.launch(takePictureIntent);
         }
+    }
+
+    private void sendNudge(String debtorUid, double amount, String expenseName, String groupName) {
+        String currentUserId = FirebaseAuth.getInstance().getCurrentUser() != null ? 
+                              FirebaseAuth.getInstance().getCurrentUser().getUid() : "";
+        String currentUserName = FirebaseAuth.getInstance().getCurrentUser() != null ? 
+                               FirebaseAuth.getInstance().getCurrentUser().getDisplayName() : "Someone";
+        
+        if (currentUserId.isEmpty() || debtorUid.equals(currentUserId)) {
+            Toast.makeText(this, "Cannot send nudge to yourself", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        // Create notification object
+        Notification notification = Notification.createNudgeNotification(
+            debtorUid,           // recipient
+            currentUserId,       // sender
+            currentUserName,     // sender name
+            groupId,             // group ID
+            groupName,           // group name
+            null,                // expense ID (can be null for nudges)
+            expenseName,         // expense name
+            amount               // amount
+        );
+
+        // Save to Firestore
+        FirebaseFirestore db = FirebaseFirestore.getInstance();
+        db.collection("notifications")
+            .add(notification)
+            .addOnSuccessListener(documentReference -> {
+                Toast.makeText(this, "Nudge sent successfully!", Toast.LENGTH_SHORT).show();
+            })
+            .addOnFailureListener(e -> {
+                Toast.makeText(this, "Failed to send nudge: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+            });
+    }
+
+    private void createPaymentConfirmationNotification(SettlementCalculator.SettlementDetail settlement) {
+        String currentUserId = FirebaseAuth.getInstance().getCurrentUser() != null ? 
+                              FirebaseAuth.getInstance().getCurrentUser().getUid() : "";
+        String currentUserName = FirebaseAuth.getInstance().getCurrentUser() != null ? 
+                               FirebaseAuth.getInstance().getCurrentUser().getDisplayName() : "Someone";
+        
+        if (currentUserId.isEmpty()) {
+            return;
+        }
+
+        // The recipient is the creditor (person who is owed money)
+        // The sender is the debtor (person who just paid)
+        String recipientUid = settlement.creditorUid;
+        
+        // Don't send notification to yourself
+        if (recipientUid.equals(currentUserId)) {
+            return;
+        }
+
+        // Create payment confirmation notification
+        Notification notification = Notification.createPaymentConfirmationNotification(
+            recipientUid,        // recipient (creditor)
+            currentUserId,       // sender (debtor who just paid)
+            currentUserName,     // sender name
+            groupId,             // group ID
+            groupName,           // group name
+            settlement.expenseId, // expense ID
+            settlement.expenseTitle, // expense name
+            settlement.settlementAmount // amount
+        );
+
+        // Save to Firestore
+        FirebaseFirestore db = FirebaseFirestore.getInstance();
+        db.collection("notifications")
+            .add(notification)
+            .addOnSuccessListener(documentReference -> {
+                // Notification sent successfully
+                Log.d("NOTIFICATION", "Payment confirmation notification sent");
+            })
+            .addOnFailureListener(e -> {
+                Log.e("NOTIFICATION", "Failed to send payment confirmation: " + e.getMessage());
+            });
     }
 
     

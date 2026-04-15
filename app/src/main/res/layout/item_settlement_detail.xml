@@ -128,12 +128,24 @@
             app:backgroundTint="#38BDB0"
             app:cornerRadius="18dp" />
 
+        <!-- Nudge button -->
+        <ImageButton
+            android:id="@+id/btnNudge"
+            android:layout_width="36dp"
+            android:layout_height="36dp"
+            android:layout_marginStart="4dp"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:src="@drawable/ic_notifications"
+            android:contentDescription="Nudge"
+            android:tint="#FF9800"
+            android:visibility="gone" />
+
         <!-- Settled label (shown when already settled) -->
         <TextView
             android:id="@+id/tvSettledLabel"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="✓ Settled"
+            android:text="Settled"
             android:textColor="@color/income_green"
             android:textSize="12sp"
             android:textStyle="bold"
