@@ -84,13 +84,56 @@ public class NotificationsFragment extends Fragment implements com.example.fairs
         
         Log.d("NOTIFICATIONS", "Loading notifications for user: " + currentUserId);
         
+        // Create test notification if collection is empty
+        createTestNotification();
+        
+        // Try ultra-simple query first to test basic access
+        db.collection("notifications")
+            .limit(10)
+            .addSnapshotListener((value, error) -> {
+                if (error != null) {
+                    Log.e("NOTIFICATIONS", "Basic query failed: " + error.getMessage(), error);
+                    Toast.makeText(requireContext(), "Cannot access notifications. Check Firestore rules.", Toast.LENGTH_LONG).show();
+                    showFallbackUI();
+                    return;
+                }
+                
+                // If basic query works, try the filtered query
+                loadFilteredNotifications();
+            });
+    }
+    
+    private void createTestNotification() {
+        // Create a test nudge notification
+        Notification testNotification = Notification.createNudgeNotification(
+            currentUserId,           // recipient (current user)
+            "test_user_123",         // sender
+            "Test User",             // sender name
+            "test_group_456",        // group ID
+            "Test Group",            // group name
+            "test_expense_789",      // expense ID
+            "Test Expense",          // expense name
+            150.75                   // amount
+        );
+        
+        // Save to Firestore
+        db.collection("notifications")
+            .add(testNotification)
+            .addOnSuccessListener(documentReference -> {
+                Log.d("NOTIFICATIONS", "Test notification created successfully");
+            })
+            .addOnFailureListener(e -> {
+                Log.e("NOTIFICATIONS", "Failed to create test notification: " + e.getMessage());
+            });
+    }
+    
+    private void loadFilteredNotifications() {
         // Load all notifications for current user
         db.collection("notifications")
             .whereEqualTo("recipientUid", currentUserId)
-            .orderBy("timestamp", Query.Direction.DESCENDING)
             .addSnapshotListener((value, error) -> {
                 if (error != null) {
-                    Log.e("NOTIFICATIONS", "Error loading notifications: " + error.getMessage(), error);
+                    Log.e("NOTIFICATIONS", "Filtered query failed: " + error.getMessage(), error);
                     
                     // Check if it's a permission error
                     if (error.getMessage() != null && 
@@ -106,8 +149,7 @@ public class NotificationsFragment extends Fragment implements com.example.fairs
                     return;
                 }
                 
-                List<Notification> nudges = new ArrayList<>();
-                List<Notification> paymentConfirmations = new ArrayList<>();
+                List<Notification> allNotifications = new ArrayList<>();
                 
                 if (value != null) {
                     Log.d("NOTIFICATIONS", "Found " + value.getDocuments().size() + " total notification documents");
@@ -115,19 +157,28 @@ public class NotificationsFragment extends Fragment implements com.example.fairs
                         Notification notification = doc.toObject(Notification.class);
                         if (notification != null) {
                             notification.setId(doc.getId());
-                            
-                            // Filter by type in app
-                            if ("nudge".equals(notification.getType())) {
-                                nudges.add(notification);
-                                Log.d("NOTIFICATIONS", "Loaded nudge: " + notification.getMessage());
-                            } else if ("payment_confirmed".equals(notification.getType())) {
-                                paymentConfirmations.add(notification);
-                                Log.d("NOTIFICATIONS", "Loaded payment confirmation: " + notification.getMessage());
-                            }
+                            allNotifications.add(notification);
                         }
                     }
                 } else {
                     Log.d("NOTIFICATIONS", "No notification documents found");
+                }
+                
+                // Sort notifications by timestamp (newest first)
+                allNotifications.sort((n1, n2) -> Long.compare(n2.getTimestamp(), n1.getTimestamp()));
+                
+                // Separate into nudges and payment confirmations
+                List<Notification> nudges = new ArrayList<>();
+                List<Notification> paymentConfirmations = new ArrayList<>();
+                
+                for (Notification notification : allNotifications) {
+                    if ("nudge".equals(notification.getType())) {
+                        nudges.add(notification);
+                        Log.d("NOTIFICATIONS", "Loaded nudge: " + notification.getMessage());
+                    } else if ("payment_confirmed".equals(notification.getType())) {
+                        paymentConfirmations.add(notification);
+                        Log.d("NOTIFICATIONS", "Loaded payment confirmation: " + notification.getMessage());
+                    }
                 }
                 
                 Log.d("NOTIFICATIONS", "Updating UI - Nudges: " + nudges.size() + ", Payments: " + paymentConfirmations.size());
