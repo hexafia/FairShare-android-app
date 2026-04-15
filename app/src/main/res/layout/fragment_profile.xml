@@ -36,16 +36,7 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/tvHeaderTitle" />
 
-    <ImageView
-        android:id="@+id/btnSettings"
-        android:layout_width="32dp"
-        android:layout_height="32dp"
-        android:layout_marginEnd="24dp"
-        android:src="@drawable/ic_settings"
-        app:layout_constraintBottom_toBottomOf="@id/tvHeaderSubtitle"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_toTopOf="@id/tvHeaderTitle" />
-
+    
     <androidx.core.widget.NestedScrollView
         android:layout_width="match_parent"
         android:layout_height="0dp"
@@ -229,42 +220,7 @@
                 </LinearLayout>
             </com.google.android.material.card.MaterialCardView>
 
-            <!-- Stats Rows -->
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="24dp"
-                android:orientation="horizontal">
-                <com.google.android.material.card.MaterialCardView
-                    android:layout_width="match_parent" android:layout_height="wrap_content" app:cardCornerRadius="16dp" app:cardElevation="0dp">
-                    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:gravity="center" android:orientation="vertical" android:padding="16dp">
-                        <TextView android:id="@+id/tvTotalExpenses" style="@style/TextAppearance.MyApp.Heading3" android:textColor="@color/orange" tools:text="₱16,450" android:layout_width="wrap_content" android:layout_height="wrap_content" />
-                        <TextView style="@style/TextAppearance.MyApp.BodySmaller" android:text="@string/total_expenses_label" android:textColor="@color/gray" android:layout_width="wrap_content" android:layout_height="wrap_content" />
-                    </LinearLayout>
-                </com.google.android.material.card.MaterialCardView>
-            </LinearLayout>
-
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="16dp"
-                android:orientation="horizontal">
-                <com.google.android.material.card.MaterialCardView
-                    android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:layout_marginEnd="8dp" app:cardCornerRadius="16dp" app:cardElevation="0dp">
-                    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:gravity="center" android:orientation="vertical" android:padding="16dp">
-                        <TextView style="@style/TextAppearance.MyApp.Heading3" android:text="2" android:textColor="@color/teal" android:layout_width="wrap_content" android:layout_height="wrap_content" />
-                        <TextView style="@style/TextAppearance.MyApp.BodySmaller" android:text="@string/active_groups_label" android:textColor="@color/gray" android:layout_width="wrap_content" android:layout_height="wrap_content" />
-                    </LinearLayout>
-                </com.google.android.material.card.MaterialCardView>
-                <com.google.android.material.card.MaterialCardView
-                    android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:layout_marginStart="8dp" app:cardCornerRadius="16dp" app:cardElevation="0dp">
-                    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:gravity="center" android:orientation="vertical" android:padding="16dp">
-                        <TextView style="@style/TextAppearance.MyApp.Heading3" android:text="12" android:textColor="@color/off_black" android:layout_width="wrap_content" android:layout_height="wrap_content" />
-                        <TextView style="@style/TextAppearance.MyApp.BodySmaller" android:text="@string/settled_ious_label" android:textColor="@color/gray" android:layout_width="wrap_content" android:layout_height="wrap_content" />
-                    </LinearLayout>
-                </com.google.android.material.card.MaterialCardView>
-            </LinearLayout>
-
+            
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/btnLogout"
                 style="@style/Widget.MaterialComponents.Button.TextButton"
