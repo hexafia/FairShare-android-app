@@ -1,6 +1,5 @@
 package com.example.fairshare.ui.notifications;
 
-import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
@@ -8,15 +7,14 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.fairshare.Notification;
+import com.example.fairshare.NotificationAdapter;
 import com.example.fairshare.R;
 import com.example.fairshare.ui.groups.GroupLobbyActivity;
-import com.google.android.material.appbar.MaterialToolbar;
 import com.google.android.material.chip.Chip;
 import com.google.android.material.chip.ChipGroup;
 import com.google.firebase.auth.FirebaseAuth;
@@ -26,17 +24,13 @@ import com.google.firebase.firestore.Query;
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * Activity for displaying all payment confirmation notifications
- * Shows notifications where type == "payment_confirmed" for the current user
- */
-public class PaymentHistoryActivity extends AppCompatActivity {
+public class NudgeHistoryActivity extends AppCompatActivity {
 
-    private static final String TAG = "PaymentHistoryActivity";
-
-    private RecyclerView rvPayments;
+    private static final String TAG = "NudgeHistoryActivity";
+    
+    private RecyclerView rvNudges;
     private TextView tvEmpty;
-    private NotificationAdapter paymentAdapter;
+    private NotificationAdapter nudgeAdapter;
     private FirebaseFirestore db;
     private String currentUserId;
     
@@ -44,48 +38,38 @@ public class PaymentHistoryActivity extends AppCompatActivity {
     private Chip chipUnread, chipRead;
     
     // Notification list
-    private List<Notification> allPayments = new ArrayList<>();
+    private List<Notification> allNudges = new ArrayList<>();
 
     @Override
-    protected void onCreate(@Nullable Bundle savedInstanceState) {
+    protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_payment_history);
-
+        setContentView(R.layout.activity_nudge_history);
+        
         initViews();
         setupRecyclerView();
+        loadNudges();
         setupFilterChips();
-        loadPaymentHistory();
     }
 
     private void initViews() {
-        MaterialToolbar toolbar = findViewById(R.id.toolbar);
-        rvPayments = findViewById(R.id.rvPayments);
+        rvNudges = findViewById(R.id.rvNudges);
         tvEmpty = findViewById(R.id.tvEmpty);
         
         // Filter chips
         chipUnread = findViewById(R.id.chipUnread);
         chipRead = findViewById(R.id.chipRead);
-
-        // Setup toolbar
-        setSupportActionBar(toolbar);
-        if (getSupportActionBar() != null) {
-            getSupportActionBar().setTitle("Payment History");
-            getSupportActionBar().setDisplayHomeAsUpEnabled(true);
-        }
-
-        toolbar.setNavigationOnClickListener(v -> finish());
-
+        
         db = FirebaseFirestore.getInstance();
         currentUserId = FirebaseAuth.getInstance().getCurrentUser() != null ? 
                        FirebaseAuth.getInstance().getCurrentUser().getUid() : "";
     }
 
     private void setupRecyclerView() {
-        paymentAdapter = new NotificationAdapter(this, new ArrayList<>(), this::onPaymentClick);
-        rvPayments.setLayoutManager(new LinearLayoutManager(this));
-        rvPayments.setAdapter(paymentAdapter);
+        nudgeAdapter = new NotificationAdapter(this, new ArrayList<>(), this::onNudgeClick);
+        rvNudges.setLayoutManager(new LinearLayoutManager(this));
+        rvNudges.setAdapter(nudgeAdapter);
     }
-    
+
     private void setupFilterChips() {
         chipUnread.setChecked(true);
         chipRead.setChecked(false);
@@ -94,96 +78,95 @@ public class PaymentHistoryActivity extends AppCompatActivity {
             if (isChecked) {
                 chipRead.setChecked(false);
             }
-            updateUI(getFilteredPayments());
+            updateNudgesUI(getFilteredNudges());
         });
         
         chipRead.setOnCheckedChangeListener((buttonView, isChecked) -> {
             if (isChecked) {
                 chipUnread.setChecked(false);
             }
-            updateUI(getFilteredPayments());
+            updateNudgesUI(getFilteredNudges());
         });
     }
 
-    private void loadPaymentHistory() {
+    private void loadNudges() {
         if (currentUserId == null || currentUserId.isEmpty()) {
             Toast.makeText(this, "User not authenticated", Toast.LENGTH_SHORT).show();
             return;
         }
-
-        Log.d(TAG, "Loading payment history for user: " + currentUserId);
-
-        // Load all payment confirmation notifications for current user
+        
+        Log.d(TAG, "Loading nudges for user: " + currentUserId);
+        
+        // Load all NUDGE notifications for current user
         db.collection("notifications")
             .whereEqualTo("recipientUid", currentUserId)
-            .whereEqualTo("type", "SETTLEMENT")
+            .whereEqualTo("type", "NUDGE")
             .orderBy("timestamp", Query.Direction.DESCENDING)
             .addSnapshotListener((value, error) -> {
                 if (error != null) {
-                    Log.e(TAG, "Error loading payment history: " + error.getMessage(), error);
-                    Toast.makeText(this, "Error loading payment history: " + error.getMessage(), Toast.LENGTH_LONG).show();
+                    Log.e(TAG, "Error loading nudges: " + error.getMessage(), error);
+                    Toast.makeText(this, "Error loading nudges: " + error.getMessage(), Toast.LENGTH_LONG).show();
                     return;
                 }
-
-                allPayments.clear();
+                
+                allNudges.clear();
                 
                 if (value != null) {
-                    Log.d(TAG, "Found " + value.getDocuments().size() + " payment confirmation documents");
+                    Log.d(TAG, "Found " + value.getDocuments().size() + " nudge documents");
                     for (com.google.firebase.firestore.DocumentSnapshot doc : value.getDocuments()) {
                         Notification notification = doc.toObject(Notification.class);
                         if (notification != null) {
                             notification.setId(doc.getId());
-                            allPayments.add(notification);
-                            
-                            // Mark as read when user views this activity
-                            markNotificationAsRead(notification.getId());
+                            allNudges.add(notification);
                         }
                     }
                 } else {
-                    Log.d(TAG, "No payment confirmation documents found");
+                    Log.d(TAG, "No nudge documents found");
                 }
-
+                
                 // Mark all as read when viewing "View All" page
                 markAllAsRead();
                 
-                updateUI(getFilteredPayments());
+                Log.d(TAG, "Updating UI - Total Nudges: " + allNudges.size());
+                updateNudgesUI(getFilteredNudges());
             });
     }
 
-    private List<Notification> getFilteredPayments() {
+    private List<Notification> getFilteredNudges() {
         List<Notification> filtered = new ArrayList<>();
         boolean showUnread = chipUnread.isChecked();
         boolean showRead = chipRead.isChecked();
         
-        for (Notification payment : allPayments) {
-            if ((showUnread && !payment.isRead()) || (showRead && payment.isRead())) {
-                filtered.add(payment);
+        for (Notification nudge : allNudges) {
+            if ((showUnread && !nudge.isRead()) || (showRead && nudge.isRead())) {
+                filtered.add(nudge);
             }
         }
         
         return filtered;
     }
-    
-    private void updateUI(List<Notification> payments) {
-        if (payments.isEmpty()) {
+
+    private void updateNudgesUI(List<Notification> nudges) {
+        if (nudges.isEmpty()) {
             tvEmpty.setVisibility(View.VISIBLE);
-            rvPayments.setVisibility(View.GONE);
-            tvEmpty.setText(chipUnread.isChecked() ? "No unread payment confirmations" : "No read payment confirmations");
+            rvNudges.setVisibility(View.GONE);
+            tvEmpty.setText(chipUnread.isChecked() ? "No unread nudges" : "No read nudges");
         } else {
             tvEmpty.setVisibility(View.GONE);
-            rvPayments.setVisibility(View.VISIBLE);
-            paymentAdapter.updateNotifications(payments);
+            rvNudges.setVisibility(View.VISIBLE);
+            nudgeAdapter.updateNotifications(nudges);
         }
     }
 
-    private void onPaymentClick(Notification notification) {
+    private void onNudgeClick(Notification notification) {
         // Mark notification as read first
         markNotificationAsRead(notification.getId());
         
-        // Navigate to Group Lobby's Ledger tab
+        // Navigate to Group Lobby's Settle Up tab
         Intent intent = new Intent(this, GroupLobbyActivity.class);
         intent.putExtra("groupId", notification.getGroupId());
         intent.putExtra("groupName", notification.getGroupName());
+        intent.putExtra("openSettleUpTab", true);
         startActivity(intent);
     }
 
@@ -198,31 +181,29 @@ public class PaymentHistoryActivity extends AppCompatActivity {
     }
     
     private void markAllAsRead() {
-        for (Notification payment : allPayments) {
-            if (!payment.isRead()) {
-                markNotificationAsRead(payment.getId());
+        for (Notification nudge : allNudges) {
+            if (!nudge.isRead()) {
+                markNotificationAsRead(nudge.getId());
             }
         }
     }
     
     private void updateNotificationReadStatus(String notificationId, boolean isRead) {
-        for (Notification payment : allPayments) {
-            if (notificationId.equals(payment.getId())) {
-                payment.setRead(isRead);
+        for (Notification nudge : allNudges) {
+            if (notificationId.equals(nudge.getId())) {
+                nudge.setRead(isRead);
                 break;
             }
         }
         
         // Refresh UI with filtered results
-        updateUI(getFilteredPayments());
+        updateNudgesUI(getFilteredNudges());
     }
 
     @Override
-    protected void onResume() {
-        super.onResume();
-        // Refresh data when activity resumes
-        if (currentUserId != null && !currentUserId.isEmpty()) {
-            loadPaymentHistory();
-        }
+    public boolean onNavigateUp() {
+        // Handle back button to return to previous screen
+        finish();
+        return true;
     }
 }

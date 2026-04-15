@@ -129,7 +129,7 @@ public class NotificationsFragment extends Fragment implements com.example.fairs
     
     private void setupViewAllButtons() {
         btnViewAllNudges.setOnClickListener(v -> {
-            Intent intent = new Intent(requireContext(), NudgesActivity.class);
+            Intent intent = new Intent(requireContext(), NudgeHistoryActivity.class);
             startActivity(intent);
         });
         

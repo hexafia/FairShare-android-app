@@ -171,9 +171,10 @@ public class SettlementDetailAdapter extends ListAdapter<SettlementCalculator.Se
                 tvSettledLabel.setVisibility(View.GONE);
                 itemView.setAlpha(1.0f);
 
-                // Show nudge button only if current user is the creditor (owed money)
-                boolean isCurrentUserCreditor = currentUserId != null && currentUserId.equals(settlement.creditorUid);
-                btnNudge.setVisibility(isCurrentUserCreditor ? View.VISIBLE : View.GONE);
+                // Show nudge button only if current user is the original payer (expense.payerUid)
+                // Only the person who is owed money can nudge
+                boolean isCurrentUserPayer = currentUserId != null && currentUserId.equals(settlement.payerUid);
+                btnNudge.setVisibility(isCurrentUserPayer ? View.VISIBLE : View.GONE);
 
                 btnSettle.setOnClickListener(v -> {
                     if (settleClickListener != null) {

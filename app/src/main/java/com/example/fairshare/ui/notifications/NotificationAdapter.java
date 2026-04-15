@@ -54,10 +54,10 @@ public class NotificationAdapter extends RecyclerView.Adapter<NotificationAdapte
         holder.tvTimestamp.setText(relativeTime);
         
         // Set icon based on type
-        if ("nudge".equals(notification.getType())) {
+        if ("NUDGE".equals(notification.getType())) {
             holder.ivIcon.setImageResource(android.R.drawable.ic_dialog_email); // Bell icon for nudges
             holder.ivIcon.setColorFilter(context.getResources().getColor(android.R.color.holo_orange_dark));
-        } else if ("payment_confirmed".equals(notification.getType())) {
+        } else if ("SETTLEMENT".equals(notification.getType())) {
             holder.ivIcon.setImageResource(android.R.drawable.ic_menu_save); // Check icon for payments
             holder.ivIcon.setColorFilter(context.getResources().getColor(android.R.color.holo_green_dark));
         } else {

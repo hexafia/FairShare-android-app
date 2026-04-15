@@ -288,6 +288,15 @@ public class GroupLobbyActivity extends AppCompatActivity {
         
         // Nudge click listener for "To Pay" section
         toPayAdapter.setOnNudgeClickListener(settlement -> {
+            // Only the original payer (who is owed money) can nudge the debtor
+            String currentUserId = FirebaseAuth.getInstance().getCurrentUser() != null ? 
+                                  FirebaseAuth.getInstance().getCurrentUser().getUid() : "";
+            
+            if (!currentUserId.equals(settlement.payerUid)) {
+                Toast.makeText(this, "Only the person who is owed money can send a nudge", Toast.LENGTH_SHORT).show();
+                return;
+            }
+            
             sendNudge(settlement.debtorUid, settlement.settlementAmount, settlement.expenseTitle, groupName);
         });
         
@@ -865,7 +874,7 @@ public class GroupLobbyActivity extends AppCompatActivity {
             return;
         }
 
-        // Create notification document in Firestore
+        // Create notification document in Firestore with proper text format
         FirebaseFirestore db = FirebaseFirestore.getInstance();
         Map<String, Object> notificationData = new HashMap<>();
         notificationData.put("recipientUid", debtorUid);
@@ -878,6 +887,10 @@ public class GroupLobbyActivity extends AppCompatActivity {
         notificationData.put("timestamp", System.currentTimeMillis());
         notificationData.put("type", "NUDGE");
         notificationData.put("isRead", false);
+        // Create message with required format: <User B (Payer)> nudged you. You still have a remaining balance of PHP <amount> for <Expense> in <Group>.
+        String message = currentUserName + " (Payer) nudged you. You still have a remaining balance of PHP " + 
+                         String.format("%.2f", amount) + " for " + expenseName + " in " + groupName + ".";
+        notificationData.put("message", message);
 
         db.collection("notifications")
             .add(notificationData)
@@ -901,16 +914,22 @@ public class GroupLobbyActivity extends AppCompatActivity {
             return;
         }
 
-        // The recipient is the creditor (person who is owed money)
-        // The sender is the debtor (person who just paid)
-        String recipientUid = settlement.creditorUid;
+        // Only the original Payer can confirm/settle the debt
+        // The sender is the Payer (person who is owed money and confirms payment)
+        // The recipient is the debtor (person who paid)
+        if (!currentUserId.equals(settlement.payerUid)) {
+            Log.d("NOTIFICATION", "Only the original Payer can confirm this settlement");
+            return;
+        }
         
-        // Don't send notification to yourself
+        String recipientUid = settlement.debtorUid;
+        
+        // Don't send notification to yourself (shouldn't happen but just in case)
         if (recipientUid.equals(currentUserId)) {
             return;
         }
 
-        // Create payment confirmation notification document in Firestore
+        // Create payment confirmation notification document in Firestore with proper text format
         FirebaseFirestore db = FirebaseFirestore.getInstance();
         Map<String, Object> notificationData = new HashMap<>();
         notificationData.put("recipientUid", recipientUid);
@@ -924,6 +943,10 @@ public class GroupLobbyActivity extends AppCompatActivity {
         notificationData.put("timestamp", System.currentTimeMillis());
         notificationData.put("type", "SETTLEMENT");
         notificationData.put("isRead", false);
+        // Create message with required format: <User B (Payer)> confirmed your payment of PHP <amount> for <Expense> in <Group>.
+        String message = currentUserName + " (Payer) confirmed your payment of PHP " + 
+                         String.format("%.2f", settlement.settlementAmount) + " for " + settlement.expenseTitle + " in " + groupName + ".";
+        notificationData.put("message", message);
 
         db.collection("notifications")
             .add(notificationData)
