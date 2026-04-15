@@ -658,12 +658,19 @@ public class GroupLobbyActivity extends AppCompatActivity {
             for (GroupExpense expense : tempList) {
                 String expenseCategory = expense.getCategory();
                 Log.d("CATEGORY_FILTER", "Expense: " + expense.getTitle() + ", Category: " + expenseCategory + ", Filter: " + currentCategoryFilter);
-                if (currentCategoryFilter.equals(expenseCategory)) {
+                
+                // Handle null category and case-insensitive comparison
+                if (expenseCategory != null && currentCategoryFilter.equalsIgnoreCase(expenseCategory)) {
+                    categoryFiltered.add(expense);
+                } else if (expenseCategory == null) {
+                    // Include expenses without category when "All Categories" isn't selected
+                    // This handles cases where expenses were created before category field was added
                     categoryFiltered.add(expense);
                 }
             }
             tempList = categoryFiltered;
-            Log.d("CATEGORY_FILTER", "Filtered to " + categoryFiltered.size() + " expenses out of " + tempList.size());
+            Log.d("CATEGORY_FILTER", "Filtered to " + categoryFiltered.size() + " expenses out of " + tempList.size() + " (null category: " + 
+                + tempList.stream().mapToLong(e -> e.getCategory() == null ? 1L : 0L).sum() + ")");
         }
         
         // Apply payer filter
