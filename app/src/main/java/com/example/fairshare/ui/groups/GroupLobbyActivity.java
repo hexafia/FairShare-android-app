@@ -882,7 +882,7 @@ public class GroupLobbyActivity extends AppCompatActivity {
         notificationData.put("groupName", groupName);
         notificationData.put("groupId", groupId);
         notificationData.put("timestamp", System.currentTimeMillis());
-        notificationData.put("type", "NUDGE");
+        notificationData.put("type", "nudge");
         notificationData.put("isRead", false);
         // Create message with required format: <User B (Payer)> nudged you. You still have a remaining balance of PHP <amount> for <Expense> in <Group>.
         String message = currentUserName + " (Payer) nudged you. You still have a remaining balance of PHP " + 
@@ -938,7 +938,7 @@ public class GroupLobbyActivity extends AppCompatActivity {
         notificationData.put("groupName", groupName);
         notificationData.put("groupId", groupId);
         notificationData.put("timestamp", System.currentTimeMillis());
-        notificationData.put("type", "SETTLEMENT");
+        notificationData.put("type", "payment_confirmed");
         notificationData.put("isRead", false);
         // Create message with required format: <User B (Payer)> confirmed your payment of PHP <amount> for <Expense> in <Group>.
         String message = currentUserName + " (Payer) confirmed your payment of PHP " + 

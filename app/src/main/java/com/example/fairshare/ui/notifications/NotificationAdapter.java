@@ -15,9 +15,11 @@ import com.example.fairshare.GroupExpense;
 import com.example.fairshare.Notification;
 import com.example.fairshare.R;
 import com.example.fairshare.ui.groups.GroupLobbyActivity;
-import com.example.fairshare.utils.TimeUtils;
 
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.List;
+import java.util.Locale;
 
 public class NotificationAdapter extends RecyclerView.Adapter<NotificationAdapter.NotificationViewHolder> {
 
@@ -49,20 +51,18 @@ public class NotificationAdapter extends RecyclerView.Adapter<NotificationAdapte
         // Set message
         holder.tvMessage.setText(notification.getMessage());
         
-        // Set relative timestamp
-        String relativeTime = TimeUtils.getRelativeTime(notification.getTimestamp());
-        holder.tvTimestamp.setText(relativeTime);
+        // Set timestamp
+        SimpleDateFormat dateFormat = new SimpleDateFormat("MMM dd, HH:mm", Locale.getDefault());
+        String timeStr = dateFormat.format(notification.getTimestamp());
+        holder.tvTimestamp.setText(timeStr);
         
         // Set icon based on type
-        if ("NUDGE".equals(notification.getType())) {
-            holder.ivIcon.setImageResource(android.R.drawable.ic_dialog_email); // Bell icon for nudges
-            holder.ivIcon.setColorFilter(context.getResources().getColor(android.R.color.holo_orange_dark));
-        } else if ("SETTLEMENT".equals(notification.getType())) {
-            holder.ivIcon.setImageResource(android.R.drawable.ic_menu_save); // Check icon for payments
-            holder.ivIcon.setColorFilter(context.getResources().getColor(android.R.color.holo_green_dark));
+        if ("nudge".equals(notification.getType())) {
+            holder.ivIcon.setImageResource(R.drawable.ic_notifications);
+        } else if ("payment_confirmed".equals(notification.getType())) {
+            holder.ivIcon.setImageResource(R.drawable.ic_check);
         } else {
-            holder.ivIcon.setImageResource(android.R.drawable.ic_dialog_info); // Default info icon
-            holder.ivIcon.setColorFilter(context.getResources().getColor(android.R.color.darker_gray));
+            holder.ivIcon.setImageResource(R.drawable.ic_notifications);
         }
         
         // Set read status

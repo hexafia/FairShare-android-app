@@ -269,10 +269,10 @@ public class NotificationsFragment extends Fragment implements com.example.fairs
                 allPayments.clear();
                 
                 for (Notification notification : allNotifications) {
-                    if ("NUDGE".equals(notification.getType())) {
+                    if ("nudge".equals(notification.getType())) {
                         allNudges.add(notification);
                         Log.d("NOTIFICATIONS", "Loaded nudge: " + notification.getMessage());
-                    } else if ("SETTLEMENT".equals(notification.getType())) {
+                    } else if ("payment_confirmed".equals(notification.getType())) {
                         allPayments.add(notification);
                         Log.d("NOTIFICATIONS", "Loaded payment confirmation: " + notification.getMessage());
                     }

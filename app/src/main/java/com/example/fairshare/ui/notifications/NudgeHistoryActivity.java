@@ -98,10 +98,10 @@ public class NudgeHistoryActivity extends AppCompatActivity {
         
         Log.d(TAG, "Loading nudges for user: " + currentUserId);
         
-        // Load all NUDGE notifications for current user
+        // Load all nudge notifications for current user
         db.collection("notifications")
             .whereEqualTo("recipientUid", currentUserId)
-            .whereEqualTo("type", "NUDGE")
+            .whereEqualTo("type", "nudge")
             .orderBy("timestamp", Query.Direction.DESCENDING)
             .addSnapshotListener((value, error) -> {
                 if (error != null) {
@@ -201,6 +201,13 @@ public class NudgeHistoryActivity extends AppCompatActivity {
         updateNudgesUI(getFilteredNudges());
     }
 
+    @Override
+    protected void onResume() {
+        super.onResume();
+        // Mark all notifications as read when viewing this page
+        markAllAsRead();
+    }
+    
     @Override
     public boolean onNavigateUp() {
         // Handle back button to return to previous screen

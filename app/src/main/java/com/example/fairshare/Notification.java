@@ -54,7 +54,7 @@ public class Notification {
                                                      String expenseName, double amount) {
         String message = senderName + " (Payer) nudged you. You still have a remaining balance of PHP " + String.format("%.2f", amount) + 
                         " for " + expenseName + " in " + groupName + ".";
-        return new Notification("NUDGE", recipientUid, senderUid, senderName, groupId, groupName,
+        return new Notification("nudge", recipientUid, senderUid, senderName, groupId, groupName,
                               expenseId, expenseName, amount, message);
     }
 
@@ -63,7 +63,7 @@ public class Notification {
                                                                    String expenseName, double amount) {
         String message = senderName + " (Payer) confirmed your payment of PHP " + String.format("%.2f", amount) + 
                         " for " + expenseName + " in " + groupName + ".";
-        return new Notification("SETTLEMENT", recipientUid, senderUid, senderName, groupId, groupName,
+        return new Notification("payment_confirmed", recipientUid, senderUid, senderName, groupId, groupName,
                               expenseId, expenseName, amount, message);
     }
 

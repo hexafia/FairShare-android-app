@@ -8,7 +8,6 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
@@ -16,7 +15,7 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.example.fairshare.Notification;
 import com.example.fairshare.R;
 import com.example.fairshare.ui.groups.GroupLobbyActivity;
-import com.google.android.material.appbar.MaterialToolbar;
+import com.example.fairshare.ui.notifications.NotificationAdapter;
 import com.google.android.material.chip.Chip;
 import com.google.android.material.chip.ChipGroup;
 import com.google.firebase.auth.FirebaseAuth;
@@ -26,14 +25,10 @@ import com.google.firebase.firestore.Query;
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * Activity for displaying all payment confirmation notifications
- * Shows notifications where type == "payment_confirmed" for the current user
- */
 public class PaymentHistoryActivity extends AppCompatActivity {
 
     private static final String TAG = "PaymentHistoryActivity";
-
+    
     private RecyclerView rvPayments;
     private TextView tvEmpty;
     private NotificationAdapter paymentAdapter;
@@ -47,34 +42,24 @@ public class PaymentHistoryActivity extends AppCompatActivity {
     private List<Notification> allPayments = new ArrayList<>();
 
     @Override
-    protected void onCreate(@Nullable Bundle savedInstanceState) {
+    protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_payment_history);
-
+        
         initViews();
         setupRecyclerView();
         setupFilterChips();
         loadPaymentHistory();
     }
-
+    
     private void initViews() {
-        MaterialToolbar toolbar = findViewById(R.id.toolbar);
         rvPayments = findViewById(R.id.rvPayments);
         tvEmpty = findViewById(R.id.tvEmpty);
         
         // Filter chips
         chipUnread = findViewById(R.id.chipUnread);
         chipRead = findViewById(R.id.chipRead);
-
-        // Setup toolbar
-        setSupportActionBar(toolbar);
-        if (getSupportActionBar() != null) {
-            getSupportActionBar().setTitle("Payment History");
-            getSupportActionBar().setDisplayHomeAsUpEnabled(true);
-        }
-
-        toolbar.setNavigationOnClickListener(v -> finish());
-
+        
         db = FirebaseFirestore.getInstance();
         currentUserId = FirebaseAuth.getInstance().getCurrentUser() != null ? 
                        FirebaseAuth.getInstance().getCurrentUser().getUid() : "";
@@ -87,69 +72,59 @@ public class PaymentHistoryActivity extends AppCompatActivity {
     }
     
     private void setupFilterChips() {
+        // Set default filter states
         chipUnread.setChecked(true);
-        chipRead.setChecked(false);
         
+        // Filter listeners
         chipUnread.setOnCheckedChangeListener((buttonView, isChecked) -> {
-            if (isChecked) {
-                chipRead.setChecked(false);
-            }
-            updateUI(getFilteredPayments());
+            if (isChecked) chipRead.setChecked(false);
+            updatePaymentsUI(getFilteredPayments());
         });
         
         chipRead.setOnCheckedChangeListener((buttonView, isChecked) -> {
-            if (isChecked) {
-                chipUnread.setChecked(false);
-            }
-            updateUI(getFilteredPayments());
+            if (isChecked) chipUnread.setChecked(false);
+            updatePaymentsUI(getFilteredPayments());
         });
     }
-
+    
     private void loadPaymentHistory() {
+        // Check if currentUserId is valid
         if (currentUserId == null || currentUserId.isEmpty()) {
             Toast.makeText(this, "User not authenticated", Toast.LENGTH_SHORT).show();
             return;
         }
-
+        
         Log.d(TAG, "Loading payment history for user: " + currentUserId);
-
-        // Load all payment confirmation notifications for current user
+        
+        // Load all payment_confirmed notifications for current user
         db.collection("notifications")
             .whereEqualTo("recipientUid", currentUserId)
-            .whereEqualTo("type", "SETTLEMENT")
+            .whereEqualTo("type", "payment_confirmed")
             .orderBy("timestamp", Query.Direction.DESCENDING)
             .addSnapshotListener((value, error) -> {
                 if (error != null) {
                     Log.e(TAG, "Error loading payment history: " + error.getMessage(), error);
-                    Toast.makeText(this, "Error loading payment history: " + error.getMessage(), Toast.LENGTH_LONG).show();
+                    Toast.makeText(this, "Error loading payment history", Toast.LENGTH_SHORT).show();
                     return;
                 }
-
+                
                 allPayments.clear();
                 
                 if (value != null) {
-                    Log.d(TAG, "Found " + value.getDocuments().size() + " payment confirmation documents");
                     for (com.google.firebase.firestore.DocumentSnapshot doc : value.getDocuments()) {
                         Notification notification = doc.toObject(Notification.class);
                         if (notification != null) {
                             notification.setId(doc.getId());
                             allPayments.add(notification);
-                            
-                            // Mark as read when user views this activity
-                            markNotificationAsRead(notification.getId());
                         }
                     }
-                } else {
-                    Log.d(TAG, "No payment confirmation documents found");
                 }
-
-                // Mark all as read when viewing "View All" page
-                markAllAsRead();
                 
-                updateUI(getFilteredPayments());
+                Log.d(TAG, "Loaded " + allPayments.size() + " payment confirmations");
+                updatePaymentsUI(getFilteredPayments());
             });
     }
-
+    
     private List<Notification> getFilteredPayments() {
         List<Notification> filtered = new ArrayList<>();
         boolean showUnread = chipUnread.isChecked();
@@ -163,12 +138,11 @@ public class PaymentHistoryActivity extends AppCompatActivity {
         
         return filtered;
     }
-    
-    private void updateUI(List<Notification> payments) {
+
+    private void updatePaymentsUI(List<Notification> payments) {
         if (payments.isEmpty()) {
             tvEmpty.setVisibility(View.VISIBLE);
             rvPayments.setVisibility(View.GONE);
-            tvEmpty.setText(chipUnread.isChecked() ? "No unread payment confirmations" : "No read payment confirmations");
         } else {
             tvEmpty.setVisibility(View.GONE);
             rvPayments.setVisibility(View.VISIBLE);
@@ -192,20 +166,13 @@ public class PaymentHistoryActivity extends AppCompatActivity {
             .document(notificationId)
             .update("isRead", true)
             .addOnSuccessListener(aVoid -> {
-                // Update local notification list and refresh UI
+                // Update local notification lists and refresh UI
                 updateNotificationReadStatus(notificationId, true);
             });
     }
     
-    private void markAllAsRead() {
-        for (Notification payment : allPayments) {
-            if (!payment.isRead()) {
-                markNotificationAsRead(payment.getId());
-            }
-        }
-    }
-    
     private void updateNotificationReadStatus(String notificationId, boolean isRead) {
+        // Update in allPayments list
         for (Notification payment : allPayments) {
             if (notificationId.equals(payment.getId())) {
                 payment.setRead(isRead);
@@ -214,15 +181,21 @@ public class PaymentHistoryActivity extends AppCompatActivity {
         }
         
         // Refresh UI with filtered results
-        updateUI(getFilteredPayments());
+        updatePaymentsUI(getFilteredPayments());
     }
-
+    
     @Override
     protected void onResume() {
         super.onResume();
-        // Refresh data when activity resumes
-        if (currentUserId != null && !currentUserId.isEmpty()) {
-            loadPaymentHistory();
+        // Mark all notifications as read when viewing this page
+        markAllNotificationsAsRead();
+    }
+    
+    private void markAllNotificationsAsRead() {
+        for (Notification notification : allPayments) {
+            if (!notification.isRead()) {
+                markNotificationAsRead(notification.getId());
+            }
         }
     }
 }
