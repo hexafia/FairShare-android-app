@@ -111,8 +111,6 @@ public class ProfileFragment extends Fragment implements com.example.fairshare.F
             // All transactions are now expenses (income tracking removed)
             totalExpenses += t.getAmount();
         }
-
-        tvTotalExpenses.setText(CurrencyHelper.format(totalExpenses));
     }
 
     @Override
