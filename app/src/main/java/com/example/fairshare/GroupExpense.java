@@ -20,6 +20,7 @@ public class GroupExpense {
     private String payerName;
     private double amount;
     private String splitType; // "EQUAL", "SELECTIVE", "PERCENTAGE", "AMOUNT"
+    private String category; // "Food", "Transport", "Shopping", "Bills", "Other"
     private List<String> participants;
     private Map<String, Double> splitAmounts; // uid -> exact amount owed (breakdown map)
     private List<String> involvedUsers; // payerUid + all participants (for efficient querying)
@@ -103,6 +104,14 @@ public class GroupExpense {
 
     public void setSplitType(String splitType) {
         this.splitType = splitType;
+    }
+
+    public String getCategory() {
+        return category;
+    }
+
+    public void setCategory(String category) {
+        this.category = category;
     }
 
     public List<String> getParticipants() {

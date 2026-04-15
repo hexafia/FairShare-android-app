@@ -631,6 +631,11 @@ public class GroupLobbyActivity extends AppCompatActivity {
                     matches = true;
                 }
                 
+                // Search by category
+                if (expense.getCategory() != null && expense.getCategory().toLowerCase().contains(searchQuery)) {
+                    matches = true;
+                }
+                
                 // Search by date (format: MMM dd, yyyy)
                 SimpleDateFormat dateFormat = new SimpleDateFormat("MMM dd, yyyy", Locale.getDefault());
                 String dateStr = dateFormat.format(new Date(expense.getTimestamp()));
@@ -643,6 +648,17 @@ public class GroupLobbyActivity extends AppCompatActivity {
                 }
             }
             tempList = searchFiltered;
+        }
+        
+        // Apply category filter
+        if (currentCategoryFilter != null && !currentCategoryFilter.isEmpty()) {
+            List<GroupExpense> categoryFiltered = new ArrayList<>();
+            for (GroupExpense expense : tempList) {
+                if (currentCategoryFilter.equals(expense.getCategory())) {
+                    categoryFiltered.add(expense);
+                }
+            }
+            tempList = categoryFiltered;
         }
         
         // Apply payer filter
@@ -722,18 +738,30 @@ public class GroupLobbyActivity extends AppCompatActivity {
     }
 
     private void showCategoryFilterDialog() {
-        // Get unique categories from expenses
-        Set<String> categories = new HashSet<>();
-        for (GroupExpense expense : currentExpensesList) {
-            // Note: GroupExpense doesn't have category field, so we'll use title-based categories
-            // For now, we'll show a simple dialog
-        }
+        // Use global categories from Constants
+        String[] categories = Constants.EXPENSE_CATEGORIES.toArray(new String[0]);
         
-        // Since GroupExpense doesn't have category, we'll use a simple approach
         androidx.appcompat.app.AlertDialog.Builder builder = new androidx.appcompat.app.AlertDialog.Builder(this);
         builder.setTitle("Filter by Category");
-        builder.setMessage("Category filtering not available (expenses don't have categories)");
-        builder.setPositiveButton("OK", null);
+        
+        // Add "All Categories" option at the top
+        String[] optionsWithAll = new String[categories.length + 1];
+        optionsWithAll[0] = "All Categories";
+        System.arraycopy(categories, 0, optionsWithAll, 1, categories.length);
+        
+        builder.setItems(optionsWithAll, (dialog, which) -> {
+            if (which == 0) {
+                // "All Categories" selected - clear filter
+                currentCategoryFilter = null;
+            } else {
+                // Specific category selected
+                currentCategoryFilter = optionsWithAll[which];
+            }
+            currentSortOption = "category";
+            applyFilters();
+        });
+        
+        builder.setNegativeButton("Cancel", null);
         builder.show();
     }
 
