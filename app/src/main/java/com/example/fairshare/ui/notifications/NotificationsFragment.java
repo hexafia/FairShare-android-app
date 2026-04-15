@@ -86,17 +86,29 @@ public class NotificationsFragment extends Fragment implements com.example.fairs
     }
 
     private void setupRecyclerViews() {
-        // Setup nudges RecyclerView
-        nudgeAdapter = new NotificationAdapter(requireContext(), new ArrayList<>(), 
-            this::onNudgeClick);
-        rvNudges.setLayoutManager(new LinearLayoutManager(requireContext()));
-        rvNudges.setAdapter(nudgeAdapter);
+        try {
+            // Setup nudges RecyclerView
+            if (rvNudges != null) {
+                nudgeAdapter = new NotificationAdapter(requireContext(), new ArrayList<>(), 
+                    this::onNudgeClick);
+                rvNudges.setLayoutManager(new LinearLayoutManager(requireContext()));
+                rvNudges.setAdapter(nudgeAdapter);
+            } else {
+                Log.e("NOTIFICATIONS", "rvNudges is null");
+            }
 
-        // Setup payment history RecyclerView
-        paymentHistoryAdapter = new NotificationAdapter(requireContext(), new ArrayList<>(), 
-            this::onPaymentHistoryClick);
-        rvPaymentHistory.setLayoutManager(new LinearLayoutManager(requireContext()));
-        rvPaymentHistory.setAdapter(paymentHistoryAdapter);
+            // Setup payment history RecyclerView
+            if (rvPaymentHistory != null) {
+                paymentHistoryAdapter = new NotificationAdapter(requireContext(), new ArrayList<>(), 
+                    this::onPaymentHistoryClick);
+                rvPaymentHistory.setLayoutManager(new LinearLayoutManager(requireContext()));
+                rvPaymentHistory.setAdapter(paymentHistoryAdapter);
+            } else {
+                Log.e("NOTIFICATIONS", "rvPaymentHistory is null");
+            }
+        } catch (Exception e) {
+            Log.e("NOTIFICATIONS", "Error setting up RecyclerViews", e);
+        }
     }
     
     private void setupFilterChips() {
@@ -223,86 +235,122 @@ public class NotificationsFragment extends Fragment implements com.example.fairs
     
     private void loadFilteredNotifications() {
         // Load all notifications for current user
-        db.collection("notifications")
-            .whereEqualTo("recipientUid", currentUserId)
-            .addSnapshotListener((value, error) -> {
-                if (error != null) {
-                    Log.e("NOTIFICATIONS", "Filtered query failed: " + error.getMessage(), error);
-                    
-                    // Check if it's a permission error
-                    if (error.getMessage() != null && 
-                        (error.getMessage().contains("PERMISSION_DENIED") || 
-                         error.getMessage().contains("PRE_CONDITION"))) {
-                        Toast.makeText(requireContext(), "Firestore permissions not configured. Please deploy security rules.", Toast.LENGTH_LONG).show();
-                        showFallbackUI();
-                        return;
-                    }
-                    
-                    Toast.makeText(requireContext(), "Error loading notifications: " + error.getMessage(), Toast.LENGTH_LONG).show();
-                    showFallbackUI();
-                    return;
-                }
-                
-                List<Notification> allNotifications = new ArrayList<>();
-                
-                if (value != null) {
-                    Log.d("NOTIFICATIONS", "Found " + value.getDocuments().size() + " total notification documents");
-                    for (com.google.firebase.firestore.DocumentSnapshot doc : value.getDocuments()) {
-                        Notification notification = doc.toObject(Notification.class);
-                        if (notification != null) {
-                            notification.setId(doc.getId());
-                            allNotifications.add(notification);
+        try {
+            db.collection("notifications")
+                .whereEqualTo("recipientUid", currentUserId)
+                .addSnapshotListener((value, error) -> {
+                    try {
+                        if (error != null) {
+                            Log.e("NOTIFICATIONS", "Filtered query failed: " + error.getMessage(), error);
+                            
+                            // Check if it's a permission error
+                            if (error.getMessage() != null && 
+                                (error.getMessage().contains("PERMISSION_DENIED") || 
+                                 error.getMessage().contains("PRE_CONDITION"))) {
+                                Toast.makeText(requireContext(), "Firestore permissions not configured. Please deploy security rules.", Toast.LENGTH_LONG).show();
+                                showFallbackUI();
+                                return;
+                            }
+                            
+                            Toast.makeText(requireContext(), "Error loading notifications: " + error.getMessage(), Toast.LENGTH_LONG).show();
+                            showFallbackUI();
+                            return;
                         }
+                        
+                        List<Notification> allNotifications = new ArrayList<>();
+                        
+                        if (value != null) {
+                            Log.d("NOTIFICATIONS", "Found " + value.getDocuments().size() + " total notification documents");
+                            for (com.google.firebase.firestore.DocumentSnapshot doc : value.getDocuments()) {
+                                try {
+                                    Notification notification = doc.toObject(Notification.class);
+                                    if (notification != null) {
+                                        notification.setId(doc.getId());
+                                        // Validate notification data
+                                        if (notification.getRecipientUid() != null && notification.getType() != null) {
+                                            allNotifications.add(notification);
+                                        } else {
+                                            Log.w("NOTIFICATIONS", "Skipping malformed notification document: " + doc.getId());
+                                        }
+                                    }
+                                } catch (Exception e) {
+                                    Log.e("NOTIFICATIONS", "Error parsing notification document: " + doc.getId(), e);
+                                }
+                            }
+                        } else {
+                            Log.d("NOTIFICATIONS", "No notification documents found");
+                        }
+                        
+                        // Sort notifications by timestamp (newest first)
+                        try {
+                            allNotifications.sort((n1, n2) -> Long.compare(
+                                n2.getTimestamp() != null ? n2.getTimestamp().getTime() : 0,
+                                n1.getTimestamp() != null ? n1.getTimestamp().getTime() : 0
+                            ));
+                        } catch (Exception e) {
+                            Log.e("NOTIFICATIONS", "Error sorting notifications", e);
+                        }
+                        
+                        // Separate into nudges and payment confirmations
+                        allNudges.clear();
+                        allPayments.clear();
+                        
+                        for (Notification notification : allNotifications) {
+                            try {
+                                if ("nudge".equals(notification.getType())) {
+                                    allNudges.add(notification);
+                                    Log.d("NOTIFICATIONS", "Loaded nudge: " + notification.getMessage());
+                                } else if ("payment_confirmed".equals(notification.getType())) {
+                                    allPayments.add(notification);
+                                    Log.d("NOTIFICATIONS", "Loaded payment confirmation: " + notification.getMessage());
+                                }
+                            } catch (Exception e) {
+                                Log.e("NOTIFICATIONS", "Error processing notification: " + notification.getId(), e);
+                            }
+                        }
+                        
+                        Log.d("NOTIFICATIONS", "Updating UI - Nudges: " + allNudges.size() + ", Payments: " + allPayments.size());
+                        updateNudgesUI(getFilteredNudges());
+                        updatePaymentHistoryUI(getFilteredPayments());
+                        
+                    } catch (Exception e) {
+                        Log.e("NOTIFICATIONS", "Error in snapshot listener", e);
+                        showFallbackUI();
                     }
-                } else {
-                    Log.d("NOTIFICATIONS", "No notification documents found");
-                }
-                
-                // Sort notifications by timestamp (newest first)
-                allNotifications.sort((n1, n2) -> Long.compare(
-                    n2.getTimestamp() != null ? n2.getTimestamp().getTime() : 0,
-                    n1.getTimestamp() != null ? n1.getTimestamp().getTime() : 0
-                ));
-                
-                // Separate into nudges and payment confirmations
-                allNudges.clear();
-                allPayments.clear();
-                
-                for (Notification notification : allNotifications) {
-                    if ("nudge".equals(notification.getType())) {
-                        allNudges.add(notification);
-                        Log.d("NOTIFICATIONS", "Loaded nudge: " + notification.getMessage());
-                    } else if ("payment_confirmed".equals(notification.getType())) {
-                        allPayments.add(notification);
-                        Log.d("NOTIFICATIONS", "Loaded payment confirmation: " + notification.getMessage());
-                    }
-                }
-                
-                Log.d("NOTIFICATIONS", "Updating UI - Nudges: " + allNudges.size() + ", Payments: " + allPayments.size());
-                updateNudgesUI(getFilteredNudges());
-                updatePaymentHistoryUI(getFilteredPayments());
-            });
+                });
+        } catch (Exception e) {
+            Log.e("NOTIFICATIONS", "Error setting up notification listener", e);
+            showFallbackUI();
+        }
     }
 
     private void updateNudgesUI(List<Notification> nudges) {
-        if (nudges.isEmpty()) {
-            tvNudgesEmpty.setVisibility(View.VISIBLE);
-            rvNudges.setVisibility(View.GONE);
-        } else {
-            tvNudgesEmpty.setVisibility(View.GONE);
-            rvNudges.setVisibility(View.VISIBLE);
-            nudgeAdapter.updateNotifications(nudges);
+        try {
+            if (nudges == null || nudges.isEmpty()) {
+                if (tvNudgesEmpty != null) tvNudgesEmpty.setVisibility(View.VISIBLE);
+                if (rvNudges != null) rvNudges.setVisibility(View.GONE);
+            } else {
+                if (tvNudgesEmpty != null) tvNudgesEmpty.setVisibility(View.GONE);
+                if (rvNudges != null) rvNudges.setVisibility(View.VISIBLE);
+                if (nudgeAdapter != null) nudgeAdapter.updateNotifications(nudges);
+            }
+        } catch (Exception e) {
+            Log.e("NOTIFICATIONS", "Error updating nudges UI", e);
         }
     }
 
     private void updatePaymentHistoryUI(List<Notification> paymentConfirmations) {
-        if (paymentConfirmations.isEmpty()) {
-            tvPaymentHistoryEmpty.setVisibility(View.VISIBLE);
-            rvPaymentHistory.setVisibility(View.GONE);
-        } else {
-            tvPaymentHistoryEmpty.setVisibility(View.GONE);
-            rvPaymentHistory.setVisibility(View.VISIBLE);
-            paymentHistoryAdapter.updateNotifications(paymentConfirmations);
+        try {
+            if (paymentConfirmations == null || paymentConfirmations.isEmpty()) {
+                if (tvPaymentHistoryEmpty != null) tvPaymentHistoryEmpty.setVisibility(View.VISIBLE);
+                if (rvPaymentHistory != null) rvPaymentHistory.setVisibility(View.GONE);
+            } else {
+                if (tvPaymentHistoryEmpty != null) tvPaymentHistoryEmpty.setVisibility(View.GONE);
+                if (rvPaymentHistory != null) rvPaymentHistory.setVisibility(View.VISIBLE);
+                if (paymentHistoryAdapter != null) paymentHistoryAdapter.updateNotifications(paymentConfirmations);
+            }
+        } catch (Exception e) {
+            Log.e("NOTIFICATIONS", "Error updating payment history UI", e);
         }
     }
 
@@ -368,11 +416,11 @@ public class NotificationsFragment extends Fragment implements com.example.fairs
     
     private void showFallbackUI() {
         // Show empty states with helpful messages
-        tvNudgesEmpty.setText("Notifications temporarily unavailable");
+        tvNudgesEmpty.setText("No notifications yet");
         tvNudgesEmpty.setVisibility(View.VISIBLE);
         rvNudges.setVisibility(View.GONE);
         
-        tvPaymentHistoryEmpty.setText("Payment history temporarily unavailable");
+        tvPaymentHistoryEmpty.setText("No payment history yet");
         tvPaymentHistoryEmpty.setVisibility(View.VISIBLE);
         rvPaymentHistory.setVisibility(View.GONE);
     }

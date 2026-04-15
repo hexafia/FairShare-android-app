@@ -46,34 +46,59 @@ public class NotificationAdapter extends RecyclerView.Adapter<NotificationAdapte
 
     @Override
     public void onBindViewHolder(@NonNull NotificationViewHolder holder, int position) {
-        Notification notification = notifications.get(position);
-        
-        // Set message
-        holder.tvMessage.setText(notification.getMessage());
-        
-        // Set timestamp
-        SimpleDateFormat dateFormat = new SimpleDateFormat("MMM dd, HH:mm", Locale.getDefault());
-        String timeStr = dateFormat.format(notification.getTimestamp());
-        holder.tvTimestamp.setText(timeStr);
-        
-        // Set icon based on type
-        if ("nudge".equals(notification.getType())) {
-            holder.ivIcon.setImageResource(R.drawable.ic_notifications);
-        } else if ("payment_confirmed".equals(notification.getType())) {
-            holder.ivIcon.setImageResource(R.drawable.ic_check);
-        } else {
-            holder.ivIcon.setImageResource(R.drawable.ic_notifications);
-        }
-        
-        // Set read status
-        holder.itemView.setAlpha(notification.isRead() ? 0.6f : 1.0f);
-        
-        // Set click listener
-        holder.itemView.setOnClickListener(v -> {
-            if (listener != null) {
-                listener.onNotificationClick(notification);
+        try {
+            if (position >= notifications.size()) {
+                return;
             }
-        });
+            
+            Notification notification = notifications.get(position);
+            if (notification == null) {
+                return;
+            }
+            
+            // Set message with null check
+            if (holder.tvMessage != null && notification.getMessage() != null) {
+                holder.tvMessage.setText(notification.getMessage());
+            }
+            
+            // Set timestamp with null check
+            if (holder.tvTimestamp != null && notification.getTimestamp() != null) {
+                try {
+                    SimpleDateFormat dateFormat = new SimpleDateFormat("MMM dd, HH:mm", Locale.getDefault());
+                    String timeStr = dateFormat.format(notification.getTimestamp());
+                    holder.tvTimestamp.setText(timeStr);
+                } catch (Exception e) {
+                    holder.tvTimestamp.setText("Unknown time");
+                }
+            }
+            
+            // Set icon based on type with null check
+            if (holder.ivIcon != null) {
+                String type = notification.getType();
+                if ("nudge".equals(type)) {
+                    holder.ivIcon.setImageResource(R.drawable.ic_notifications);
+                } else if ("payment_confirmed".equals(type)) {
+                    holder.ivIcon.setImageResource(R.drawable.ic_check);
+                } else {
+                    holder.ivIcon.setImageResource(R.drawable.ic_notifications);
+                }
+            }
+            
+            // Set read status
+            if (holder.itemView != null) {
+                holder.itemView.setAlpha(notification.isRead() ? 0.6f : 1.0f);
+                
+                // Set click listener
+                holder.itemView.setOnClickListener(v -> {
+                    if (listener != null) {
+                        listener.onNotificationClick(notification);
+                    }
+                });
+            }
+        } catch (Exception e) {
+            // Prevent crash, log error for debugging
+            e.printStackTrace();
+        }
     }
 
     @Override

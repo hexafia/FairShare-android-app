@@ -91,15 +91,7 @@ public class MainActivity extends AppCompatActivity {
                         String type = doc.getDocument().getString("type");
                         String senderName = doc.getDocument().getString("senderName");
 
-                        if ("NUDGE".equals(type)) {
-                            runOnUiThread(() -> {
-                                Toast.makeText(this, "New payment reminder from " + senderName, Toast.LENGTH_SHORT).show();
-                            });
-                        } else if ("SETTLEMENT".equals(type)) {
-                            runOnUiThread(() -> {
-                                Toast.makeText(this, "Payment confirmed by " + senderName, Toast.LENGTH_SHORT).show();
-                            });
-                        }
+                        // Toast reminders removed - notifications should only appear in NotificationsFragment
                     }
                 }
             }
