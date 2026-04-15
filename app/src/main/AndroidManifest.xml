@@ -45,8 +45,28 @@
             android:exported="false" />
         <activity
             android:name=".ui.groups.GroupLobbyActivity"
+            android:exported="true"
+            android:theme="@style/Theme.FairShare">
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data android:scheme="fairshare" android:host="group" />
+            </intent-filter>
+        </activity>
+        <activity
+            android:name=".ui.notifications.NudgeHistoryActivity"
             android:exported="false"
             android:theme="@style/Theme.FairShare" />
+        <activity
+            android:name=".ui.notifications.PaymentHistoryActivity"
+            android:exported="false"
+            android:theme="@style/Theme.FairShare" />
+        <activity
+            android:name=".ui.notifications.SettledPaymentsActivity"
+            android:exported="false"
+            android:theme="@style/Theme.FairShare" />
+
 
         <provider
             android:name="androidx.core.content.FileProvider"

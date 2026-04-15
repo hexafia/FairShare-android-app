@@ -198,7 +198,7 @@
                             android:id="@+id/tvPaymentHistoryEmpty"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
-                            android:text="No settled payments"
+                            android:text="No settled payments yet"
                             android:textColor="@color/text_secondary"
                             android:textSize="14sp"
                             android:gravity="center"

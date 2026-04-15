@@ -125,8 +125,6 @@ public class NudgeHistoryActivity extends AppCompatActivity {
                     Log.d(TAG, "No nudge documents found");
                 }
                 
-                // Mark all as read when viewing "View All" page
-                markAllAsRead();
                 
                 Log.d(TAG, "Updating UI - Total Nudges: " + allNudges.size());
                 updateNudgesUI(getFilteredNudges());
@@ -165,8 +163,8 @@ public class NudgeHistoryActivity extends AppCompatActivity {
         
         // Navigate to Group Lobby's Settle Up tab
         Intent intent = new Intent(this, GroupLobbyActivity.class);
-        intent.putExtra("groupId", notification.getGroupId());
-        intent.putExtra("groupName", notification.getGroupName());
+        intent.putExtra("GROUP_ID", notification.getGroupId());
+        intent.putExtra("GROUP_NAME", notification.getGroupName());
         intent.putExtra("openSettleUpTab", true);
         startActivity(intent);
     }
@@ -204,8 +202,6 @@ public class NudgeHistoryActivity extends AppCompatActivity {
     @Override
     protected void onResume() {
         super.onResume();
-        // Mark all notifications as read when viewing this page
-        markAllAsRead();
     }
     
     @Override

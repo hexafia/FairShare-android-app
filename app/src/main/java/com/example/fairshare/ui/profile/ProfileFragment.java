@@ -53,6 +53,12 @@ public class ProfileFragment extends Fragment implements com.example.fairshare.F
         tvUserPhone = view.findViewById(R.id.tvUserPhone);
         tvUserLocation = view.findViewById(R.id.tvUserLocation);
 
+        // Settings gear button → opens SettingsActivity
+        view.findViewById(R.id.btnSettings).setOnClickListener(v -> {
+            Intent intent = new Intent(requireContext(), SettingsActivity.class);
+            startActivity(intent);
+        });
+
         // Edit Profile button
         view.findViewById(R.id.btnEditProfile).setOnClickListener(v -> showEditProfileDialog());
 
@@ -103,14 +109,7 @@ public class ProfileFragment extends Fragment implements com.example.fairshare.F
 
     
     private void calculateStats(List<Transaction> transactions) {
-        if (transactions == null) return;
-
-        double totalExpenses = 0;
-
-        for (Transaction t : transactions) {
-            // All transactions are now expenses (income tracking removed)
-            totalExpenses += t.getAmount();
-        }
+        // Stats cards removed from UI — no-op
     }
 
     @Override

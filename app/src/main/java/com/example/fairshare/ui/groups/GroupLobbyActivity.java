@@ -881,12 +881,12 @@ public class GroupLobbyActivity extends AppCompatActivity {
         notificationData.put("expenseName", expenseName);
         notificationData.put("groupName", groupName);
         notificationData.put("groupId", groupId);
-        notificationData.put("timestamp", System.currentTimeMillis());
+        notificationData.put("timestamp", com.google.firebase.firestore.FieldValue.serverTimestamp());
         notificationData.put("type", "nudge");
         notificationData.put("isRead", false);
-        // Create message with required format: <User B> nudged you. You still have a balance of PHP <amount> for <Expense> in <Group>.
-        String message = currentUserName + " nudged you. You still have a balance of PHP " + 
-                         String.format("%.2f", amount) + " for " + expenseName + " in " + groupName + ".";
+        // Create message with required format: <Name> nudged you. You still have a balance of Php<Amount> for <Expense> in <Group>
+        String message = currentUserName + " nudged you. You still have a balance of Php" + 
+                         String.format("%.2f", amount) + " for " + expenseName + " in " + groupName;
         notificationData.put("message", message);
 
         db.collection("notifications")
@@ -937,12 +937,12 @@ public class GroupLobbyActivity extends AppCompatActivity {
         notificationData.put("expenseId", settlement.expenseId);
         notificationData.put("groupName", groupName);
         notificationData.put("groupId", groupId);
-        notificationData.put("timestamp", System.currentTimeMillis());
-        notificationData.put("type", "settled_payment");
+        notificationData.put("timestamp", com.google.firebase.firestore.FieldValue.serverTimestamp());
+        notificationData.put("type", "payment_confirmed");
         notificationData.put("isRead", false);
-        // Create message with required format: <User B> has confirmed your payment for <Expense> in <Group> worth PHP <amount>.
-        String message = currentUserName + " has confirmed your payment for " + settlement.expenseTitle + " in " + groupName + 
-                         " worth PHP " + String.format("%.2f", settlement.settlementAmount) + ".";
+        // Create message with required format: <Name> has confirmed your payment for <Expense> in <Group> worth Php<Amount>
+        String message = currentUserName + " has confirmed your payment for " + 
+                         settlement.expenseTitle + " in " + groupName + " worth Php" + String.format("%.2f", settlement.settlementAmount);
         notificationData.put("message", message);
 
         db.collection("notifications")

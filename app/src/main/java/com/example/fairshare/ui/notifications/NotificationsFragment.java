@@ -190,9 +190,22 @@ public class NotificationsFragment extends Fragment implements com.example.fairs
         
         Log.d("NOTIFICATIONS", "Loading notifications for user: " + currentUserId);
         
-        // Load filtered notifications directly
-        loadFilteredNotifications();
+        // Try ultra-simple query first to test basic access
+        db.collection("notifications")
+            .limit(10)
+            .addSnapshotListener((value, error) -> {
+                if (error != null) {
+                    Log.e("NOTIFICATIONS", "Basic query failed: " + error.getMessage(), error);
+                    Toast.makeText(requireContext(), "Cannot access notifications. Check Firestore rules.", Toast.LENGTH_LONG).show();
+                    showFallbackUI();
+                    return;
+                }
+                
+                // If basic query works, try the filtered query
+                loadFilteredNotifications();
+            });
     }
+    
     
     private void loadFilteredNotifications() {
         // Load all notifications for current user
@@ -227,6 +240,11 @@ public class NotificationsFragment extends Fragment implements com.example.fairs
                                     Notification notification = doc.toObject(Notification.class);
                                     if (notification != null) {
                                         notification.setId(doc.getId());
+                                        // Skip test/dummy notifications
+                                        if ("test_user_123".equals(notification.getSenderUid())) {
+                                            Log.d("NOTIFICATIONS", "Skipping test notification: " + doc.getId());
+                                            continue;
+                                        }
                                         // Validate notification data
                                         if (notification.getRecipientUid() != null && notification.getType() != null) {
                                             allNotifications.add(notification);
@@ -261,9 +279,9 @@ public class NotificationsFragment extends Fragment implements com.example.fairs
                                 if ("nudge".equals(notification.getType())) {
                                     allNudges.add(notification);
                                     Log.d("NOTIFICATIONS", "Loaded nudge: " + notification.getMessage());
-                                } else if ("settled_payment".equals(notification.getType())) {
+                                } else if ("payment_confirmed".equals(notification.getType())) {
                                     allPayments.add(notification);
-                                    Log.d("NOTIFICATIONS", "Loaded settled payment: " + notification.getMessage());
+                                    Log.d("NOTIFICATIONS", "Loaded payment confirmation: " + notification.getMessage());
                                 }
                             } catch (Exception e) {
                                 Log.e("NOTIFICATIONS", "Error processing notification: " + notification.getId(), e);
@@ -319,10 +337,10 @@ public class NotificationsFragment extends Fragment implements com.example.fairs
         // Mark notification as read first
         markNotificationAsRead(notification.getId());
         
-        // Navigate to Group Lobby's Settle Up tab
+        // Navigate to Group Lobby's Settle Up tab using correct extra keys
         Intent intent = new Intent(requireContext(), GroupLobbyActivity.class);
-        intent.putExtra("groupId", notification.getGroupId());
-        intent.putExtra("groupName", notification.getGroupName());
+        intent.putExtra("GROUP_ID", notification.getGroupId());
+        intent.putExtra("GROUP_NAME", notification.getGroupName());
         intent.putExtra("openSettleUpTab", true);
         startActivity(intent);
     }
@@ -331,10 +349,10 @@ public class NotificationsFragment extends Fragment implements com.example.fairs
         // Mark notification as read first
         markNotificationAsRead(notification.getId());
         
-        // Navigate to Group Lobby's Ledger tab
+        // Navigate to Group Lobby's Ledger tab using correct extra keys
         Intent intent = new Intent(requireContext(), GroupLobbyActivity.class);
-        intent.putExtra("groupId", notification.getGroupId());
-        intent.putExtra("groupName", notification.getGroupName());
+        intent.putExtra("GROUP_ID", notification.getGroupId());
+        intent.putExtra("GROUP_NAME", notification.getGroupName());
         startActivity(intent);
     }
 
