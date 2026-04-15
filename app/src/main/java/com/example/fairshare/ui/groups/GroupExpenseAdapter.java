@@ -64,7 +64,7 @@ public class GroupExpenseAdapter extends ListAdapter<GroupExpense, GroupExpenseA
             tvExpenseTitle.setText(expense.getTitle());
             tvPaidBy.setText("Paid by " + (expense.getPayerName() != null ? expense.getPayerName() : "Unknown"));
             tvSplitInfo.setText("Split equally among " + expense.getParticipantCount() + " people");
-            tvAmount.setText(CurrencyHelper.formatWholeNumber(expense.getAmount()));
+            tvAmount.setText(CurrencyHelper.format(expense.getAmount()));
         }
     }
 }

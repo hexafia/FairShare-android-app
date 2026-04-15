@@ -11,9 +11,21 @@
         android:layout_gravity="center"
         android:orientation="vertical"
         android:padding="24dp"
-        android:background="@color/bg_card"
+        android:background="@drawable/bg_rounded_dialog"
         android:clickable="true"
         android:focusable="true">
+
+        <!-- Profile Image (centered) -->
+        <ImageView
+            android:id="@+id/ivProfileImage"
+            android:layout_width="80dp"
+            android:layout_height="80dp"
+            android:layout_gravity="center"
+            android:layout_marginBottom="16dp"
+            android:src="@drawable/ic_profile"
+            android:background="@drawable/bg_profile_circle"
+            android:padding="8dp"
+            android:scaleType="centerCrop" />
 
         <TextView
             android:layout_width="wrap_content"
@@ -22,7 +34,8 @@
             android:textColor="@color/text_primary"
             android:textSize="20sp"
             android:textStyle="bold"
-            android:layout_marginBottom="20dp" />
+            android:layout_marginBottom="20dp"
+            android:layout_gravity="center" />
 
         <!-- Display Name -->
         <com.google.android.material.textfield.TextInputLayout
@@ -30,7 +43,7 @@
             android:layout_height="wrap_content"
             android:layout_marginBottom="12dp"
             app:boxBackgroundColor="@color/bg_input"
-            app:boxStrokeColor="@color/primary"
+            app:boxStrokeColor="@color/teal"
             app:hintTextColor="@color/text_secondary"
             style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox">
 
@@ -40,6 +53,8 @@
                 android:layout_height="wrap_content"
                 android:hint="Display Name"
                 android:textColor="@color/text_primary"
+                android:textSize="18sp"
+                android:textStyle="bold"
                 android:inputType="text"
                 android:enabled="false"
                 android:focusable="false" />
@@ -53,7 +68,7 @@
             android:layout_height="wrap_content"
             android:layout_marginBottom="24dp"
             app:boxBackgroundColor="@color/bg_input"
-            app:boxStrokeColor="@color/primary"
+            app:boxStrokeColor="@color/teal"
             app:hintTextColor="@color/text_secondary"
             style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox">
 
@@ -63,6 +78,7 @@
                 android:layout_height="wrap_content"
                 android:hint="Tagline"
                 android:textColor="@color/text_primary"
+                android:textStyle="italic"
                 android:inputType="textCapCharacters"
                 android:enabled="false"
                 android:focusable="false" />
@@ -85,7 +101,7 @@
                 android:minWidth="80dp"
                 android:paddingStart="16dp"
                 android:paddingEnd="16dp"
-                app:backgroundTint="@color/primary" />
+                app:backgroundTint="@color/teal" />
 
         </LinearLayout>
 

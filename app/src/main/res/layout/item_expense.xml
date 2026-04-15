@@ -1,89 +1,79 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<com.google.android.material.card.MaterialCardView
+    xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:padding="16dp">
+    app:cardCornerRadius="14dp"
+    app:cardElevation="2dp"
+    app:cardBackgroundColor="@color/white"
+    android:layout_marginBottom="10dp">
 
-    <!-- Category color indicator -->
-    <View
-        android:id="@+id/categoryIndicator"
-        android:layout_width="4dp"
-        android:layout_height="0dp"
-        android:background="@color/teal"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="@id/profileIconBg"
-        app:layout_constraintBottom_toBottomOf="@id/tvItemDate" />
-
-    <!-- Profile Icon -->
-    <View
-        android:id="@+id/profileIconBg"
-        android:layout_width="48dp"
-        android:layout_height="48dp"
-        android:layout_marginStart="12dp"
-        android:background="@drawable/bg_group_icon"
-        app:layout_constraintStart_toEndOf="@id/categoryIndicator"
-        app:layout_constraintTop_toTopOf="parent" />
-
-    <ImageView
-        android:id="@+id/ivProfileIcon"
-        android:layout_width="24dp"
-        android:layout_height="24dp"
-        android:src="@drawable/ic_profile"
-        app:layout_constraintBottom_toBottomOf="@id/profileIconBg"
-        app:layout_constraintEnd_toEndOf="@id/profileIconBg"
-        app:layout_constraintStart_toStartOf="@id/profileIconBg"
-        app:layout_constraintTop_toTopOf="@id/profileIconBg"
-        app:tint="@color/teal" />
-
-    <TextView
-        android:id="@+id/tvItemTitle"
-        style="@style/TextAppearance.MyApp.Heading3"
-        android:layout_width="wrap_content"
+    <LinearLayout
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginStart="12dp"
-        android:text="Expense"
-        app:layout_constraintStart_toEndOf="@id/profileIconBg"
-        app:layout_constraintTop_toTopOf="@id/profileIconBg" />
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:padding="16dp">
 
-    <TextView
-        android:id="@+id/tvItemCategory"
-        style="@style/TextAppearance.MyApp.BodySmaller"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Category"
-        android:textColor="@color/gray"
-        app:layout_constraintStart_toStartOf="@id/tvItemTitle"
-        app:layout_constraintTop_toBottomOf="@id/tvItemTitle" />
+        <!-- Category color indicator -->
+        <View
+            android:id="@+id/categoryIndicator"
+            android:layout_width="4dp"
+            android:layout_height="match_parent"
+            android:background="@color/teal"
+            android:layout_marginEnd="12dp" />
 
-    <TextView
-        android:id="@+id/tvItemDate"
-        style="@style/TextAppearance.MyApp.BodySmaller"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Just now"
-        android:textColor="@color/gray"
-        app:layout_constraintStart_toStartOf="@id/tvItemTitle"
-        app:layout_constraintTop_toBottomOf="@id/tvItemCategory" />
+        <!-- Content -->
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:orientation="vertical">
 
-    <TextView
-        android:id="@+id/tvItemAmount"
-        style="@style/TextAppearance.MyApp.Heading3"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="₱1,800"
-        app:layout_constraintEnd_toStartOf="@id/btnDelete"
-        app:layout_constraintTop_toTopOf="@id/tvItemTitle" />
+            <TextView
+                android:id="@+id/tvItemTitle"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textColor="@color/text_primary"
+                android:textSize="16sp"
+                android:textStyle="bold"
+                android:maxLines="1"
+                android:ellipsize="end"
+                tools:text="Gasoline" />
 
-    <ImageButton
-        android:id="@+id/btnDelete"
-        android:layout_width="32dp"
-        android:layout_height="32dp"
-        android:background="?attr/selectableItemBackgroundBorderless"
-        android:src="@android:drawable/ic_menu_delete"
-        android:contentDescription="Delete"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintBottom_toBottomOf="parent" />
+            <TextView
+                android:id="@+id/tvItemCategory"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textColor="@color/text_secondary"
+                android:textSize="12sp"
+                android:layout_marginTop="2dp"
+                tools:text="Personal Expense" />
 
-</androidx.constraintlayout.widget.ConstraintLayout>
+            <TextView
+                android:id="@+id/tvItemDate"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textColor="@color/text_secondary"
+                android:textSize="11sp"
+                android:layout_marginTop="4dp"
+                tools:text="Just now" />
+
+        </LinearLayout>
+
+        <!-- Amount -->
+        <TextView
+            android:id="@+id/tvItemAmount"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textSize="16sp"
+            android:textStyle="bold"
+            android:textColor="@color/text_primary"
+            android:paddingStart="4dp"
+            tools:text="₱2,000" />
+
+    </LinearLayout>
+
+</com.google.android.material.card.MaterialCardView>
