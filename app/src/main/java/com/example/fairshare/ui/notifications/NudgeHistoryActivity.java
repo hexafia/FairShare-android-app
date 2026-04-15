@@ -1,5 +1,6 @@
 package com.example.fairshare.ui.notifications;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
@@ -12,9 +13,9 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.fairshare.Notification;
-import com.example.fairshare.NotificationAdapter;
 import com.example.fairshare.R;
 import com.example.fairshare.ui.groups.GroupLobbyActivity;
+import com.example.fairshare.ui.notifications.NotificationAdapter;
 import com.google.android.material.chip.Chip;
 import com.google.android.material.chip.ChipGroup;
 import com.google.firebase.auth.FirebaseAuth;
