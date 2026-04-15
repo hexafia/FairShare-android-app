@@ -865,27 +865,29 @@ public class GroupLobbyActivity extends AppCompatActivity {
             return;
         }
 
-        // Create notification object
-        Notification notification = Notification.createNudgeNotification(
-            debtorUid,           // recipient
-            currentUserId,       // sender
-            currentUserName,     // sender name
-            groupId,             // group ID
-            groupName,           // group name
-            null,                // expense ID (can be null for nudges)
-            expenseName,         // expense name
-            amount               // amount
-        );
-
-        // Save to Firestore
+        // Create notification document in Firestore
         FirebaseFirestore db = FirebaseFirestore.getInstance();
+        Map<String, Object> notificationData = new HashMap<>();
+        notificationData.put("recipientUid", debtorUid);
+        notificationData.put("senderName", currentUserName);
+        notificationData.put("senderUid", currentUserId);
+        notificationData.put("amount", amount);
+        notificationData.put("expenseName", expenseName);
+        notificationData.put("groupName", groupName);
+        notificationData.put("groupId", groupId);
+        notificationData.put("timestamp", System.currentTimeMillis());
+        notificationData.put("type", "NUDGE");
+        notificationData.put("isRead", false);
+
         db.collection("notifications")
-            .add(notification)
+            .add(notificationData)
             .addOnSuccessListener(documentReference -> {
                 Toast.makeText(this, "Nudge sent successfully!", Toast.LENGTH_SHORT).show();
+                Log.d("NOTIFICATION", "Nudge notification created with ID: " + documentReference.getId());
             })
             .addOnFailureListener(e -> {
                 Toast.makeText(this, "Failed to send nudge: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                Log.e("NOTIFICATION", "Failed to create nudge notification", e);
             });
     }
 
@@ -908,28 +910,28 @@ public class GroupLobbyActivity extends AppCompatActivity {
             return;
         }
 
-        // Create payment confirmation notification
-        Notification notification = Notification.createPaymentConfirmationNotification(
-            recipientUid,        // recipient (creditor)
-            currentUserId,       // sender (debtor who just paid)
-            currentUserName,     // sender name
-            groupId,             // group ID
-            groupName,           // group name
-            settlement.expenseId, // expense ID
-            settlement.expenseTitle, // expense name
-            settlement.settlementAmount // amount
-        );
-
-        // Save to Firestore
+        // Create payment confirmation notification document in Firestore
         FirebaseFirestore db = FirebaseFirestore.getInstance();
+        Map<String, Object> notificationData = new HashMap<>();
+        notificationData.put("recipientUid", recipientUid);
+        notificationData.put("senderName", currentUserName);
+        notificationData.put("senderUid", currentUserId);
+        notificationData.put("amount", settlement.settlementAmount);
+        notificationData.put("expenseName", settlement.expenseTitle);
+        notificationData.put("expenseId", settlement.expenseId);
+        notificationData.put("groupName", groupName);
+        notificationData.put("groupId", groupId);
+        notificationData.put("timestamp", System.currentTimeMillis());
+        notificationData.put("type", "SETTLEMENT");
+        notificationData.put("isRead", false);
+
         db.collection("notifications")
-            .add(notification)
+            .add(notificationData)
             .addOnSuccessListener(documentReference -> {
-                // Notification sent successfully
-                Log.d("NOTIFICATION", "Payment confirmation notification sent");
+                Log.d("NOTIFICATION", "Payment confirmation notification created with ID: " + documentReference.getId());
             })
             .addOnFailureListener(e -> {
-                Log.e("NOTIFICATION", "Failed to send payment confirmation: " + e.getMessage());
+                Log.e("NOTIFICATION", "Failed to create payment confirmation notification", e);
             });
     }
 

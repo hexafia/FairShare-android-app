@@ -22,7 +22,6 @@ import com.google.firebase.auth.AuthCredential;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.GoogleAuthProvider;
 import com.google.firebase.firestore.FirebaseFirestore;
-import com.google.firebase.messaging.FirebaseMessaging;
 
 public class LoginActivity extends AppCompatActivity {
 
@@ -131,73 +130,9 @@ public class LoginActivity extends AppCompatActivity {
     }
 
     private void startMainActivity() {
-        // Retrieve and save FCM token
-        retrieveAndSaveFcmToken();
-        
         Intent intent = new Intent(this, MainActivity.class);
         startActivity(intent);
         finish();
     }
     
-    private void retrieveAndSaveFcmToken() {
-        FirebaseMessaging.getInstance().getToken()
-            .addOnCompleteListener(task -> {
-                if (!task.isSuccessful()) {
-                    Log.w(TAG, "Fetching FCM registration token failed", task.getException());
-                    return;
-                }
-
-                // Get new FCM registration token
-                String token = task.getResult();
-                Log.d(TAG, "FCM Token: " + token);
-                
-                // Save token to Firestore
-                saveFcmTokenToFirestore(token);
-            });
-    }
-    
-    private void saveFcmTokenToFirestore(String token) {
-        if (mAuth.getCurrentUser() == null) {
-            Log.w(TAG, "No authenticated user to save FCM token");
-            return;
-        }
-        
-        String userId = mAuth.getCurrentUser().getUid();
-        FirebaseFirestore db = FirebaseFirestore.getInstance();
-        
-        // Create or update user document with FCM token
-        db.collection("users").document(userId)
-            .get()
-            .addOnSuccessListener(documentSnapshot -> {
-                if (documentSnapshot.exists()) {
-                    // Update existing user document
-                    db.collection("users").document(userId)
-                        .update("fcmToken", token)
-                        .addOnSuccessListener(aVoid -> {
-                            Log.d(TAG, "FCM token updated successfully");
-                        })
-                        .addOnFailureListener(e -> {
-                            Log.e(TAG, "Failed to update FCM token", e);
-                        });
-                } else {
-                    // Create new user document
-                    java.util.Map<String, Object> userData = new java.util.HashMap<>();
-                    userData.put("fcmToken", token);
-                    userData.put("email", mAuth.getCurrentUser().getEmail());
-                    userData.put("displayName", mAuth.getCurrentUser().getDisplayName());
-                    
-                    db.collection("users").document(userId)
-                        .set(userData)
-                        .addOnSuccessListener(aVoid -> {
-                            Log.d(TAG, "User document created with FCM token");
-                        })
-                        .addOnFailureListener(e -> {
-                            Log.e(TAG, "Failed to create user document with FCM token", e);
-                        });
-                }
-            })
-            .addOnFailureListener(e -> {
-                Log.e(TAG, "Failed to check user document", e);
-            });
-    }
 }
