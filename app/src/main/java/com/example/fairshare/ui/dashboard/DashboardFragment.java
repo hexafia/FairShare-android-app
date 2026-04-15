@@ -55,6 +55,10 @@ public class DashboardFragment extends Fragment implements com.example.fairshare
     private List<Transaction> currentPersonalExpenses = new ArrayList<>();
     private List<GroupExpense> currentGroupExpenses = new ArrayList<>();
     private List<com.example.fairshare.Group> currentGroups = new ArrayList<>();
+    
+    // Master lists for stats calculation (decoupled from filtered display)
+    private List<Transaction> masterPersonalExpenses = new ArrayList<>();
+    private List<GroupExpense> masterGroupExpenses = new ArrayList<>();
 
     // OCR and Camera
     private ActivityResultLauncher<Intent> cameraLauncher;
@@ -119,6 +123,7 @@ public class DashboardFragment extends Fragment implements com.example.fairshare
 
         viewModel.getPersonalExpenses().observe(getViewLifecycleOwner(), transactions -> {
             currentPersonalExpenses = transactions != null ? transactions : new ArrayList<>();
+            masterPersonalExpenses = transactions != null ? transactions : new ArrayList<>();
             adapter.submitList(currentPersonalExpenses);
             updateSummary();
 
@@ -133,6 +138,7 @@ public class DashboardFragment extends Fragment implements com.example.fairshare
 
         viewModel.getGroupExpenses().observe(getViewLifecycleOwner(), expenses -> {
             currentGroupExpenses = expenses != null ? expenses : new ArrayList<>();
+            masterGroupExpenses = expenses != null ? expenses : new ArrayList<>();
             updateSummary();
         });
 
@@ -164,7 +170,7 @@ public class DashboardFragment extends Fragment implements com.example.fairshare
         String myUid = user.getUid();
 
         double personalSpent = 0;
-        for (Transaction t : currentPersonalExpenses) {
+        for (Transaction t : masterPersonalExpenses) {
             if (isCurrentMonth(t.getDate())) {
                 personalSpent += t.getAmount();
             }
@@ -172,7 +178,7 @@ public class DashboardFragment extends Fragment implements com.example.fairshare
 
         List<GroupExpense> monthGroupExpenses = new ArrayList<>();
         double groupPaid = 0;
-        for (GroupExpense ge : currentGroupExpenses) {
+        for (GroupExpense ge : masterGroupExpenses) {
             if (isCurrentMonth(ge.getTimestamp())) {
                 monthGroupExpenses.add(ge);
                 if (myUid.equals(ge.getPayerUid())) {

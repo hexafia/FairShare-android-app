@@ -195,6 +195,24 @@
 
             </com.google.android.material.card.MaterialCardView>
 
+            <!-- Mark as Accomplished Button (visible only to group creator) - Above summary cards -->
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnMarkAsAccomplished"
+                android:layout_width="match_parent"
+                android:layout_height="56dp"
+                android:layout_marginStart="16dp"
+                android:layout_marginEnd="16dp"
+                android:layout_marginBottom="16dp"
+                android:text="Mark as Accomplished"
+                android:textAllCaps="false"
+                android:textSize="16sp"
+                android:textStyle="bold"
+                android:visibility="gone"
+                app:backgroundTint="@color/orange"
+                app:cornerRadius="12dp"
+                app:icon="@drawable/ic_check"
+                app:iconGravity="textStart" />
+
             <!-- Tab layout -->
             <com.google.android.material.tabs.TabLayout
                 android:id="@+id/tabLayout"
@@ -382,21 +400,5 @@
         app:tint="@color/white"
         app:fabSize="normal" />
 
-    <!-- Mark as Accomplished Button (visible only to group creator) - Pinned to bottom -->
-    <com.google.android.material.button.MaterialButton
-        android:id="@+id/btnMarkAsAccomplished"
-        android:layout_width="match_parent"
-        android:layout_height="56dp"
-        android:layout_gravity="bottom"
-        android:layout_margin="16dp"
-        android:text="Mark as Accomplished"
-        android:textAllCaps="false"
-        android:textSize="16sp"
-        android:textStyle="bold"
-        android:visibility="gone"
-        app:backgroundTint="@color/orange"
-        app:cornerRadius="12dp"
-        app:icon="@drawable/ic_check"
-        app:iconGravity="textStart" />
-
+    
 </androidx.coordinatorlayout.widget.CoordinatorLayout>
