@@ -2,16 +2,11 @@ package com.example.fairshare.ui.profile;
 
 import android.app.Dialog;
 import android.content.Intent;
-import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
 import android.os.Bundle;
-import android.os.Handler;
-import android.os.Looper;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.Window;
-import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -30,12 +25,7 @@ import com.google.android.material.button.MaterialButton;
 import com.google.android.material.textfield.TextInputEditText;
 import com.google.android.material.textfield.TextInputLayout;
 
-import java.io.InputStream;
-import java.net.HttpURLConnection;
-import java.net.URL;
 import java.util.List;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 
 public class ProfileFragment extends Fragment implements com.example.fairshare.FastActionHandler {
 
@@ -45,13 +35,7 @@ public class ProfileFragment extends Fragment implements com.example.fairshare.F
 
     // Views
     private TextView tvDisplayName, tvTagline, tvUserEmail, tvUserPhone, tvUserLocation;
-    private TextView tvAvatarInitial;
-    private View flAvatarFallback;
-    private ImageView ivAvatar;
     private TextView tvTotalExpenses;
-
-    private final ExecutorService imageExecutor = Executors.newSingleThreadExecutor();
-    private final Handler mainHandler = new Handler(Looper.getMainLooper());
 
     @Nullable
     @Override
@@ -69,9 +53,6 @@ public class ProfileFragment extends Fragment implements com.example.fairshare.F
         tvUserEmail = view.findViewById(R.id.tvUserEmail);
         tvUserPhone = view.findViewById(R.id.tvUserPhone);
         tvUserLocation = view.findViewById(R.id.tvUserLocation);
-        tvAvatarInitial = view.findViewById(R.id.tvAvatarInitial);
-        flAvatarFallback = view.findViewById(R.id.flAvatarFallback);
-        ivAvatar = view.findViewById(R.id.ivAvatar);
         tvTotalExpenses = view.findViewById(R.id.tvTotalExpenses);
 
         // Settings gear button → opens SettingsActivity
@@ -126,47 +107,9 @@ public class ProfileFragment extends Fragment implements com.example.fairshare.F
                 ? profile.getPhoneNumber() : "Not set");
         tvUserLocation.setText(profile.getLocation() != null && !profile.getLocation().isEmpty()
                 ? profile.getLocation() : "Not set");
-
-        // Avatar: show Google photo if available, otherwise show initial letter
-        if (profile.getPhotoUrl() != null && !profile.getPhotoUrl().isEmpty()) {
-            loadAvatarFromUrl(profile.getPhotoUrl());
-        } else {
-            ivAvatar.setVisibility(View.GONE);
-            flAvatarFallback.setVisibility(View.VISIBLE);
-            tvAvatarInitial.setText(String.valueOf(name.charAt(0)).toUpperCase());
-        }
     }
 
-    private void loadAvatarFromUrl(String urlString) {
-        imageExecutor.execute(() -> {
-            try {
-                URL url = new URL(urlString);
-                HttpURLConnection connection = (HttpURLConnection) url.openConnection();
-                connection.setDoInput(true);
-                connection.connect();
-                InputStream input = connection.getInputStream();
-                Bitmap bitmap = BitmapFactory.decodeStream(input);
-                input.close();
-
-                mainHandler.post(() -> {
-                    if (isAdded() && ivAvatar != null) {
-                        ivAvatar.setImageBitmap(bitmap);
-                        ivAvatar.setVisibility(View.VISIBLE);
-                        flAvatarFallback.setVisibility(View.GONE);
-                    }
-                });
-            } catch (Exception e) {
-                // Fallback to initial letter on error
-                mainHandler.post(() -> {
-                    if (isAdded()) {
-                        ivAvatar.setVisibility(View.GONE);
-                        flAvatarFallback.setVisibility(View.VISIBLE);
-                    }
-                });
-            }
-        });
-    }
-
+    
     private void calculateStats(List<Transaction> transactions) {
         if (transactions == null) return;
 

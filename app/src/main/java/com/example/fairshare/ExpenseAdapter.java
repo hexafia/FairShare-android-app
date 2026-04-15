@@ -61,8 +61,6 @@ public class ExpenseAdapter extends ListAdapter<Transaction, ExpenseAdapter.Expe
 
     class ExpenseViewHolder extends RecyclerView.ViewHolder {
         private final TextView tvTitle, tvCategory, tvAmount, tvDate;
-        private final ImageButton btnDelete;
-        private final View categoryIndicator;
 
         ExpenseViewHolder(@NonNull View itemView) {
             super(itemView);
@@ -70,8 +68,6 @@ public class ExpenseAdapter extends ListAdapter<Transaction, ExpenseAdapter.Expe
             tvCategory = itemView.findViewById(R.id.tvItemCategory);
             tvAmount = itemView.findViewById(R.id.tvItemAmount);
             tvDate = itemView.findViewById(R.id.tvItemDate);
-            btnDelete = itemView.findViewById(R.id.btnDelete);
-            categoryIndicator = itemView.findViewById(R.id.categoryIndicator);
         }
 
         void bind(Transaction transaction) {
@@ -111,9 +107,6 @@ public class ExpenseAdapter extends ListAdapter<Transaction, ExpenseAdapter.Expe
                     indicatorColor = R.color.cat_other;
                     break;
             }
-            categoryIndicator.setBackgroundColor(ContextCompat.getColor(itemView.getContext(), indicatorColor));
-
-            btnDelete.setOnClickListener(v -> deleteListener.onDeleteClick(transaction));
         }
     }
 }

@@ -74,94 +74,152 @@
                     android:orientation="vertical"
                     android:padding="24dp">
 
-                    <!-- Avatar area -->
-                    <FrameLayout
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content">
-
-                        <!-- Actual avatar image -->
-                        <ImageView
-                            android:id="@+id/ivAvatar"
-                            android:layout_width="100dp"
-                            android:layout_height="100dp"
-                            android:visibility="gone"
-                            android:scaleType="centerCrop" />
-
-                        <!-- Fallback avatar with initial letter -->
-                        <FrameLayout
-                            android:id="@+id/flAvatarFallback"
-                            android:layout_width="100dp"
-                            android:layout_height="100dp">
-                            <View
-                                android:layout_width="100dp"
-                                android:layout_height="100dp"
-                                android:background="@drawable/bg_group_icon" />
-                            <TextView
-                                android:id="@+id/tvAvatarInitial"
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:layout_gravity="center"
-                                android:text="U"
-                                android:textColor="@color/teal"
-                                android:textSize="40sp"
-                                android:textStyle="bold" />
-                        </FrameLayout>
-
-                        <ImageView
-                            android:layout_width="32dp"
-                            android:layout_height="32dp"
-                            android:layout_gravity="bottom|end"
-                            android:background="@drawable/bg_group_icon"
-                            android:backgroundTint="@color/orange"
-                            android:padding="6dp"
-                            android:src="@drawable/ic_scan"
-                            app:tint="@color/white" />
-                    </FrameLayout>
-
-                    <!-- Profile info -->
+                    <!-- Profile info - Now the focal point -->
                     <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:layout_marginTop="16dp"
                         android:orientation="vertical"
                         android:gravity="center">
 
                         <TextView
                             android:id="@+id/tvDisplayName"
-                            style="@style/TextAppearance.MyApp.Heading2"
+                            style="@style/TextAppearance.MyApp.Heading1"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
+                            android:textColor="@color/text_primary"
+                            android:textSize="32sp"
+                            android:textStyle="bold"
+                            android:layout_marginBottom="8dp"
                             tools:text="User Name" />
 
                         <TextView
                             android:id="@+id/tvTagline"
-                            style="@style/TextAppearance.MyApp.BodySmall"
+                            style="@style/TextAppearance.MyApp.BodyNormal"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:textColor="@color/gray"
-                            android:layout_marginBottom="16dp"
+                            android:textStyle="italic"
+                            android:textSize="16sp"
+                            android:layout_marginBottom="24dp"
                             tools:text="#0000" />
                     </LinearLayout>
 
+                    <!-- Contact information with icons -->
                     <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:orientation="vertical">
-                        <TextView style="@style/TextAppearance.MyApp.BodySmall" android:text="@string/label_email" android:textColor="@color/gray" android:layout_width="wrap_content" android:layout_height="wrap_content" />
-                        <TextView android:id="@+id/tvUserEmail" style="@style/TextAppearance.MyApp.BodyNormal" android:text="@string/default_user_email" android:layout_marginBottom="12dp" android:layout_width="wrap_content" android:layout_height="wrap_content" />
+                        android:orientation="vertical"
+                        android:layout_marginBottom="24dp">
 
-                        <TextView style="@style/TextAppearance.MyApp.BodySmall" android:text="@string/label_phone" android:textColor="@color/gray" android:layout_width="wrap_content" android:layout_height="wrap_content" />
-                        <TextView android:id="@+id/tvUserPhone" style="@style/TextAppearance.MyApp.BodyNormal" android:text="@string/default_user_phone" android:layout_marginBottom="12dp" android:layout_width="wrap_content" android:layout_height="wrap_content" />
+                        <!-- Email -->
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:orientation="horizontal"
+                            android:gravity="center_vertical"
+                            android:layout_marginBottom="16dp">
+                            
+                            <ImageView
+                                android:layout_width="20dp"
+                                android:layout_height="20dp"
+                                android:src="@android:drawable/ic_dialog_email"
+                                android:tint="@color/teal"
+                                android:layout_marginEnd="12dp" />
+                            
+                            <LinearLayout
+                                android:layout_width="0dp"
+                                android:layout_height="wrap_content"
+                                android:layout_weight="1"
+                                android:orientation="vertical">
+                                <TextView 
+                                    style="@style/TextAppearance.MyApp.BodySmall" 
+                                    android:text="@string/label_email" 
+                                    android:textColor="@color/gray" 
+                                    android:layout_width="wrap_content" 
+                                    android:layout_height="wrap_content" />
+                                <TextView 
+                                    android:id="@+id/tvUserEmail" 
+                                    style="@style/TextAppearance.MyApp.BodyNormal" 
+                                    android:text="@string/default_user_email" 
+                                    android:layout_width="wrap_content" 
+                                    android:layout_height="wrap_content" />
+                            </LinearLayout>
+                        </LinearLayout>
 
-                        <TextView style="@style/TextAppearance.MyApp.BodySmall" android:text="@string/label_location" android:textColor="@color/gray" android:layout_width="wrap_content" android:layout_height="wrap_content" />
-                        <TextView android:id="@+id/tvUserLocation" style="@style/TextAppearance.MyApp.BodyNormal" android:text="@string/default_user_location" android:layout_width="wrap_content" android:layout_height="wrap_content" />
+                        <!-- Phone -->
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:orientation="horizontal"
+                            android:gravity="center_vertical"
+                            android:layout_marginBottom="16dp">
+                            
+                            <ImageView
+                                android:layout_width="20dp"
+                                android:layout_height="20dp"
+                                android:src="@android:drawable/ic_menu_call"
+                                android:tint="@color/teal"
+                                android:layout_marginEnd="12dp" />
+                            
+                            <LinearLayout
+                                android:layout_width="0dp"
+                                android:layout_height="wrap_content"
+                                android:layout_weight="1"
+                                android:orientation="vertical">
+                                <TextView 
+                                    style="@style/TextAppearance.MyApp.BodySmall" 
+                                    android:text="@string/label_phone" 
+                                    android:textColor="@color/gray" 
+                                    android:layout_width="wrap_content" 
+                                    android:layout_height="wrap_content" />
+                                <TextView 
+                                    android:id="@+id/tvUserPhone" 
+                                    style="@style/TextAppearance.MyApp.BodyNormal" 
+                                    android:text="@string/default_user_phone" 
+                                    android:layout_width="wrap_content" 
+                                    android:layout_height="wrap_content" />
+                            </LinearLayout>
+                        </LinearLayout>
+
+                        <!-- Location -->
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:orientation="horizontal"
+                            android:gravity="center_vertical">
+                            
+                            <ImageView
+                                android:layout_width="20dp"
+                                android:layout_height="20dp"
+                                android:src="@android:drawable/ic_menu_mylocation"
+                                android:tint="@color/teal"
+                                android:layout_marginEnd="12dp" />
+                            
+                            <LinearLayout
+                                android:layout_width="0dp"
+                                android:layout_height="wrap_content"
+                                android:layout_weight="1"
+                                android:orientation="vertical">
+                                <TextView 
+                                    style="@style/TextAppearance.MyApp.BodySmall" 
+                                    android:text="@string/label_location" 
+                                    android:textColor="@color/gray" 
+                                    android:layout_width="wrap_content" 
+                                    android:layout_height="wrap_content" />
+                                <TextView 
+                                    android:id="@+id/tvUserLocation" 
+                                    style="@style/TextAppearance.MyApp.BodyNormal" 
+                                    android:text="@string/default_user_location" 
+                                    android:layout_width="wrap_content" 
+                                    android:layout_height="wrap_content" />
+                            </LinearLayout>
+                        </LinearLayout>
                     </LinearLayout>
 
                     <com.google.android.material.button.MaterialButton
                         android:id="@+id/btnEditProfile"
                         android:layout_width="match_parent"
                         android:layout_height="56dp"
-                        android:layout_marginTop="24dp"
                         android:text="@string/edit_profile"
                         android:textAllCaps="false"
                         app:backgroundTint="@color/teal"
