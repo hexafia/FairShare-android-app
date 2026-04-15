@@ -39,8 +39,9 @@ public class GroupsFragment extends Fragment implements FastActionHandler {
     private RecyclerView rvActiveGroups;
     private RecyclerView rvSettledGroups;
     private com.google.android.material.floatingactionbutton.FloatingActionButton fabGlobalAction;
-    private Spinner spinnerGroupFilter;
-    private boolean showSettledGroups = true; // Default to "Show All"
+    private ImageButton btnSettledGroupsMenu;
+    private List<Group> allSettledGroups = new ArrayList<>();
+    private int settledGroupsDisplayMode = 0; // 0=Show All, 1=Hide All, 2=Show Recent (5)
 
     @Nullable
     @Override
@@ -57,10 +58,10 @@ public class GroupsFragment extends Fragment implements FastActionHandler {
         layoutEmptySettled = view.findViewById(R.id.layoutEmptySettled);
         rvActiveGroups = view.findViewById(R.id.rvActiveGroups);
         rvSettledGroups = view.findViewById(R.id.rvSettledGroups);
-        spinnerGroupFilter = view.findViewById(R.id.spinnerGroupFilter);
+        btnSettledGroupsMenu = view.findViewById(R.id.btnSettledGroupsMenu);
         
-        // Setup filter spinner
-        setupFilterSpinner();
+        // Setup settled groups menu
+        setupSettledGroupsMenu();
 
         // Setup button listeners
         MaterialButton btnCreateNewGroup = view.findViewById(R.id.btnCreateNewGroup);
@@ -101,24 +102,20 @@ public class GroupsFragment extends Fragment implements FastActionHandler {
         groupRepository.getGroups().observe(getViewLifecycleOwner(), groups -> {
             if (groups != null) {
                 List<Group> activeGroups = new ArrayList<>();
-                List<Group> settledGroups = new ArrayList<>();
+                allSettledGroups = new ArrayList<>();
 
                 for (Group group : groups) {
                     if (group.isActive()) {
                         activeGroups.add(group);
                     } else if (group.isSettled()) {
-                        settledGroups.add(group);
+                        allSettledGroups.add(group);
                     }
                 }
 
                 activeAdapter.submitList(activeGroups);
                 
-                // Apply filter to settled groups
-                if (showSettledGroups) {
-                    settledAdapter.submitList(settledGroups);
-                } else {
-                    settledAdapter.submitList(new ArrayList<>()); // Hide settled groups
-                }
+                // Apply settled groups display mode
+                updateSettledGroupsDisplay();
                 
                 // Update empty states
                 if (activeGroups.isEmpty()) {
@@ -129,21 +126,6 @@ public class GroupsFragment extends Fragment implements FastActionHandler {
                     rvActiveGroups.setVisibility(View.VISIBLE);
                 }
 
-                // Handle settled groups empty state based on filter
-                if (showSettledGroups) {
-                    if (settledGroups.isEmpty()) {
-                        layoutEmptySettled.setVisibility(View.VISIBLE);
-                        rvSettledGroups.setVisibility(View.GONE);
-                    } else {
-                        layoutEmptySettled.setVisibility(View.GONE);
-                        rvSettledGroups.setVisibility(View.VISIBLE);
-                    }
-                } else {
-                    // Hide settled groups section entirely when filter is "Hide Settled"
-                    layoutEmptySettled.setVisibility(View.GONE);
-                    rvSettledGroups.setVisibility(View.GONE);
-                }
-
                 // Control FAB visibility - only show when Active Groups section is active
                 if (fabGlobalAction != null) {
                     fabGlobalAction.setVisibility(View.VISIBLE); // Always show in groups fragment for creating new groups
@@ -152,26 +134,70 @@ public class GroupsFragment extends Fragment implements FastActionHandler {
         });
     }
 
-    private void setupFilterSpinner() {
-        String[] filterOptions = {"Show All", "Hide Settled"};
-        ArrayAdapter<String> adapter = new ArrayAdapter<>(requireContext(), 
-                android.R.layout.simple_spinner_item, filterOptions);
-        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-        spinnerGroupFilter.setAdapter(adapter);
+    private void setupSettledGroupsMenu() {
+        btnSettledGroupsMenu.setOnClickListener(v -> showSettledGroupsPopupMenu());
+    }
 
-        spinnerGroupFilter.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
-            @Override
-            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-                showSettledGroups = position == 0; // "Show All" is position 0
-                // Refresh the display
-                if (groupRepository != null) {
-                    groupRepository.getGroups().getValue(); // This will trigger the observer
-                }
+    private void showSettledGroupsPopupMenu() {
+        PopupMenu popup = new PopupMenu(requireContext(), btnSettledGroupsMenu);
+        popup.getMenuInflater().inflate(R.menu.settled_groups_menu, popup.getMenu());
+
+        popup.setOnMenuItemClickListener(item -> {
+            int itemId = item.getItemId();
+            if (itemId == R.id.action_hide_all_settled) {
+                settledGroupsDisplayMode = 1; // Hide All
+                updateSettledGroupsDisplay();
+                return true;
+            } else if (itemId == R.id.action_show_recent_5) {
+                settledGroupsDisplayMode = 2; // Show Recent (5)
+                updateSettledGroupsDisplay();
+                return true;
+            } else if (itemId == R.id.action_show_all) {
+                settledGroupsDisplayMode = 0; // Show All
+                updateSettledGroupsDisplay();
+                return true;
             }
-
-            @Override
-            public void onNothingSelected(AdapterView<?> parent) {}
+            return false;
         });
+
+        popup.show();
+    }
+
+    private void updateSettledGroupsDisplay() {
+        List<Group> displaySettledGroups = new ArrayList<>();
+        
+        switch (settledGroupsDisplayMode) {
+            case 0: // Show All
+                displaySettledGroups = new ArrayList<>(allSettledGroups);
+                break;
+            case 1: // Hide All
+                displaySettledGroups = new ArrayList<>();
+                break;
+            case 2: // Show Recent (5)
+                // Sort by timestamp (newest first) and take first 5
+                List<Group> sortedGroups = new ArrayList<>(allSettledGroups);
+                sortedGroups.sort((a, b) -> Long.compare(b.getTimestamp(), a.getTimestamp()));
+                int limit = Math.min(5, sortedGroups.size());
+                displaySettledGroups = sortedGroups.subList(0, limit);
+                break;
+        }
+        
+        settledAdapter.submitList(displaySettledGroups);
+        
+        // Update empty states
+        if (displaySettledGroups.isEmpty()) {
+            if (settledGroupsDisplayMode == 1) {
+                // When hiding all, don't show empty state
+                layoutEmptySettled.setVisibility(View.GONE);
+                rvSettledGroups.setVisibility(View.GONE);
+            } else {
+                layoutEmptySettled.setVisibility(View.VISIBLE);
+                rvSettledGroups.setVisibility(View.GONE);
+            }
+        } else {
+            layoutEmptySettled.setVisibility(View.GONE);
+            rvSettledGroups.setVisibility(View.VISIBLE);
+        }
     }
 
     @Override

@@ -95,6 +95,12 @@ public class GroupLobbyActivity extends AppCompatActivity {
     private List<GroupExpense> currentExpensesList = new ArrayList<>();
     private List<GroupExpense> filteredExpensesList = new ArrayList<>();
     private androidx.appcompat.widget.SearchView searchViewLedger;
+    private ImageButton btnFilterDropdown;
+    
+    // Filter state
+    private String currentSortOption = "date_newest"; // "date_newest", "date_oldest", "category", "payer"
+    private String currentCategoryFilter = null;
+    private String currentPayerFilter = null;
 
     // OCR and Camera
     private ActivityResultLauncher<Intent> cameraLauncher;
@@ -170,9 +176,11 @@ public class GroupLobbyActivity extends AppCompatActivity {
         rvDebts = findViewById(R.id.rvDebts);
         rvMembers = findViewById(R.id.rvMembers);
         searchViewLedger = findViewById(R.id.searchViewLedger);
+        btnFilterDropdown = findViewById(R.id.btnFilterDropdown);
         
-        // Setup search functionality
+        // Setup search and filter functionality
         setupSearchView();
+        setupFilterDropdown();
         
         // Two-section layout components
         layoutToPay = findViewById(R.id.layoutToPay);
@@ -598,21 +606,21 @@ public class GroupLobbyActivity extends AppCompatActivity {
     }
 
     private void filterExpenses(String query) {
-        if (query == null || query.trim().isEmpty()) {
-            filteredExpensesList = new ArrayList<>(currentExpensesList);
-        } else {
-            filteredExpensesList = new ArrayList<>();
+        // Start with all expenses
+        List<GroupExpense> tempList = new ArrayList<>(currentExpensesList);
+        
+        // Apply search query filter
+        if (query != null && !query.trim().isEmpty()) {
             String searchQuery = query.toLowerCase().trim();
+            List<GroupExpense> searchFiltered = new ArrayList<>();
             
-            for (GroupExpense expense : currentExpensesList) {
+            for (GroupExpense expense : tempList) {
                 boolean matches = false;
                 
                 // Search by expense title
                 if (expense.getTitle() != null && expense.getTitle().toLowerCase().contains(searchQuery)) {
                     matches = true;
                 }
-                
-                // Note: GroupExpense doesn't have category field, so we skip category search
                 
                 // Search by payer name
                 if (expense.getPayerName() != null && expense.getPayerName().toLowerCase().contains(searchQuery)) {
@@ -627,10 +635,38 @@ public class GroupLobbyActivity extends AppCompatActivity {
                 }
                 
                 if (matches) {
-                    filteredExpensesList.add(expense);
+                    searchFiltered.add(expense);
                 }
             }
+            tempList = searchFiltered;
         }
+        
+        // Apply payer filter
+        if (currentPayerFilter != null && !currentPayerFilter.isEmpty()) {
+            List<GroupExpense> payerFiltered = new ArrayList<>();
+            for (GroupExpense expense : tempList) {
+                if (currentPayerFilter.equals(expense.getPayerName())) {
+                    payerFiltered.add(expense);
+                }
+            }
+            tempList = payerFiltered;
+        }
+        
+        // Apply sorting
+        switch (currentSortOption) {
+            case "date_newest":
+                tempList.sort((a, b) -> Long.compare(b.getTimestamp(), a.getTimestamp()));
+                break;
+            case "date_oldest":
+                tempList.sort((a, b) -> Long.compare(a.getTimestamp(), b.getTimestamp()));
+                break;
+            case "payer":
+                // Already filtered by payer, maintain date order
+                tempList.sort((a, b) -> Long.compare(b.getTimestamp(), a.getTimestamp()));
+                break;
+        }
+        
+        filteredExpensesList = tempList;
         
         // Update the expense adapter with filtered results
         if (expenseAdapter != null) {
@@ -645,6 +681,94 @@ public class GroupLobbyActivity extends AppCompatActivity {
                 rvLedger.setVisibility(View.VISIBLE);
             }
         }
+    }
+
+    private void setupFilterDropdown() {
+        btnFilterDropdown.setOnClickListener(v -> showFilterPopupMenu());
+    }
+
+    private void showFilterPopupMenu() {
+        PopupMenu popup = new PopupMenu(this, btnFilterDropdown);
+        popup.getMenuInflater().inflate(R.menu.filter_menu, popup.getMenu());
+
+        popup.setOnMenuItemClickListener(item -> {
+            int itemId = item.getItemId();
+            if (itemId == R.id.action_sort_date_newest) {
+                currentSortOption = "date_newest";
+                applyFilters();
+                return true;
+            } else if (itemId == R.id.action_sort_date_oldest) {
+                currentSortOption = "date_oldest";
+                applyFilters();
+                return true;
+            } else if (itemId == R.id.action_filter_category) {
+                showCategoryFilterDialog();
+                return true;
+            } else if (itemId == R.id.action_filter_payer) {
+                showPayerFilterDialog();
+                return true;
+            } else if (itemId == R.id.action_clear_filters) {
+                clearAllFilters();
+                return true;
+            }
+            return false;
+        });
+
+        popup.show();
+    }
+
+    private void showCategoryFilterDialog() {
+        // Get unique categories from expenses
+        Set<String> categories = new HashSet<>();
+        for (GroupExpense expense : currentExpensesList) {
+            // Note: GroupExpense doesn't have category field, so we'll use title-based categories
+            // For now, we'll show a simple dialog
+        }
+        
+        // Since GroupExpense doesn't have category, we'll use a simple approach
+        androidx.appcompat.app.AlertDialog.Builder builder = new androidx.appcompat.app.AlertDialog.Builder(this);
+        builder.setTitle("Filter by Category");
+        builder.setMessage("Category filtering not available (expenses don't have categories)");
+        builder.setPositiveButton("OK", null);
+        builder.show();
+    }
+
+    private void showPayerFilterDialog() {
+        // Get unique payers from expenses
+        Set<String> payers = new HashSet<>();
+        for (GroupExpense expense : currentExpensesList) {
+            if (expense.getPayerName() != null) {
+                payers.add(expense.getPayerName());
+            }
+        }
+        
+        if (payers.isEmpty()) {
+            Toast.makeText(this, "No payers found", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        String[] payerArray = payers.toArray(new String[0]);
+        androidx.appcompat.app.AlertDialog.Builder builder = new androidx.appcompat.app.AlertDialog.Builder(this);
+        builder.setTitle("Filter by Payer");
+        builder.setItems(payerArray, (dialog, which) -> {
+            currentPayerFilter = payerArray[which];
+            currentSortOption = "payer";
+            applyFilters();
+        });
+        builder.setNegativeButton("Cancel", null);
+        builder.show();
+    }
+
+    private void clearAllFilters() {
+        currentSortOption = "date_newest";
+        currentCategoryFilter = null;
+        currentPayerFilter = null;
+        applyFilters();
+    }
+
+    private void applyFilters() {
+        String currentQuery = searchViewLedger != null ? searchViewLedger.getQuery().toString() : "";
+        filterExpenses(currentQuery);
     }
 
     private void launchCamera() {

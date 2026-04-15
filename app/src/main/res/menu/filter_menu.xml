@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+    
+    <item
+        android:id="@+id/action_sort_date_newest"
+        android:title="Sort by Date (Newest)"
+        app:showAsAction="never" />
+        
+    <item
+        android:id="@+id/action_sort_date_oldest"
+        android:title="Sort by Date (Oldest)"
+        app:showAsAction="never" />
+        
+    <item
+        android:id="@+id/action_filter_category"
+        android:title="Filter by Category"
+        app:showAsAction="never" />
+        
+    <item
+        android:id="@+id/action_filter_payer"
+        android:title="Filter by Payer"
+        app:showAsAction="never" />
+        
+    <item
+        android:id="@+id/action_clear_filters"
+        android:title="Clear All Filters"
+        app:showAsAction="never" />
+        
+</menu>

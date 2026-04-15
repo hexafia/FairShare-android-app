@@ -251,16 +251,35 @@
                 android:padding="16dp">
 
                 <!-- Search View for Ledger -->
-                <androidx.appcompat.widget.SearchView
-                    android:id="@+id/searchViewLedger"
+                <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginBottom="16dp"
-                    android:background="@drawable/bg_search_outline"
-                    android:queryHint="Search expenses..."
-                    app:iconifiedByDefault="false"
-                    app:queryBackground="@android:color/transparent"
-                    app:searchIcon="@drawable/ic_search" />
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical">
+
+                    <androidx.appcompat.widget.SearchView
+                        android:id="@+id/searchViewLedger"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:background="@drawable/bg_search_outline"
+                        android:queryHint="Search expenses..."
+                        app:iconifiedByDefault="false"
+                        app:queryBackground="@android:color/transparent"
+                        app:searchIcon="@drawable/ic_search" />
+
+                    <ImageButton
+                        android:id="@+id/btnFilterDropdown"
+                        android:layout_width="48dp"
+                        android:layout_height="48dp"
+                        android:layout_marginStart="8dp"
+                        android:background="?attr/selectableItemBackgroundBorderless"
+                        android:src="@drawable/ic_filter_list"
+                        android:contentDescription="Filter options"
+                        android:tint="@color/primary_dark" />
+
+                </LinearLayout>
 
                 <TextView
                     android:id="@+id/tvLedgerEmpty"
