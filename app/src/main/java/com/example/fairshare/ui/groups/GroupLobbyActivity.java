@@ -289,9 +289,6 @@ public class GroupLobbyActivity extends AppCompatActivity {
         // Nudge click listener for "To Pay" section
         toPayAdapter.setOnNudgeClickListener(settlement -> {
             // Only the original payer (who is owed money) can nudge the debtor
-            String currentUserId = FirebaseAuth.getInstance().getCurrentUser() != null ? 
-                                  FirebaseAuth.getInstance().getCurrentUser().getUid() : "";
-            
             if (!currentUserId.equals(settlement.payerUid)) {
                 Toast.makeText(this, "Only the person who is owed money can send a nudge", Toast.LENGTH_SHORT).show();
                 return;
