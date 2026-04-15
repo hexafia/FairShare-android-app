@@ -79,7 +79,7 @@ public class GroupExpenseAdapter extends ListAdapter<GroupExpense, GroupExpenseA
             String splitText;
             Map<String, Double> splitAmounts = expense.getSplitAmounts();
             List<String> participants = expense.getParticipants();
-            if (splitAmounts != null && !splitAmounts.isEmpty() && participants != null && !participants.isEmpty()) {
+            if (splitAmounts != null && !splitAmounts.isEmpty()) {
                 StringBuilder participantsBuilder = new StringBuilder();
                 int count = 0;
                 for (String participantUid : splitAmounts.keySet()) {
@@ -91,17 +91,43 @@ public class GroupExpenseAdapter extends ListAdapter<GroupExpense, GroupExpenseA
                     if (displayName != null && !displayName.isEmpty()) {
                         participantsBuilder.append(displayName);
                     } else {
-                        participantsBuilder.append("Unknown User");
+                        // Fallback: try to get from participants list or show shortened UID
+                        if (participants != null && participants.contains(participantUid)) {
+                            participantsBuilder.append("Loading...");
+                        } else {
+                            participantsBuilder.append shortenUid(participantUid);
+                        }
                     }
                     count++;
                 }
                 splitText = "Split to [" + count + "] people: " + participantsBuilder.toString();
+            } else if (participants != null && !participants.isEmpty()) {
+                // Fallback for equal split without breakdown map
+                StringBuilder participantsBuilder = new StringBuilder();
+                int count = 0;
+                for (String participantUid : participants) {
+                    if (count > 0) {
+                        participantsBuilder.append(", ");
+                    }
+                    String displayName = memberNames.get(participantUid);
+                    if (displayName != null && !displayName.isEmpty()) {
+                        participantsBuilder.append(displayName);
+                    } else {
+                        participantsBuilder.append("Loading...");
+                    }
+                    count++;
+                }
+                splitText = "Split equally among [" + count + "] people: " + participantsBuilder.toString();
             } else {
                 splitText = "Split equally among " + expense.getParticipantCount() + " people";
             }
             
             tvSplitInfo.setText(splitText);
             tvAmount.setText(CurrencyHelper.format(expense.getAmount()));
+        }
+
+        private String shortenUid(String uid) {
+            return uid != null && uid.length() > 6 ? uid.substring(0, 6) : (uid != null ? uid : "?");
         }
     }
 }

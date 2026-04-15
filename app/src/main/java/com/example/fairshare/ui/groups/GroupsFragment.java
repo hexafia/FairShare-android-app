@@ -36,6 +36,8 @@ public class GroupsFragment extends Fragment implements FastActionHandler {
     private RecyclerView rvActiveGroups;
     private RecyclerView rvSettledGroups;
     private com.google.android.material.floatingactionbutton.FloatingActionButton fabGlobalAction;
+    private Spinner spinnerGroupFilter;
+    private boolean showSettledGroups = true; // Default to "Show All"
 
     @Nullable
     @Override
@@ -52,6 +54,10 @@ public class GroupsFragment extends Fragment implements FastActionHandler {
         layoutEmptySettled = view.findViewById(R.id.layoutEmptySettled);
         rvActiveGroups = view.findViewById(R.id.rvActiveGroups);
         rvSettledGroups = view.findViewById(R.id.rvSettledGroups);
+        spinnerGroupFilter = view.findViewById(R.id.spinnerGroupFilter);
+        
+        // Setup filter spinner
+        setupFilterSpinner();
 
         // Setup button listeners
         MaterialButton btnCreateNewGroup = view.findViewById(R.id.btnCreateNewGroup);
@@ -103,7 +109,13 @@ public class GroupsFragment extends Fragment implements FastActionHandler {
                 }
 
                 activeAdapter.submitList(activeGroups);
-                settledAdapter.submitList(settledGroups);
+                
+                // Apply filter to settled groups
+                if (showSettledGroups) {
+                    settledAdapter.submitList(settledGroups);
+                } else {
+                    settledAdapter.submitList(new ArrayList<>()); // Hide settled groups
+                }
                 
                 // Update empty states
                 if (activeGroups.isEmpty()) {
@@ -114,29 +126,19 @@ public class GroupsFragment extends Fragment implements FastActionHandler {
                     rvActiveGroups.setVisibility(View.VISIBLE);
                 }
 
-                if (settledGroups.isEmpty()) {
-                    layoutEmptySettled.setVisibility(View.VISIBLE);
-                    rvSettledGroups.setVisibility(View.GONE);
+                // Handle settled groups empty state based on filter
+                if (showSettledGroups) {
+                    if (settledGroups.isEmpty()) {
+                        layoutEmptySettled.setVisibility(View.VISIBLE);
+                        rvSettledGroups.setVisibility(View.GONE);
+                    } else {
+                        layoutEmptySettled.setVisibility(View.GONE);
+                        rvSettledGroups.setVisibility(View.VISIBLE);
+                    }
                 } else {
+                    // Hide settled groups section entirely when filter is "Hide Settled"
                     layoutEmptySettled.setVisibility(View.GONE);
-                    rvSettledGroups.setVisibility(View.VISIBLE);
-                }
-
-                // Update empty states
-                if (activeGroups.isEmpty()) {
-                    layoutEmptyActive.setVisibility(View.VISIBLE);
-                    rvActiveGroups.setVisibility(View.GONE);
-                } else {
-                    layoutEmptyActive.setVisibility(View.GONE);
-                    rvActiveGroups.setVisibility(View.VISIBLE);
-                }
-
-                if (settledGroups.isEmpty()) {
-                    layoutEmptySettled.setVisibility(View.VISIBLE);
                     rvSettledGroups.setVisibility(View.GONE);
-                } else {
-                    layoutEmptySettled.setVisibility(View.GONE);
-                    rvSettledGroups.setVisibility(View.VISIBLE);
                 }
 
                 // Control FAB visibility - only show when Active Groups section is active
@@ -144,6 +146,28 @@ public class GroupsFragment extends Fragment implements FastActionHandler {
                     fabGlobalAction.setVisibility(View.VISIBLE); // Always show in groups fragment for creating new groups
                 }
             }
+        });
+    }
+
+    private void setupFilterSpinner() {
+        String[] filterOptions = {"Show All", "Hide Settled"};
+        ArrayAdapter<String> adapter = new ArrayAdapter<>(requireContext(), 
+                android.R.layout.simple_spinner_item, filterOptions);
+        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        spinnerGroupFilter.setAdapter(adapter);
+
+        spinnerGroupFilter.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                showSettledGroups = position == 0; // "Show All" is position 0
+                // Refresh the display
+                if (groupRepository != null) {
+                    groupRepository.getGroups().getValue(); // This will trigger the observer
+                }
+            }
+
+            @Override
+            public void onNothingSelected(AdapterView<?> parent) {}
         });
     }
 

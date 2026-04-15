@@ -30,6 +30,7 @@ public class SettlementDetailAdapter extends ListAdapter<SettlementCalculator.Se
 
     private Map<String, String> memberNames = new HashMap<>();
     private OnSettleClickListener settleClickListener;
+    private boolean isGroupAccomplished = false;
 
     public interface OnSettleClickListener {
         void onSettleClick(SettlementCalculator.SettlementDetail settlement);
@@ -45,6 +46,10 @@ public class SettlementDetailAdapter extends ListAdapter<SettlementCalculator.Se
 
     public void setOnSettleClickListener(OnSettleClickListener listener) {
         this.settleClickListener = listener;
+    }
+
+    public void setGroupAccomplished(boolean accomplished) {
+        this.isGroupAccomplished = accomplished;
     }
 
     private static final DiffUtil.ItemCallback<SettlementCalculator.SettlementDetail> DIFF_CALLBACK =
@@ -132,11 +137,17 @@ public class SettlementDetailAdapter extends ListAdapter<SettlementCalculator.Se
                 tvSettledDate.setVisibility(View.GONE);
             }
 
-            // Handle settled state
-            if (settlement.settled) {
+            // Handle settled state and group accomplished status
+            if (settlement.settled || isGroupAccomplished) {
                 btnSettle.setVisibility(View.GONE);
                 tvSettledLabel.setVisibility(View.VISIBLE);
                 itemView.setAlpha(0.5f);
+                
+                // Show appropriate text for accomplished groups
+                if (isGroupAccomplished && !settlement.settled) {
+                    tvSettledLabel.setText("Settled");
+                    tvSettledLabel.setTextColor(itemView.getContext().getResources().getColor(android.R.color.darker_gray));
+                }
             } else {
                 btnSettle.setVisibility(View.VISIBLE);
                 tvSettledLabel.setVisibility(View.GONE);

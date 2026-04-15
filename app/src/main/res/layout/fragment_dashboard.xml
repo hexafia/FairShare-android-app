@@ -194,6 +194,39 @@
                     app:cornerRadius="16dp" />
             </LinearLayout>
 
+            <!-- Active Groups Section -->
+            <RelativeLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="24dp">
+                <TextView
+                    style="@style/TextAppearance.MyApp.Heading3"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Active Groups" />
+                <TextView
+                    android:id="@+id/tvViewAllGroups"
+                    style="@style/TextAppearance.MyApp.BodySmaller"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_alignParentEnd="true"
+                    android:text="View all"
+                    android:textColor="@color/teal"
+                    android:layout_centerVertical="true"
+                    android:textStyle="bold" />
+            </RelativeLayout>
+
+            <!-- Active Groups Horizontal RecyclerView -->
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/rvActiveGroups"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="12dp"
+                android:orientation="horizontal"
+                android:nestedScrollingEnabled="false"
+                android:clipToPadding="false"
+                tools:listitem="@layout/item_group_horizontal" />
+
             <!-- Recent Transactions -->
             <RelativeLayout
                 android:layout_width="match_parent"
@@ -205,6 +238,7 @@
                     android:layout_height="wrap_content"
                     android:text="Recent Transactions" />
                 <TextView
+                    android:id="@+id/tvViewAllTransactions"
                     style="@style/TextAppearance.MyApp.BodySmaller"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"

@@ -93,6 +93,8 @@ public class GroupLobbyActivity extends AppCompatActivity {
         
     // Store current expenses list for tab refresh
     private List<GroupExpense> currentExpensesList = new ArrayList<>();
+    private List<GroupExpense> filteredExpensesList = new ArrayList<>();
+    private androidx.appcompat.widget.SearchView searchViewLedger;
 
     // OCR and Camera
     private ActivityResultLauncher<Intent> cameraLauncher;
@@ -167,6 +169,10 @@ public class GroupLobbyActivity extends AppCompatActivity {
         rvLedger = findViewById(R.id.rvLedger);
         rvDebts = findViewById(R.id.rvDebts);
         rvMembers = findViewById(R.id.rvMembers);
+        searchViewLedger = findViewById(R.id.searchViewLedger);
+        
+        // Setup search functionality
+        setupSearchView();
         
         // Two-section layout components
         layoutToPay = findViewById(R.id.layoutToPay);
@@ -316,9 +322,15 @@ public class GroupLobbyActivity extends AppCompatActivity {
             
             // Store current expenses for tab refresh
             currentExpensesList = expenses != null ? new ArrayList<>(expenses) : new ArrayList<>();
+            filteredExpensesList = new ArrayList<>(currentExpensesList);
             
-            // Update expense adapter first
-            expenseAdapter.submitList(expenses);
+            // Update expense adapter with current filter
+            String currentQuery = searchViewLedger != null ? searchViewLedger.getQuery().toString() : "";
+            if (currentQuery.trim().isEmpty()) {
+                expenseAdapter.submitList(currentExpensesList);
+            } else {
+                filterExpenses(currentQuery);
+            }
 
             // Always call updateDebts to ensure real-time sync for Settle Up tab
             if (expenses == null || expenses.isEmpty()) {
@@ -360,6 +372,11 @@ public class GroupLobbyActivity extends AppCompatActivity {
                                 // Refresh settlement display with new names
                                 settlementAdapter.setMemberNames(memberNames);
                                 settlementAdapter.notifyDataSetChanged();
+                                // Update expense adapter with member names to fix "Unknown User" issue
+                                if (expenseAdapter != null) {
+                                    expenseAdapter.setMemberNames(memberNames);
+                                    expenseAdapter.notifyDataSetChanged();
+                                }
                                 // Recalculate settlements with updated member names
                                 if (expenseAdapter.getCurrentList() != null) {
                                     updateDebts(expenseAdapter.getCurrentList());
@@ -523,6 +540,11 @@ public class GroupLobbyActivity extends AppCompatActivity {
             toPayAdapter.setMemberNames(memberNames);
             paidAdapter.setMemberNames(memberNames);
             
+            // Check if group is accomplished and set read-only state
+            boolean isGroupAccomplished = currentGroup != null && currentGroup.isSettled();
+            toPayAdapter.setGroupAccomplished(isGroupAccomplished);
+            paidAdapter.setGroupAccomplished(isGroupAccomplished);
+            
             // Update adapters with respective data
             toPayAdapter.submitList(toPaySettlements);
             paidAdapter.submitList(paidSettlements);
@@ -559,6 +581,75 @@ public class GroupLobbyActivity extends AppCompatActivity {
         });
     }
     
+    private void setupSearchView() {
+        searchViewLedger.setOnQueryTextListener(new androidx.appcompat.widget.SearchView.OnQueryTextListener() {
+            @Override
+            public boolean onQueryTextSubmit(String query) {
+                filterExpenses(query);
+                return true;
+            }
+
+            @Override
+            public boolean onQueryTextChange(String newText) {
+                filterExpenses(newText);
+                return true;
+            }
+        });
+    }
+
+    private void filterExpenses(String query) {
+        if (query == null || query.trim().isEmpty()) {
+            filteredExpensesList = new ArrayList<>(currentExpensesList);
+        } else {
+            filteredExpensesList = new ArrayList<>();
+            String searchQuery = query.toLowerCase().trim();
+            
+            for (GroupExpense expense : currentExpensesList) {
+                boolean matches = false;
+                
+                // Search by expense title
+                if (expense.getTitle() != null && expense.getTitle().toLowerCase().contains(searchQuery)) {
+                    matches = true;
+                }
+                
+                // Search by category
+                if (expense.getCategory() != null && expense.getCategory().toLowerCase().contains(searchQuery)) {
+                    matches = true;
+                }
+                
+                // Search by payer name
+                if (expense.getPayerName() != null && expense.getPayerName().toLowerCase().contains(searchQuery)) {
+                    matches = true;
+                }
+                
+                // Search by date (format: MMM dd, yyyy)
+                SimpleDateFormat dateFormat = new SimpleDateFormat("MMM dd, yyyy", Locale.getDefault());
+                String dateStr = dateFormat.format(new Date(expense.getTimestamp()));
+                if (dateStr.toLowerCase().contains(searchQuery)) {
+                    matches = true;
+                }
+                
+                if (matches) {
+                    filteredExpensesList.add(expense);
+                }
+            }
+        }
+        
+        // Update the expense adapter with filtered results
+        if (expenseAdapter != null) {
+            expenseAdapter.submitList(filteredExpensesList);
+            
+            // Update empty state
+            if (filteredExpensesList.isEmpty()) {
+                tvLedgerEmpty.setVisibility(View.VISIBLE);
+                rvLedger.setVisibility(View.GONE);
+            } else {
+                tvLedgerEmpty.setVisibility(View.GONE);
+                rvLedger.setVisibility(View.VISIBLE);
+            }
+        }
+    }
+
     private void launchCamera() {
         Intent takePictureIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
         File photoFile = null;

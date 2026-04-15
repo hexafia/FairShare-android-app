@@ -51,6 +51,7 @@ public class DashboardFragment extends Fragment implements com.example.fairshare
     private FragmentDashboardBinding binding;
     private DashboardViewModel viewModel;
     private ExpenseAdapter adapter;
+    private com.example.fairshare.ui.groups.GroupAdapter activeGroupsAdapter;
 
     private List<Transaction> currentPersonalExpenses = new ArrayList<>();
     private List<GroupExpense> currentGroupExpenses = new ArrayList<>();
@@ -119,6 +120,17 @@ public class DashboardFragment extends Fragment implements com.example.fairshare
         adapter = new ExpenseAdapter(this::showDeleteConfirmation);
         binding.rvExpenses.setLayoutManager(new LinearLayoutManager(requireContext()));
         binding.rvExpenses.setAdapter(adapter);
+        
+        // Setup Active Groups RecyclerView
+        activeGroupsAdapter = new com.example.fairshare.ui.groups.GroupAdapter(group -> {
+            Intent intent = new Intent(requireContext(), com.example.fairshare.ui.groups.GroupLobbyActivity.class);
+            intent.putExtra("GROUP_ID", group.getId());
+            intent.putExtra("GROUP_NAME", group.getName());
+            intent.putExtra("SHARE_CODE", group.getShareCode());
+            startActivity(intent);
+        });
+        binding.rvActiveGroups.setLayoutManager(new LinearLayoutManager(requireContext(), LinearLayoutManager.HORIZONTAL, false));
+        binding.rvActiveGroups.setAdapter(activeGroupsAdapter);
     }
 
     private void setupViewModel() {
@@ -133,6 +145,8 @@ public class DashboardFragment extends Fragment implements com.example.fairshare
             updateGrandTotal();
             // Set UI once during initial data load
             binding.tvBalance.setText(CurrencyHelper.format(grandTotal));
+            // Restore balance calculations
+            updateSummary();
 
             if (currentPersonalExpenses.isEmpty()) {
                 binding.tvEmpty.setVisibility(View.VISIBLE);
@@ -143,6 +157,22 @@ public class DashboardFragment extends Fragment implements com.example.fairshare
             }
         });
 
+        // Set up click listeners for View All links
+        binding.tvViewAllGroups.setOnClickListener(v -> {
+            // Navigate to GroupsFragment
+            androidx.fragment.app.FragmentTransaction transaction = requireActivity().getSupportFragmentManager().beginTransaction();
+            transaction.replace(R.id.nav_host_fragment, new com.example.fairshare.ui.groups.GroupsFragment());
+            transaction.addToBackStack(null);
+            transaction.commit();
+        });
+
+        // Set up Recent Transactions View All link
+        binding.tvViewAllTransactions.setOnClickListener(v -> {
+            // Navigate to MainActivity (Ledger)
+            Intent intent = new Intent(requireContext(), com.example.fairshare.MainActivity.class);
+            startActivity(intent);
+        });
+
         viewModel.getGroupExpenses().observe(getViewLifecycleOwner(), expenses -> {
             currentGroupExpenses = expenses != null ? expenses : new ArrayList<>();
             masterGroupExpenses = expenses != null ? expenses : new ArrayList<>();
@@ -151,10 +181,21 @@ public class DashboardFragment extends Fragment implements com.example.fairshare
             updateGrandTotal();
             // Set UI once during initial data load
             binding.tvBalance.setText(CurrencyHelper.format(grandTotal));
+            // Restore balance calculations
+            updateSummary();
         });
 
         viewModel.getGroups().observe(getViewLifecycleOwner(), groups -> {
             currentGroups = groups != null ? groups : new ArrayList<>();
+            
+            // Update Active Groups section - only show active groups
+            List<com.example.fairshare.Group> activeGroups = new ArrayList<>();
+            for (com.example.fairshare.Group group : currentGroups) {
+                if (group.isActive()) {
+                    activeGroups.add(group);
+                }
+            }
+            activeGroupsAdapter.submitList(activeGroups);
         });
     }
 
