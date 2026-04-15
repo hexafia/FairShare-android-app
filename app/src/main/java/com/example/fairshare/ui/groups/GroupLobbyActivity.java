@@ -705,6 +705,19 @@ public class GroupLobbyActivity extends AppCompatActivity {
                 String amountStr = etAmount.getText() != null ? etAmount.getText().toString().trim() : "";
                 String notes = etNotes.getText() != null ? etNotes.getText().toString().trim() : "";
 
+                // HARD VALIDATION GUARD - Check all conditions before any logic
+                List<String> selectedUids = new ArrayList<>();
+                for (Map.Entry<String, Boolean> entry : selectedParticipants.entrySet()) {
+                    if (entry.getValue() != null && entry.getValue()) {
+                        selectedUids.add(entry.getKey());
+                    }
+                }
+                
+                if (title.isEmpty() || amountStr.isEmpty() || amountStr.equals("0") || selectedUids.isEmpty()) {
+                    Toast.makeText(this, "Error: Please provide a name, amount, and select at least one participant.", Toast.LENGTH_SHORT).show();
+                    return;
+                }
+
                 // Validate inputs
                 if (title.isEmpty()) {
                     etTitle.setError("Title is required");
@@ -766,13 +779,65 @@ public class GroupLobbyActivity extends AppCompatActivity {
                         splitAmounts.put(participantUid, shareAmount);
                     }
                 } else {
-                    // For selective split, we need to implement percentage/amount input logic
-                    // For now, fall back to equal split among selected participants
-                    double shareAmount = amount / participants.size();
-                    shareAmount = Math.round(shareAmount * 100.0) / 100.0;
+                    // UNEQUAL SPLIT - Use percentage math from EditText fields
+                    double totalPercentage = 0;
+                    Map<String, Double> percentageInputs = new HashMap<>();
                     
-                    for (String participantUid : participants) {
-                        splitAmounts.put(participantUid, shareAmount);
+                    // Find EditText percentage fields for each checked participant
+                    for (int i = 0; i < containerParticipants.getChildCount(); i++) {
+                        View child = containerParticipants.getChildAt(i);
+                        if (child instanceof LinearLayout) {
+                            LinearLayout row = (LinearLayout) child;
+                            
+                            // Find checkbox and EditText in this row
+                            CheckBox checkBox = null;
+                            EditText etPercent = null;
+                            String participantUid = null;
+                            
+                            for (int j = 0; j < row.getChildCount(); j++) {
+                                View rowChild = row.getChildAt(j);
+                                if (rowChild instanceof CheckBox) {
+                                    checkBox = (CheckBox) rowChild;
+                                } else if (rowChild instanceof EditText) {
+                                    etPercent = (EditText) rowChild;
+                                } else if (rowChild instanceof TextView) {
+                                    // Get participant UID from tag or find another way
+                                    Object tag = rowChild.getTag();
+                                    if (tag != null) {
+                                        participantUid = tag.toString();
+                                    }
+                                }
+                            }
+                            
+                            // If checkbox is checked and we have percentage input
+                            if (checkBox != null && checkBox.isChecked() && etPercent != null && participantUid != null) {
+                                String percentStr = etPercent.getText().toString().trim();
+                                if (!percentStr.isEmpty()) {
+                                    try {
+                                        double percentage = Double.parseDouble(percentStr);
+                                        totalPercentage += percentage;
+                                        percentageInputs.put(participantUid, percentage);
+                                    } catch (NumberFormatException e) {
+                                        // Invalid percentage, skip
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    
+                    // Validate total percentage equals 100%
+                    if (Math.abs(totalPercentage - 100.0) > 0.01) {
+                        Toast.makeText(this, "Percentages must total 100%", Toast.LENGTH_SHORT).show();
+                        return;
+                    }
+                    
+                    // Calculate individual shares using percentage math
+                    for (Map.Entry<String, Double> entry : percentageInputs.entrySet()) {
+                        String uid = entry.getKey();
+                        double percentage = entry.getValue();
+                        double individualShare = amount * (percentage / 100.0);
+                        individualShare = Math.round(individualShare * 100.0) / 100.0; // Round to 2 decimal places
+                        splitAmounts.put(uid, individualShare);
                     }
                 }
                 expense.setSplitAmounts(splitAmounts);

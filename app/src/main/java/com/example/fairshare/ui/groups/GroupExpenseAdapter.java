@@ -14,6 +14,8 @@ import com.example.fairshare.CurrencyHelper;
 import com.example.fairshare.GroupExpense;
 import com.example.fairshare.R;
 
+import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 
 public class GroupExpenseAdapter extends ListAdapter<GroupExpense, GroupExpenseAdapter.ViewHolder> {
@@ -64,21 +66,27 @@ public class GroupExpenseAdapter extends ListAdapter<GroupExpense, GroupExpenseA
             tvExpenseTitle.setText(expense.getTitle());
             tvPaidBy.setText("Paid by " + (expense.getPayerName() != null ? expense.getPayerName() : "Unknown"));
             
-            // Build dynamic split text with participant names
+            // Build dynamic split text with participant names (SECURITY: Map UIDs to DisplayNames)
             String splitText;
             Map<String, Double> splitAmounts = expense.getSplitAmounts();
             List<String> participants = expense.getParticipants();
             if (splitAmounts != null && !splitAmounts.isEmpty() && participants != null && !participants.isEmpty()) {
                 StringBuilder participantsBuilder = new StringBuilder();
                 int count = 0;
-                for (int i = 0; i < participants.size(); i++) {
+                for (String participantUid : splitAmounts.keySet()) {
                     if (count > 0) {
                         participantsBuilder.append(", ");
                     }
-                    participantsBuilder.append(participants.get(i));
+                    // SECURITY: Map UID to displayName using memberNames map
+                    String displayName = memberNames.get(participantUid);
+                    if (displayName != null && !displayName.isEmpty()) {
+                        participantsBuilder.append(displayName);
+                    } else {
+                        participantsBuilder.append("Unknown User");
+                    }
                     count++;
                 }
-                splitText = "Split to [" + participantsBuilder.toString() + "]";
+                splitText = "Split to [" + count + "] people: " + participantsBuilder.toString();
             } else {
                 splitText = "Split equally among " + expense.getParticipantCount() + " people";
             }
