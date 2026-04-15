@@ -52,7 +52,7 @@ import com.example.fairshare.R;
 import com.example.fairshare.UserProfile;
 import com.example.fairshare.UserRepository;
 import com.example.fairshare.SettlementCalculator;
-import com.example.fairshare.AddGroupExpenseDialog;
+import com.example.fairshare.ui.dashboard.AddGroupExpenseDialog;
 import com.example.fairshare.Constants;
 import com.example.fairshare.FastActionHandler;
 import com.google.android.material.button.MaterialButton;
