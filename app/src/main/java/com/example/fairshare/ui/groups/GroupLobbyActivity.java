@@ -738,16 +738,8 @@ public class GroupLobbyActivity extends AppCompatActivity {
             } else if (itemId == R.id.action_sort_date_oldest) {
                 currentSortOption = "date_oldest";
                 applyFilters();
-            } else if (itemId == R.id.action_sort_amount_highest) {
-                currentSortOption = "amount_highest";
-                applyFilters();
-            } else if (itemId == R.id.action_sort_amount_lowest) {
-                currentSortOption = "amount_lowest";
-                applyFilters();
             } else if (itemId == R.id.action_filter_payer) {
                 showPayerFilterDialog();
-            } else if (itemId == R.id.action_filter_category) {
-                showCategoryFilterDialog();
             } else if (itemId == R.id.action_clear_filters) {
                 currentPayerFilter = null;
                 currentCategoryFilter = null;
