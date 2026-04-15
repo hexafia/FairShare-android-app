@@ -218,6 +218,29 @@ public class AddGroupExpenseDialog {
                 return;
             }
 
+            // HARD BLOCK: Count participants before any processing
+            int participantCount = 0;
+            if (SPLIT_EQUAL.equals(currentSplitType)) {
+                for (String uid : checkboxes.keySet()) {
+                    android.widget.CheckBox cb = checkboxes.get(uid);
+                    if (cb != null && cb.isChecked()) {
+                        participantCount++;
+                    }
+                }
+            } else if (SPLIT_UNEQUAL.equals(currentSplitType)) {
+                for (Map.Entry<String, Double> entry : customSplits.entrySet()) {
+                    Double percent = entry.getValue();
+                    if (percent != null && percent > 0) {
+                        participantCount++;
+                    }
+                }
+            }
+
+            if (participantCount == 0) {
+                Toast.makeText(context, "Error: You must select at least one participant.", Toast.LENGTH_SHORT).show();
+                return;
+            }
+
             int selectedPayerIndex = spinnerWhoPaid.getSelectedItemPosition();
             if (selectedPayerIndex < 0) {
                 Toast.makeText(context, "Please select who paid", Toast.LENGTH_SHORT).show();

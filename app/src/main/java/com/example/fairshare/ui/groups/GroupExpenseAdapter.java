@@ -63,7 +63,26 @@ public class GroupExpenseAdapter extends ListAdapter<GroupExpense, GroupExpenseA
         void bind(GroupExpense expense) {
             tvExpenseTitle.setText(expense.getTitle());
             tvPaidBy.setText("Paid by " + (expense.getPayerName() != null ? expense.getPayerName() : "Unknown"));
-            tvSplitInfo.setText("Split equally among " + expense.getParticipantCount() + " people");
+            
+            // Build dynamic split text with participant names
+            String splitText;
+            Map<String, Double> splitAmounts = expense.getSplitAmounts();
+            if (splitAmounts != null && !splitAmounts.isEmpty()) {
+                StringBuilder participantsBuilder = new StringBuilder();
+                int count = 0;
+                for (String uid : splitAmounts.keySet()) {
+                    if (count > 0) {
+                        participantsBuilder.append(", ");
+                    }
+                    participantsBuilder.append(expense.getParticipantName(uid));
+                    count++;
+                }
+                splitText = "Split to [" + participantsBuilder.toString() + "]";
+            } else {
+                splitText = "Split equally among " + expense.getParticipantCount() + " people";
+            }
+            
+            tvSplitInfo.setText(splitText);
             tvAmount.setText(CurrencyHelper.format(expense.getAmount()));
         }
     }
