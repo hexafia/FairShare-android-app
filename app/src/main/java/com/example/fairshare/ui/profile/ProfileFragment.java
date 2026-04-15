@@ -35,7 +35,6 @@ public class ProfileFragment extends Fragment implements com.example.fairshare.F
 
     // Views
     private TextView tvDisplayName, tvTagline, tvUserEmail, tvUserPhone, tvUserLocation;
-    private TextView tvTotalExpenses;
 
     @Nullable
     @Override
@@ -53,7 +52,6 @@ public class ProfileFragment extends Fragment implements com.example.fairshare.F
         tvUserEmail = view.findViewById(R.id.tvUserEmail);
         tvUserPhone = view.findViewById(R.id.tvUserPhone);
         tvUserLocation = view.findViewById(R.id.tvUserLocation);
-        tvTotalExpenses = view.findViewById(R.id.tvTotalExpenses);
 
         // Settings gear button → opens SettingsActivity
         view.findViewById(R.id.btnSettings).setOnClickListener(v -> {
@@ -111,16 +109,7 @@ public class ProfileFragment extends Fragment implements com.example.fairshare.F
 
     
     private void calculateStats(List<Transaction> transactions) {
-        if (transactions == null) return;
-
-        double totalExpenses = 0;
-
-        for (Transaction t : transactions) {
-            // All transactions are now expenses (income tracking removed)
-            totalExpenses += t.getAmount();
-        }
-
-        tvTotalExpenses.setText(CurrencyHelper.format(totalExpenses));
+        // Stats cards removed from UI — no-op
     }
 
     @Override

@@ -146,7 +146,7 @@ public class NotificationsFragment extends Fragment implements com.example.fairs
         });
         
         btnViewAllPayments.setOnClickListener(v -> {
-            Intent intent = new Intent(requireContext(), PaymentHistoryActivity.class);
+            Intent intent = new Intent(requireContext(), SettledPaymentsActivity.class);
             startActivity(intent);
         });
     }
@@ -190,9 +190,6 @@ public class NotificationsFragment extends Fragment implements com.example.fairs
         
         Log.d("NOTIFICATIONS", "Loading notifications for user: " + currentUserId);
         
-        // Create test notification if collection is empty
-        createTestNotification();
-        
         // Try ultra-simple query first to test basic access
         db.collection("notifications")
             .limit(10)
@@ -209,29 +206,6 @@ public class NotificationsFragment extends Fragment implements com.example.fairs
             });
     }
     
-    private void createTestNotification() {
-        // Create a test nudge notification
-        Notification testNotification = Notification.createNudgeNotification(
-            currentUserId,           // recipient (current user)
-            "test_user_123",         // sender
-            "Test User",             // sender name
-            "test_group_456",        // group ID
-            "Test Group",            // group name
-            "test_expense_789",      // expense ID
-            "Test Expense",          // expense name
-            150.75                   // amount
-        );
-        
-        // Save to Firestore
-        db.collection("notifications")
-            .add(testNotification)
-            .addOnSuccessListener(documentReference -> {
-                Log.d("NOTIFICATIONS", "Test notification created successfully");
-            })
-            .addOnFailureListener(e -> {
-                Log.e("NOTIFICATIONS", "Failed to create test notification: " + e.getMessage());
-            });
-    }
     
     private void loadFilteredNotifications() {
         // Load all notifications for current user
@@ -266,6 +240,11 @@ public class NotificationsFragment extends Fragment implements com.example.fairs
                                     Notification notification = doc.toObject(Notification.class);
                                     if (notification != null) {
                                         notification.setId(doc.getId());
+                                        // Skip test/dummy notifications
+                                        if ("test_user_123".equals(notification.getSenderUid())) {
+                                            Log.d("NOTIFICATIONS", "Skipping test notification: " + doc.getId());
+                                            continue;
+                                        }
                                         // Validate notification data
                                         if (notification.getRecipientUid() != null && notification.getType() != null) {
                                             allNotifications.add(notification);
@@ -358,10 +337,10 @@ public class NotificationsFragment extends Fragment implements com.example.fairs
         // Mark notification as read first
         markNotificationAsRead(notification.getId());
         
-        // Navigate to Group Lobby's Settle Up tab
+        // Navigate to Group Lobby's Settle Up tab using correct extra keys
         Intent intent = new Intent(requireContext(), GroupLobbyActivity.class);
-        intent.putExtra("groupId", notification.getGroupId());
-        intent.putExtra("groupName", notification.getGroupName());
+        intent.putExtra("GROUP_ID", notification.getGroupId());
+        intent.putExtra("GROUP_NAME", notification.getGroupName());
         intent.putExtra("openSettleUpTab", true);
         startActivity(intent);
     }
@@ -370,10 +349,10 @@ public class NotificationsFragment extends Fragment implements com.example.fairs
         // Mark notification as read first
         markNotificationAsRead(notification.getId());
         
-        // Navigate to Group Lobby's Ledger tab
+        // Navigate to Group Lobby's Ledger tab using correct extra keys
         Intent intent = new Intent(requireContext(), GroupLobbyActivity.class);
-        intent.putExtra("groupId", notification.getGroupId());
-        intent.putExtra("groupName", notification.getGroupName());
+        intent.putExtra("GROUP_ID", notification.getGroupId());
+        intent.putExtra("GROUP_NAME", notification.getGroupName());
         startActivity(intent);
     }
 

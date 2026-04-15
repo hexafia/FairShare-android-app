@@ -2,6 +2,32 @@
 > [ Main README ](./README.md) &nbsp; | &nbsp; [ **Recent Changes** ] &nbsp; | &nbsp; [ [Walkthrough](./walkthrough_fairshare_first_design.md) ] &nbsp; | &nbsp; [ [Implementation Plan](./implementation_plan_fairshare.md) ]  &nbsp; | &nbsp; [ [Development Guide](./Repo_Cloning.md) ]
 ---
 
+# Changes Log — April 15, 2026
+
+## Overview
+Rebuilt the **Notification System** with relative timestamps, dynamic payloads, and a dedicated **Settled Payments** view. Streamlined the **Profile Tab** UI and fixed several navigation and race condition bugs.
+
+---
+
+## 1. 🔔 Refactored Notification System
+- **Relative Timestamps**: Created `RelativeDateHelper.java` to convert `java.util.Date` into human-friendly strings like "Just now", "2hrs ago", and "1w ago".
+- **Settled Payments Activity**: Renamed "Payment History" to "Settled Payments" and implemented `SettledPaymentsActivity.java` with a real-time Firestore listener across all groups.
+- **Race Condition Fix**: Fixed a bug where notifications would vanish instantly due to aggressive "mark-as-read" logic conflicting with UI filters.
+- **Navigation Correction**: Fixed a key mismatch (`GROUP_ID` vs `groupId`) ensuring notifications now correctly link users to the specific group lobby.
+
+## 2. 📧 Dynamic Notification Payloads
+- **Context-Aware Strings**: Updated `Notification.java` and `GroupLobbyActivity.java` to generate exact required strings:
+    - *Nudge*: "<Name> nudged you. You still have a balance of Php<Amount> for <Expense> in <Group>"
+    - *Settled*: "<Name> has confirmed your payment for <Expense> in <Group> worth Php<Amount>"
+- **Server Timestamps**: Switched to `FieldValue.serverTimestamp()` for robust data serialization and compatibility with `java.util.Date`.
+
+## 3. 🧹 UI & Layout Cleanup
+- **Notification Tab**: Removed "Test User" nudge notifications from appearing in the UI to keep the feed focused on real interactions.
+- **Profile Tab**: Simplified the view by removing stats boxes (Total Expenses, Groups, IOUs) and the settings gear icon, resulting in a cleaner, profile-focused layout.
+- **Manifest Updates**: Registered `SettledPaymentsActivity` in `AndroidManifest.xml`.
+
+---
+
 # Changes Log — April 14, 2026
 
 ## Overview

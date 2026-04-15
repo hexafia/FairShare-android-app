@@ -61,11 +61,10 @@ public class NotificationAdapter extends RecyclerView.Adapter<NotificationAdapte
                 holder.tvMessage.setText(notification.getMessage());
             }
             
-            // Set timestamp with null check
+            // Set timestamp with null check — use relative date formatting
             if (holder.tvTimestamp != null && notification.getTimestamp() != null) {
                 try {
-                    SimpleDateFormat dateFormat = new SimpleDateFormat("MMM dd, HH:mm", Locale.getDefault());
-                    String timeStr = dateFormat.format(notification.getTimestamp());
+                    String timeStr = com.example.fairshare.RelativeDateHelper.getRelativeTimeString(notification.getTimestamp());
                     holder.tvTimestamp.setText(timeStr);
                 } catch (Exception e) {
                     holder.tvTimestamp.setText("Unknown time");
