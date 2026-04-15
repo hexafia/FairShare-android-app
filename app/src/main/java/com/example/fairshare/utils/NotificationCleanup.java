@@ -1,6 +1,7 @@
 package com.example.fairshare.utils;
 
 import android.util.Log;
+import java.util.concurrent.atomic.AtomicInteger;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.Query;
 
@@ -43,7 +44,7 @@ public class NotificationCleanup {
         db.collection("notifications")
             .get()
             .addOnSuccessListener(querySnapshot -> {
-                int deletedCount = 0;
+                AtomicInteger deletedCount = new AtomicInteger(0);
                 
                 for (com.google.firebase.firestore.DocumentSnapshot doc : querySnapshot.getDocuments()) {
                     // Check for missing required fields
@@ -55,7 +56,7 @@ public class NotificationCleanup {
                         doc.getReference().delete()
                             .addOnSuccessListener(aVoid -> {
                                 Log.d(TAG, "Deleted malformed notification: " + doc.getId());
-                                deletedCount++;
+                                deletedCount.incrementAndGet();
                             })
                             .addOnFailureListener(e -> {
                                 Log.e(TAG, "Failed to delete malformed notification: " + doc.getId(), e);
@@ -63,7 +64,7 @@ public class NotificationCleanup {
                     }
                 }
                 
-                Log.d(TAG, "Deleted " + deletedCount + " malformed notifications");
+                Log.d(TAG, "Deleted " + deletedCount.get() + " malformed notifications");
             })
             .addOnFailureListener(e -> {
                 Log.e(TAG, "Error querying all notifications for cleanup", e);
