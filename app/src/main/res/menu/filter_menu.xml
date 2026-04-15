@@ -13,8 +13,23 @@
         app:showAsAction="never" />
         
     <item
+        android:id="@+id/action_sort_amount_highest"
+        android:title="Sort by Amount (Highest)"
+        app:showAsAction="never" />
+        
+    <item
+        android:id="@+id/action_sort_amount_lowest"
+        android:title="Sort by Amount (Lowest)"
+        app:showAsAction="never" />
+        
+    <item
         android:id="@+id/action_filter_payer"
         android:title="Filter by Payer"
+        app:showAsAction="never" />
+        
+    <item
+        android:id="@+id/action_filter_category"
+        android:title="Filter by Category"
         app:showAsAction="never" />
         
     <item

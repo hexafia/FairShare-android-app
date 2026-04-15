@@ -782,6 +782,27 @@ public class GroupLobbyActivity extends AppCompatActivity {
         builder.show();
     }
 
+    private void showCategoryFilterDialog() {
+        // Get unique categories from expenses
+        Set<String> categories = new HashSet<>();
+        for (GroupExpense expense : currentExpensesList) {
+            if (expense.getCategory() != null && !expense.getCategory().trim().isEmpty()) {
+                categories.add(expense.getCategory());
+            }
+        }
+        
+        String[] categoryArray = categories.toArray(new String[0]);
+        androidx.appcompat.app.AlertDialog.Builder builder = new androidx.appcompat.app.AlertDialog.Builder(this);
+        builder.setTitle("Filter by Category");
+        builder.setItems(categoryArray, (dialog, which) -> {
+            currentCategoryFilter = categoryArray[which];
+            currentSortOption = "category";
+            currentPayerFilter = null;
+            applyFilters();
+        });
+        builder.show();
+    }
+
     private void applyFilters() {
         String currentQuery = searchViewLedger != null ? searchViewLedger.getQuery().toString() : "";
         filterExpenses(currentQuery);
