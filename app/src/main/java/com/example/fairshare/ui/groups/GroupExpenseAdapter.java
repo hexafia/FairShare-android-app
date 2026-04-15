@@ -67,14 +67,15 @@ public class GroupExpenseAdapter extends ListAdapter<GroupExpense, GroupExpenseA
             // Build dynamic split text with participant names
             String splitText;
             Map<String, Double> splitAmounts = expense.getSplitAmounts();
-            if (splitAmounts != null && !splitAmounts.isEmpty()) {
+            List<String> participants = expense.getParticipants();
+            if (splitAmounts != null && !splitAmounts.isEmpty() && participants != null && !participants.isEmpty()) {
                 StringBuilder participantsBuilder = new StringBuilder();
                 int count = 0;
-                for (String uid : splitAmounts.keySet()) {
+                for (int i = 0; i < participants.size(); i++) {
                     if (count > 0) {
                         participantsBuilder.append(", ");
                     }
-                    participantsBuilder.append(expense.getParticipantName(uid));
+                    participantsBuilder.append(participants.get(i));
                     count++;
                 }
                 splitText = "Split to [" + participantsBuilder.toString() + "]";
