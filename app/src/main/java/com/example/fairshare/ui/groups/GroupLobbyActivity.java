@@ -735,6 +735,27 @@ public class GroupLobbyActivity extends AppCompatActivity {
             if (itemId == R.id.action_sort_date_newest) {
                 currentSortOption = "date_newest";
                 applyFilters();
+            } else if (itemId == R.id.action_sort_date_oldest) {
+                currentSortOption = "date_oldest";
+                applyFilters();
+            } else if (itemId == R.id.action_sort_amount_highest) {
+                currentSortOption = "amount_highest";
+                applyFilters();
+            } else if (itemId == R.id.action_sort_amount_lowest) {
+                currentSortOption = "amount_lowest";
+                applyFilters();
+            } else if (itemId == R.id.action_filter_payer) {
+                showPayerFilterDialog();
+            } else if (itemId == R.id.action_filter_category) {
+                showCategoryFilterDialog();
+            } else if (itemId == R.id.action_clear_filters) {
+                currentPayerFilter = null;
+                currentCategoryFilter = null;
+                currentSortOption = "date_newest";
+                applyFilters();
+            }
+            return true;
+        });
 
         popup.show();
     }
@@ -749,28 +770,16 @@ public class GroupLobbyActivity extends AppCompatActivity {
             }
         }
         
-        if (payers.isEmpty()) {
-            Toast.makeText(this, "No payers found", Toast.LENGTH_SHORT).show();
-            return;
-        }
-
         String[] payerArray = payers.toArray(new String[0]);
         androidx.appcompat.app.AlertDialog.Builder builder = new androidx.appcompat.app.AlertDialog.Builder(this);
         builder.setTitle("Filter by Payer");
         builder.setItems(payerArray, (dialog, which) -> {
             currentPayerFilter = payerArray[which];
             currentSortOption = "payer";
+            currentCategoryFilter = null;
             applyFilters();
         });
-        builder.setNegativeButton("Cancel", null);
         builder.show();
-    }
-
-    private void clearAllFilters() {
-        currentSortOption = "date_newest";
-        currentCategoryFilter = null;
-        currentPayerFilter = null;
-        applyFilters();
     }
 
     private void applyFilters() {
