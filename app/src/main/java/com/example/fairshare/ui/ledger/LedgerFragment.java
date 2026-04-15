@@ -45,7 +45,6 @@ public class LedgerFragment extends Fragment implements com.example.fairshare.Fa
     private TextInputEditText etSearch;
     private Spinner spinnerFilterCategory;
     private MaterialButton btnFilterDate;
-    private MaterialButton btnClearDate;
     private TextView tvTotalExpense;
     private TextView tvEmptyState;
     private RecyclerView rvPersonalExpenses;
@@ -67,7 +66,6 @@ public class LedgerFragment extends Fragment implements com.example.fairshare.Fa
         etSearch = view.findViewById(R.id.etSearch);
         spinnerFilterCategory = view.findViewById(R.id.spinnerFilterCategory);
         btnFilterDate = view.findViewById(R.id.btnFilterDate);
-        btnClearDate = view.findViewById(R.id.btnClearDate);
         tvTotalExpense = view.findViewById(R.id.tvTotalExpense);
         tvEmptyState = view.findViewById(R.id.tvEmptyState);
         rvPersonalExpenses = view.findViewById(R.id.rvPersonalExpenses);
@@ -149,12 +147,6 @@ public class LedgerFragment extends Fragment implements com.example.fairshare.Fa
 
             datePicker.show(getParentFragmentManager(), "DATE_PICKER");
         });
-
-        btnClearDate.setOnClickListener(v -> {
-            selectedDateStart = null;
-            btnFilterDate.setText("All Dates");
-            applyFilters();
-        });
     }
 
     private void setupViewModel() {
@@ -162,8 +154,19 @@ public class LedgerFragment extends Fragment implements com.example.fairshare.Fa
         viewModel = new ViewModelProvider(requireActivity()).get(ExpenseViewModel.class);
         viewModel.getExpenses().observe(getViewLifecycleOwner(), transactions -> {
             allExpenses = transactions != null ? transactions : new ArrayList<>();
+            
+            // Update total expense only from Firestore observer
+            updateTotalExpense();
             applyFilters();
         });
+    }
+    
+    private void updateTotalExpense() {
+        double totalExpense = 0;
+        for (Transaction t : allExpenses) {
+            totalExpense += t.getAmount();
+        }
+        tvTotalExpense.setText(CurrencyHelper.format(totalExpense));
     }
 
     @Override
@@ -180,7 +183,6 @@ public class LedgerFragment extends Fragment implements com.example.fairshare.Fa
 
     private void applyFilters() {
         List<Transaction> filtered = new ArrayList<>();
-        double totalFilteredExpense = 0;
 
         for (Transaction t : allExpenses) {
             boolean matchesSearch = currentSearch.isEmpty() || 
@@ -203,13 +205,12 @@ public class LedgerFragment extends Fragment implements com.example.fairshare.Fa
 
             if (matchesSearch && matchesCategory && matchesDate) {
                 filtered.add(t);
-                // All transactions are now expenses (income tracking removed)
-                totalFilteredExpense += t.getAmount();
             }
         }
 
         adapter.submitList(filtered);
-        tvTotalExpense.setText(CurrencyHelper.format(totalFilteredExpense));
+        // REMOVED: tvTotalExpense.setText(CurrencyHelper.format(totalFilteredExpense));
+        // Total expense is now static and only updated from Firestore observer
 
         if (filtered.isEmpty()) {
             tvEmptyState.setVisibility(View.VISIBLE);

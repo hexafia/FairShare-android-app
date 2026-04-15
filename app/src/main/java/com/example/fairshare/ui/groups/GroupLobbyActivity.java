@@ -541,6 +541,17 @@ public class GroupLobbyActivity extends AppCompatActivity {
                     layoutPaid.setVisibility(View.GONE);
                 } else {
                     layoutPaid.setVisibility(View.VISIBLE);
+                }
+            }
+        });
+    }
+    
+    private void showAddGroupExpenseDialog() {
+        try {
+            LayoutInflater inflater = getLayoutInflater();
+            View dialogView = inflater.inflate(R.layout.dialog_add_group_expense, null);
+            
+            AlertDialog.Builder builder = new AlertDialog.Builder(this);
             builder.setView(dialogView);
             AlertDialog dialog = builder.create();
             Log.d("FAB_DEBUG", "Dialog created, about to show");
