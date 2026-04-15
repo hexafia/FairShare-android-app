@@ -706,6 +706,9 @@ public class GroupLobbyActivity extends AppCompatActivity {
             }
 
             btnAddExpense.setOnClickListener(v -> {
+                // FIX: Move totalPercentage declaration to prevent stacking values
+                double totalPercentage = 0.0;
+                
                 String title = etTitle.getText() != null ? etTitle.getText().toString().trim() : "";
                 String amountStr = etAmount.getText() != null ? etAmount.getText().toString().trim() : "";
                 String notes = etNotes.getText() != null ? etNotes.getText().toString().trim() : "";
@@ -785,7 +788,6 @@ public class GroupLobbyActivity extends AppCompatActivity {
                     }
                 } else {
                     // UNEQUAL SPLIT - Use percentage math from EditText fields
-                    double totalPercentage = 0;
                     Map<String, Double> percentageInputs = new HashMap<>();
                     
                     // Find EditText percentage fields for each checked participant
