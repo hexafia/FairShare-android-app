@@ -2,6 +2,7 @@ package com.example.fairshare.ui.notifications;
 
 import android.content.Context;
 import android.content.Intent;
+import android.text.format.DateUtils;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -61,12 +62,13 @@ public class NotificationAdapter extends RecyclerView.Adapter<NotificationAdapte
                 holder.tvMessage.setText(notification.getMessage());
             }
             
-            // Set timestamp with null check
+            // Set timestamp with null check using relative time
             if (holder.tvTimestamp != null && notification.getTimestamp() != null) {
                 try {
-                    SimpleDateFormat dateFormat = new SimpleDateFormat("MMM dd, HH:mm", Locale.getDefault());
-                    String timeStr = dateFormat.format(notification.getTimestamp());
-                    holder.tvTimestamp.setText(timeStr);
+                    long now = System.currentTimeMillis();
+                    long timestamp = notification.getTimestamp().getTime();
+                    String relativeTime = DateUtils.getRelativeTimeSpanString(timestamp, now, DateUtils.MINUTE_IN_MILLIS).toString();
+                    holder.tvTimestamp.setText(relativeTime);
                 } catch (Exception e) {
                     holder.tvTimestamp.setText("Unknown time");
                 }
@@ -77,7 +79,7 @@ public class NotificationAdapter extends RecyclerView.Adapter<NotificationAdapte
                 String type = notification.getType();
                 if ("nudge".equals(type)) {
                     holder.ivIcon.setImageResource(R.drawable.ic_notifications);
-                } else if ("payment_confirmed".equals(type)) {
+                } else if ("settled_payment".equals(type)) {
                     holder.ivIcon.setImageResource(R.drawable.ic_check);
                 } else {
                     holder.ivIcon.setImageResource(R.drawable.ic_notifications);

@@ -52,18 +52,18 @@ public class Notification {
     public static Notification createNudgeNotification(String recipientUid, String senderUid, String senderName,
                                                      String groupId, String groupName, String expenseId, 
                                                      String expenseName, double amount) {
-        String message = senderName + " (Payer) nudged you. You still have a remaining balance of PHP " + String.format("%.2f", amount) + 
+        String message = senderName + " nudged you. You still have a balance of PHP " + String.format("%.2f", amount) + 
                         " for " + expenseName + " in " + groupName + ".";
         return new Notification("nudge", recipientUid, senderUid, senderName, groupId, groupName,
                               expenseId, expenseName, amount, message);
     }
 
-    public static Notification createPaymentConfirmationNotification(String recipientUid, String senderUid, String senderName,
-                                                                   String groupId, String groupName, String expenseId, 
-                                                                   String expenseName, double amount) {
-        String message = senderName + " (Payer) confirmed your payment of PHP " + String.format("%.2f", amount) + 
-                        " for " + expenseName + " in " + groupName + ".";
-        return new Notification("payment_confirmed", recipientUid, senderUid, senderName, groupId, groupName,
+    public static Notification createSettledPaymentNotification(String recipientUid, String senderUid, String senderName,
+                                                              String groupId, String groupName, String expenseId, 
+                                                              String expenseName, double amount) {
+        String message = senderName + " has confirmed your payment for " + expenseName + " in " + groupName + 
+                        " worth PHP " + String.format("%.2f", amount) + ".";
+        return new Notification("settled_payment", recipientUid, senderUid, senderName, groupId, groupName,
                               expenseId, expenseName, amount, message);
     }
 

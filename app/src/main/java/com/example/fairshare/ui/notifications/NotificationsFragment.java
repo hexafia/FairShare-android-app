@@ -146,7 +146,7 @@ public class NotificationsFragment extends Fragment implements com.example.fairs
         });
         
         btnViewAllPayments.setOnClickListener(v -> {
-            Intent intent = new Intent(requireContext(), PaymentHistoryActivity.class);
+            Intent intent = new Intent(requireContext(), SettledPaymentsActivity.class);
             startActivity(intent);
         });
     }
@@ -190,47 +190,8 @@ public class NotificationsFragment extends Fragment implements com.example.fairs
         
         Log.d("NOTIFICATIONS", "Loading notifications for user: " + currentUserId);
         
-        // Create test notification if collection is empty
-        createTestNotification();
-        
-        // Try ultra-simple query first to test basic access
-        db.collection("notifications")
-            .limit(10)
-            .addSnapshotListener((value, error) -> {
-                if (error != null) {
-                    Log.e("NOTIFICATIONS", "Basic query failed: " + error.getMessage(), error);
-                    Toast.makeText(requireContext(), "Cannot access notifications. Check Firestore rules.", Toast.LENGTH_LONG).show();
-                    showFallbackUI();
-                    return;
-                }
-                
-                // If basic query works, try the filtered query
-                loadFilteredNotifications();
-            });
-    }
-    
-    private void createTestNotification() {
-        // Create a test nudge notification
-        Notification testNotification = Notification.createNudgeNotification(
-            currentUserId,           // recipient (current user)
-            "test_user_123",         // sender
-            "Test User",             // sender name
-            "test_group_456",        // group ID
-            "Test Group",            // group name
-            "test_expense_789",      // expense ID
-            "Test Expense",          // expense name
-            150.75                   // amount
-        );
-        
-        // Save to Firestore
-        db.collection("notifications")
-            .add(testNotification)
-            .addOnSuccessListener(documentReference -> {
-                Log.d("NOTIFICATIONS", "Test notification created successfully");
-            })
-            .addOnFailureListener(e -> {
-                Log.e("NOTIFICATIONS", "Failed to create test notification: " + e.getMessage());
-            });
+        // Load filtered notifications directly
+        loadFilteredNotifications();
     }
     
     private void loadFilteredNotifications() {
@@ -300,9 +261,9 @@ public class NotificationsFragment extends Fragment implements com.example.fairs
                                 if ("nudge".equals(notification.getType())) {
                                     allNudges.add(notification);
                                     Log.d("NOTIFICATIONS", "Loaded nudge: " + notification.getMessage());
-                                } else if ("payment_confirmed".equals(notification.getType())) {
+                                } else if ("settled_payment".equals(notification.getType())) {
                                     allPayments.add(notification);
-                                    Log.d("NOTIFICATIONS", "Loaded payment confirmation: " + notification.getMessage());
+                                    Log.d("NOTIFICATIONS", "Loaded settled payment: " + notification.getMessage());
                                 }
                             } catch (Exception e) {
                                 Log.e("NOTIFICATIONS", "Error processing notification: " + notification.getId(), e);

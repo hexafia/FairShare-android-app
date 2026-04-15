@@ -884,8 +884,8 @@ public class GroupLobbyActivity extends AppCompatActivity {
         notificationData.put("timestamp", System.currentTimeMillis());
         notificationData.put("type", "nudge");
         notificationData.put("isRead", false);
-        // Create message with required format: <User B (Payer)> nudged you. You still have a remaining balance of PHP <amount> for <Expense> in <Group>.
-        String message = currentUserName + " (Payer) nudged you. You still have a remaining balance of PHP " + 
+        // Create message with required format: <User B> nudged you. You still have a balance of PHP <amount> for <Expense> in <Group>.
+        String message = currentUserName + " nudged you. You still have a balance of PHP " + 
                          String.format("%.2f", amount) + " for " + expenseName + " in " + groupName + ".";
         notificationData.put("message", message);
 
@@ -938,11 +938,11 @@ public class GroupLobbyActivity extends AppCompatActivity {
         notificationData.put("groupName", groupName);
         notificationData.put("groupId", groupId);
         notificationData.put("timestamp", System.currentTimeMillis());
-        notificationData.put("type", "payment_confirmed");
+        notificationData.put("type", "settled_payment");
         notificationData.put("isRead", false);
-        // Create message with required format: <User B (Payer)> confirmed your payment of PHP <amount> for <Expense> in <Group>.
-        String message = currentUserName + " (Payer) confirmed your payment of PHP " + 
-                         String.format("%.2f", settlement.settlementAmount) + " for " + settlement.expenseTitle + " in " + groupName + ".";
+        // Create message with required format: <User B> has confirmed your payment for <Expense> in <Group> worth PHP <amount>.
+        String message = currentUserName + " has confirmed your payment for " + settlement.expenseTitle + " in " + groupName + 
+                         " worth PHP " + String.format("%.2f", settlement.settlementAmount) + ".";
         notificationData.put("message", message);
 
         db.collection("notifications")
