@@ -95,7 +95,7 @@ public class GroupExpenseAdapter extends ListAdapter<GroupExpense, GroupExpenseA
                         if (participants != null && participants.contains(participantUid)) {
                             participantsBuilder.append("Loading...");
                         } else {
-                            participantsBuilder.append shortenUid(participantUid);
+                            participantsBuilder.append(shortenUid(participantUid));
                         }
                     }
                     count++;

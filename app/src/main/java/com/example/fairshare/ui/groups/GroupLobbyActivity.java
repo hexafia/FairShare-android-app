@@ -612,10 +612,7 @@ public class GroupLobbyActivity extends AppCompatActivity {
                     matches = true;
                 }
                 
-                // Search by category
-                if (expense.getCategory() != null && expense.getCategory().toLowerCase().contains(searchQuery)) {
-                    matches = true;
-                }
+                // Note: GroupExpense doesn't have category field, so we skip category search
                 
                 // Search by payer name
                 if (expense.getPayerName() != null && expense.getPayerName().toLowerCase().contains(searchQuery)) {
