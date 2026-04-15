@@ -67,12 +67,16 @@ public class GroupLobbyActivity extends AppCompatActivity {
     private UserRepository userRepository;
     private GroupExpenseAdapter expenseAdapter;
     private SettlementDetailAdapter settlementAdapter;
+    private SettlementDetailAdapter toPayAdapter; // "To Pay" section adapter
+    private SettlementDetailAdapter paidAdapter; // "Paid" section adapter
     private MembersAdapter membersAdapter;
 
     private TextView tvGroupTotal, tvMemberCount, tvMyBalance;
     private View layoutLedger, layoutSettleUp, layoutMembers;
     private TextView tvLedgerEmpty, tvSettleEmpty, tvMembersEmpty;
     private RecyclerView rvLedger, rvDebts, rvMembers;
+    private RecyclerView rvToPay, rvPaid; // Two-section layout
+    private View layoutToPay, layoutPaid; // Section containers
     private MaterialButton btnMarkAsAccomplished;
     private com.google.android.material.floatingactionbutton.FloatingActionButton fabAddExpense;
     private Group currentGroup;
@@ -160,6 +164,13 @@ public class GroupLobbyActivity extends AppCompatActivity {
         rvLedger = findViewById(R.id.rvLedger);
         rvDebts = findViewById(R.id.rvDebts);
         rvMembers = findViewById(R.id.rvMembers);
+        
+        // Two-section layout components
+        layoutToPay = findViewById(R.id.layoutToPay);
+        layoutPaid = findViewById(R.id.layoutPaid);
+        rvToPay = findViewById(R.id.rvToPay);
+        rvPaid = findViewById(R.id.rvPaid);
+        
         btnMarkAsAccomplished = findViewById(R.id.btnMarkAsAccomplished);
 
         TabLayout tabLayout = findViewById(R.id.tabLayout);
@@ -197,8 +208,12 @@ public class GroupLobbyActivity extends AppCompatActivity {
         rvLedger.setLayoutManager(new LinearLayoutManager(this));
         rvLedger.setAdapter(expenseAdapter);
 
-        settlementAdapter = new SettlementDetailAdapter();
-        settlementAdapter.setOnSettleClickListener(settlement -> {
+        // Setup two-section adapters
+        toPayAdapter = new SettlementDetailAdapter();
+        paidAdapter = new SettlementDetailAdapter();
+        
+        // Settle click listener for "To Pay" section
+        toPayAdapter.setOnSettleClickListener(settlement -> {
             new android.app.AlertDialog.Builder(this)
                 .setTitle("Confirm Settlement")
                 .setMessage("Mark this debt as settled?")
@@ -218,6 +233,16 @@ public class GroupLobbyActivity extends AppCompatActivity {
                 .setNegativeButton("Cancel", null)
                 .show();
         });
+        
+        // Set up RecyclerViews for two sections
+        rvToPay.setLayoutManager(new LinearLayoutManager(this));
+        rvToPay.setAdapter(toPayAdapter);
+        
+        rvPaid.setLayoutManager(new LinearLayoutManager(this));
+        rvPaid.setAdapter(paidAdapter);
+        
+        // Legacy adapter (kept for compatibility)
+        settlementAdapter = new SettlementDetailAdapter();
         rvDebts.setLayoutManager(new LinearLayoutManager(this));
         rvDebts.setAdapter(settlementAdapter);
 
@@ -450,32 +475,64 @@ public class GroupLobbyActivity extends AppCompatActivity {
         FirebaseUser currentUser = FirebaseAuth.getInstance().getCurrentUser();
         if (currentUser == null) return;
 
-        // Clear previous state to ensure fresh calculation
-        settlementAdapter.setMemberNames(memberNames);
-        
-        // Calculate aggregated settlements for all expenses
-        List<SettlementCalculator.SettlementDetail> settlements = 
+        // Calculate itemized settlements for all expenses
+        List<SettlementCalculator.SettlementDetail> allSettlements = 
                 SettlementCalculator.calculateSettlements(currentUser.getUid(), expenses, memberNames);
         
-        Log.d("SETTLE_UP_SYNC", "Calculated " + settlements.size() + " settlement transactions");
+        Log.d("SETTLE_UP_SYNC", "Calculated " + allSettlements.size() + " settlement transactions");
+        
+        // Separate into "To Pay" (unsettled) and "Paid" (settled) sections
+        List<SettlementCalculator.SettlementDetail> toPaySettlements = new ArrayList<>();
+        List<SettlementCalculator.SettlementDetail> paidSettlements = new ArrayList<>();
+        
+        for (SettlementCalculator.SettlementDetail settlement : allSettlements) {
+            if (settlement.settled) {
+                paidSettlements.add(settlement);
+            } else {
+                toPaySettlements.add(settlement);
+            }
+        }
+        
+        Log.d("SETTLE_UP_SYNC", "To Pay: " + toPaySettlements.size() + ", Paid: " + paidSettlements.size());
         
         // Ensure UI thread safety for adapter updates
         runOnUiThread(() -> {
-            // Update UI with aggregated settlements
-            settlementAdapter.submitList(settlements);
+            // Set member names for both adapters
+            toPayAdapter.setMemberNames(memberNames);
+            paidAdapter.setMemberNames(memberNames);
             
-            // Fix the 'CalculatedDebts' submission - Manual notify for complex aggregation
-            settlementAdapter.notifyDataSetChanged();
+            // Update adapters with respective data
+            toPayAdapter.submitList(toPaySettlements);
+            paidAdapter.submitList(paidSettlements);
+            
+            // Manual notify for complex aggregation
+            toPayAdapter.notifyDataSetChanged();
+            paidAdapter.notifyDataSetChanged();
 
-            // Show empty state if no outstanding debts
-            if (settlements.isEmpty()) {
+            // Show appropriate UI state
+            if (allSettlements.isEmpty()) {
+                // No settlements at all
                 Log.d("SETTLE_UP_SYNC", "No outstanding debts, showing empty state");
                 tvSettleEmpty.setVisibility(View.VISIBLE);
-                rvDebts.setVisibility(View.GONE);
+                layoutToPay.setVisibility(View.GONE);
+                layoutPaid.setVisibility(View.GONE);
             } else {
-                Log.d("SETTLE_UP_SYNC", "Showing " + settlements.size() + " settlement transactions");
+                Log.d("SETTLE_UP_SYNC", "Showing settlements");
                 tvSettleEmpty.setVisibility(View.GONE);
-                rvDebts.setVisibility(View.VISIBLE);
+                
+                // Show "To Pay" section if there are unsettled items
+                if (toPaySettlements.isEmpty()) {
+                    layoutToPay.setVisibility(View.GONE);
+                } else {
+                    layoutToPay.setVisibility(View.VISIBLE);
+                }
+                
+                // Show "Paid" section if there are settled items
+                if (paidSettlements.isEmpty()) {
+                    layoutPaid.setVisibility(View.GONE);
+                } else {
+                    layoutPaid.setVisibility(View.VISIBLE);
+                }
             }
         });
     }

@@ -55,14 +55,22 @@
                 tools:text="Brent → Anna" />
 
             <TextView
-                android:id="@+id/tvExpenseTitle"
+                android:id="@+id/tvExpenseName"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:textColor="@color/text_secondary"
                 android:textSize="12sp"
                 android:layout_marginTop="2dp"
-                android:visibility="gone"
-                tools:text="for: Dinner" />
+                tools:text="Dinner" />
+
+            <TextView
+                android:id="@+id/tvDateAdded"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textColor="@color/text_secondary"
+                android:textSize="10sp"
+                android:layout_marginTop="1dp"
+                tools:text="Added: Apr 15, 2026" />
 
             <TextView
                 android:id="@+id/tvSettlementAmount"
@@ -72,7 +80,17 @@
                 android:textSize="16sp"
                 android:textStyle="bold"
                 android:layout_marginTop="2dp"
-                tools:text="₱500.00" />
+                tools:text="PHP 500.00" />
+
+            <TextView
+                android:id="@+id/tvSettledDate"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textColor="@color/income_green"
+                android:textSize="10sp"
+                android:layout_marginTop="1dp"
+                android:visibility="gone"
+                tools:text="Settled: Apr 16, 2026" />
 
         </LinearLayout>
 

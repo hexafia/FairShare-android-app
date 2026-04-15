@@ -25,11 +25,13 @@ public class GroupExpense {
     private List<String> involvedUsers; // payerUid + all participants (for efficient querying)
     private long timestamp;
     private Map<String, Boolean> settledStatus; // uid -> true if that person's share is settled
+    private Map<String, Long> settledDates; // uid -> timestamp when that person's share was settled
 
     // Required empty constructor for Firebase deserialization
     public GroupExpense() {
         participants = new ArrayList<>();
         settledStatus = new HashMap<>();
+        settledDates = new HashMap<>();
     }
 
     public GroupExpense(String groupId, String title, String payerUid, String payerName, double amount) {
@@ -40,6 +42,8 @@ public class GroupExpense {
         this.amount = amount;
         this.splitType = "EQUAL";
         this.participants = new ArrayList<>();
+        this.settledStatus = new HashMap<>();
+        this.settledDates = new HashMap<>();
         this.timestamp = System.currentTimeMillis();
     }
 
@@ -145,7 +149,19 @@ public class GroupExpense {
         this.settledStatus = settledStatus;
     }
 
+    public Map<String, Long> getSettledDates() {
+        return settledDates;
+    }
+
+    public void setSettledDates(Map<String, Long> settledDates) {
+        this.settledDates = settledDates;
+    }
+
     public boolean isSettledFor(String uid) {
         return settledStatus != null && Boolean.TRUE.equals(settledStatus.get(uid));
+    }
+
+    public Long getSettledDateFor(String uid) {
+        return settledDates != null ? settledDates.get(uid) : null;
     }
 }

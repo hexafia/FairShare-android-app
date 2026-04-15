@@ -15,7 +15,10 @@ import com.example.fairshare.R;
 import com.example.fairshare.SettlementCalculator;
 import com.google.android.material.button.MaterialButton;
 
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.HashMap;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
 
@@ -79,7 +82,7 @@ public class SettlementDetailAdapter extends ListAdapter<SettlementCalculator.Se
     class ViewHolder extends RecyclerView.ViewHolder {
         private final TextView tvDebtorInitial, tvCreditorInitial;
         private final TextView tvSettlementDescription, tvSettlementAmount;
-        private final TextView tvExpenseTitle;
+        private final TextView tvExpenseName, tvDateAdded, tvSettledDate;
         private final MaterialButton btnSettle;
         private final TextView tvSettledLabel;
 
@@ -89,7 +92,9 @@ public class SettlementDetailAdapter extends ListAdapter<SettlementCalculator.Se
             tvCreditorInitial = itemView.findViewById(R.id.tvCreditorInitial);
             tvSettlementDescription = itemView.findViewById(R.id.tvSettlementDescription);
             tvSettlementAmount = itemView.findViewById(R.id.tvSettlementAmount);
-            tvExpenseTitle = itemView.findViewById(R.id.tvExpenseTitle);
+            tvExpenseName = itemView.findViewById(R.id.tvExpenseName);
+            tvDateAdded = itemView.findViewById(R.id.tvDateAdded);
+            tvSettledDate = itemView.findViewById(R.id.tvSettledDate);
             btnSettle = itemView.findViewById(R.id.btnSettle);
             tvSettledLabel = itemView.findViewById(R.id.tvSettledLabel);
         }
@@ -101,16 +106,30 @@ public class SettlementDetailAdapter extends ListAdapter<SettlementCalculator.Se
             tvDebtorInitial.setText(String.valueOf(debtorName.charAt(0)).toUpperCase());
             tvCreditorInitial.setText(String.valueOf(creditorName.charAt(0)).toUpperCase());
             
-            // Enhanced "Who owes Whom" display format
-            tvSettlementDescription.setText(debtorName + " owes " + creditorName);
+            // Settlement Description: Use perspective text from SettlementDetail
+            tvSettlementDescription.setText(settlement.perspectiveText + " " + CurrencyHelper.format(settlement.settlementAmount));
             tvSettlementAmount.setText(CurrencyHelper.format(settlement.settlementAmount));
             
-            // Show the expense title for context
+            // Map data to specific views for itemized transactions
             if (settlement.expenseTitle != null && !settlement.expenseTitle.isEmpty()) {
-                tvExpenseTitle.setText("for: " + settlement.expenseTitle);
-                tvExpenseTitle.setVisibility(View.VISIBLE);
+                tvExpenseName.setText(settlement.expenseTitle);
+                tvExpenseName.setVisibility(View.VISIBLE);
             } else {
-                tvExpenseTitle.setVisibility(View.GONE);
+                tvExpenseName.setVisibility(View.GONE);
+            }
+            
+            // Date Added: Format timestamp
+            SimpleDateFormat dateFormat = new SimpleDateFormat("MMM dd, yyyy", Locale.getDefault());
+            String dateAddedText = "Added: " + dateFormat.format(new Date(settlement.dateAdded));
+            tvDateAdded.setText(dateAddedText);
+            tvDateAdded.setVisibility(View.VISIBLE);
+            
+            // Settled Date: Initially hidden, only show if payment is marked as successful
+            if (settlement.settled && settlement.settledDate != null) {
+                tvSettledDate.setText("Settled: " + settlement.settledDate);
+                tvSettledDate.setVisibility(View.VISIBLE);
+            } else {
+                tvSettledDate.setVisibility(View.GONE);
             }
 
             // Handle settled state

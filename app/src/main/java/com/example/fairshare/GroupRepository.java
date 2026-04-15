@@ -378,10 +378,14 @@ public class GroupRepository {
     }
 
     public void markSettled(String expenseId, String debtorUid, OnCompleteCallback callback) {
+        // Get current timestamp for settled date
+        long settledTimestamp = System.currentTimeMillis();
+        
         db.collection(GROUP_EXPENSES_COLLECTION).document(expenseId)
-                .update("settledStatus." + debtorUid, true)
+                .update("settledStatus." + debtorUid, true,
+                        "settledDates." + debtorUid, settledTimestamp)
                 .addOnSuccessListener(aVoid -> {
-                    Log.d(TAG, "Marked settled for " + debtorUid + " on expense " + expenseId);
+                    Log.d(TAG, "Marked settled for " + debtorUid + " on expense " + expenseId + " at " + settledTimestamp);
                     callback.onSuccess("Settled!");
                 })
                 .addOnFailureListener(e -> {

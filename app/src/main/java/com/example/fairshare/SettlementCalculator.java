@@ -1,8 +1,11 @@
 package com.example.fairshare;
 
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 
 /**
@@ -33,10 +36,14 @@ public class SettlementCalculator {
         public final String creditorUid;    // The user who is owed
         public final double settlementAmount;
         public final boolean settled;       // Whether this debt has been marked as settled
+        public final long dateAdded;        // Timestamp of the expense creation
+        public final String settledDate;    // When this specific debt was settled (null if not settled)
+        public final String perspectiveText; // "You owe [Name]" or "[Name] owes you"
 
         public SettlementDetail(String expenseId, String expenseTitle, String payerUid, 
                                String payerName, double amount, String debtorUid, 
-                               String creditorUid, double settlementAmount, boolean settled) {
+                               String creditorUid, double settlementAmount, boolean settled,
+                               long dateAdded, String settledDate, String perspectiveText) {
             this.expenseId = expenseId;
             this.expenseTitle = expenseTitle;
             this.payerUid = payerUid;
@@ -46,17 +53,20 @@ public class SettlementCalculator {
             this.creditorUid = creditorUid;
             this.settlementAmount = settlementAmount;
             this.settled = settled;
+            this.dateAdded = dateAdded;
+            this.settledDate = settledDate;
+            this.perspectiveText = perspectiveText;
         }
     }
 
     /**
-     * Calculates aggregated settlement details for all expenses in the group.
-     * This method implements global tally logic to aggregate all outstanding debts.
+     * Calculates itemized settlement details for all expenses in the group.
+     * This method creates individual settlement objects for each debt entry from the current user's perspective.
      * 
      * @param currentUserId  The current user's UID (for filtering if needed)
      * @param expenses       List of all group expenses
      * @param memberNames    Map of uid -> display name
-     * @return List of aggregated settlement details
+     * @return List of itemized settlement details
      */
     public static List<SettlementDetail> calculateSettlements(
             String currentUserId, 
@@ -69,12 +79,14 @@ public class SettlementCalculator {
             return settlements;
         }
         
-        // Step 1: Global Tally Logic
-        Map<String, Double> netBalances = new HashMap<>();
-        
+        // Flatten Expenses: Loop through every GroupExpense and create individual settlement objects
         for (GroupExpense expense : expenses) {
+            String expenseId = expense.getId();
+            String expenseTitle = expense.getTitle();
             String payerUid = expense.getPayerUid();
+            String payerName = expense.getPayerName();
             double totalAmount = expense.getAmount();
+            long timestamp = expense.getTimestamp();
             Map<String, Double> splitAmounts = expense.getSplitAmounts();
             
             if (splitAmounts == null || splitAmounts.isEmpty()) {
@@ -82,90 +94,75 @@ public class SettlementCalculator {
                 continue;
             }
             
-            // Credit the Payer: Add the totalAmount to the payer's UID in the map
-            netBalances.put(payerUid, netBalances.getOrDefault(payerUid, 0.0) + totalAmount);
-            
-            // Debit the Participants: Subtract each participant's share from their UID
+            // Create Settlement Objects: For every entry in the breakdown map
             for (Map.Entry<String, Double> entry : splitAmounts.entrySet()) {
-                String participantUid = entry.getKey();
-                Double shareAmount = entry.getValue();
+                String debtorUid = entry.getKey();
+                Double amountOwed = entry.getValue();
                 
-                if (shareAmount != null && shareAmount > 0) {
-                    netBalances.put(participantUid, netBalances.getOrDefault(participantUid, 0.0) - shareAmount);
+                // Skip if amount is zero or negative, or if debtor is the payer (self-payment)
+                if (amountOwed == null || amountOwed <= 0 || debtorUid.equals(payerUid)) {
+                    continue;
                 }
-            }
-        }
-        
-        // Step 2: The 'Who Owes Whom' Algorithm
-        // Separate debtors (negative balance) and creditors (positive balance)
-        List<Map.Entry<String, Double>> debtors = new ArrayList<>();
-        List<Map.Entry<String, Double>> creditors = new ArrayList<>();
-        
-        for (Map.Entry<String, Double> entry : netBalances.entrySet()) {
-            double balance = Math.round(entry.getValue() * 100.0) / 100.0; // Round to 2 decimal places
-            
-            if (balance < -0.01) { // Negative balance (owes money)
-                debtors.add(new java.util.AbstractMap.SimpleEntry<>(entry.getKey(), -balance)); // Store as positive amount owed
-            } else if (balance > 0.01) { // Positive balance (is owed money)
-                creditors.add(new java.util.AbstractMap.SimpleEntry<>(entry.getKey(), balance));
-            }
-        }
-        
-        // Step 3: Match debtors to creditors to create settlement transactions
-        int debtorIndex = 0;
-        int creditorIndex = 0;
-        
-        while (debtorIndex < debtors.size() && creditorIndex < creditors.size()) {
-            Map.Entry<String, Double> debtor = debtors.get(debtorIndex);
-            Map.Entry<String, Double> creditor = creditors.get(creditorIndex);
-            
-            String debtorUid = debtor.getKey();
-            double debtorOwes = debtor.getValue();
-            String creditorUid = creditor.getKey();
-            double creditorIsOwed = creditor.getValue();
-            
-            // Calculate the settlement amount (minimum of what debtor owes and what creditor is owed)
-            double settlementAmount = Math.min(debtorOwes, creditorIsOwed);
-            settlementAmount = Math.round(settlementAmount * 100.0) / 100.0; // Round to 2 decimal places
-            
-            if (settlementAmount > 0.01) { // Only create settlement if amount is significant
-                String debtorName = memberNames.getOrDefault(debtorUid, debtorUid);
-                String creditorName = memberNames.getOrDefault(creditorUid, creditorUid);
                 
-                // Create aggregated settlement detail
-                settlements.add(new SettlementDetail(
-                        "aggregated", // Special ID for aggregated settlements
-                        "Multiple Expenses", // Generic title for aggregated settlements
-                        creditorUid, // The person who is owed
-                        creditorName,
-                        settlementAmount,
-                        debtorUid, // The person who owes
-                        creditorUid, // To the creditor
-                        settlementAmount,
-                        false // Aggregated settlements are not marked as settled individually
-                ));
-            }
-            
-            // Update remaining amounts
-            double remainingDebtorOwes = debtorOwes - settlementAmount;
-            double remainingCreditorIsOwed = creditorIsOwed - settlementAmount;
-            
-            // Update debtor
-            if (remainingDebtorOwes > 0.01) {
-                debtors.set(debtorIndex, new java.util.AbstractMap.SimpleEntry<>(debtorUid, remainingDebtorOwes));
-            } else {
-                debtorIndex++;
-            }
-            
-            // Update creditor
-            if (remainingCreditorIsOwed > 0.01) {
-                creditors.set(creditorIndex, new java.util.AbstractMap.SimpleEntry<>(creditorUid, remainingCreditorIsOwed));
-            } else {
-                creditorIndex++;
+                // Case C (Irrelevant): If current user is neither payer nor debtor, skip this item
+                if (!currentUserId.equals(payerUid) && !currentUserId.equals(debtorUid)) {
+                    continue;
+                }
+                
+                // Check if this specific debt is settled and get settled date
+                boolean isSettled = expense.isSettledFor(debtorUid);
+                String settledDate = null;
+                if (isSettled) {
+                    Long settledTimestamp = expense.getSettledDateFor(debtorUid);
+                    if (settledTimestamp != null) {
+                        SimpleDateFormat dateFormat = new SimpleDateFormat("MMM dd, yyyy", Locale.getDefault());
+                        settledDate = dateFormat.format(new Date(settledTimestamp));
+                    } else {
+                        settledDate = "Settled";
+                    }
+                }
+                
+                // Determine perspective and description text
+                String perspectiveText;
+                if (currentUserId.equals(debtorUid)) {
+                    // Case A (I owe someone): "You owe [PayerName] PHP XXX"
+                    perspectiveText = "You owe " + payerName;
+                } else if (currentUserId.equals(payerUid)) {
+                    // Case B (Someone owes me): "[DebtorName] owes you PHP XXX"
+                    String debtorName = memberNames.getOrDefault(debtorUid, shortenUid(debtorUid));
+                    perspectiveText = debtorName + " owes you";
+                } else {
+                    continue; // Should not reach here due to Case C check
+                }
+                
+                // Create individual settlement object with perspective
+                SettlementDetail settlement = new SettlementDetail(
+                        expenseId,                    // The original expense ID
+                        expenseTitle,                 // The expense name
+                        payerUid,                     // The payer's UID
+                        payerName,                    // The payer's name
+                        totalAmount,                  // Total expense amount
+                        debtorUid,                    // The debtor's UID (person who owes)
+                        payerUid,                     // The creditor's UID (person who is owed - the payer)
+                        amountOwed,                   // Amount owed for this specific item
+                        isSettled,                    // Whether this debt has been marked as settled
+                        timestamp,                    // Date added (expense timestamp)
+                        settledDate,                   // Settled date (null if not settled)
+                        perspectiveText              // Perspective text for proper display
+                );
+                
+                settlements.add(settlement);
             }
         }
+        
+        // Data Sorting: Sort the list by Date Added (descending) so newest expenses appear at top
+        settlements.sort((a, b) -> Long.compare(b.dateAdded, a.dateAdded));
         
         return settlements;
+    }
+    
+    private static String shortenUid(String uid) {
+        return uid != null && uid.length() > 6 ? uid.substring(0, 6) : (uid != null ? uid : "?");
     }
 
     /**
