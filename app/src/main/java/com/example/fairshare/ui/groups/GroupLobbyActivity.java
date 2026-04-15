@@ -226,7 +226,7 @@ public class GroupLobbyActivity extends AppCompatActivity {
                                 // Force immediate adapter refresh to show visual changes
                                 toPayAdapter.notifyDataSetChanged();
                                 paidAdapter.notifyDataSetChanged();
-                                updateDebts();
+                                updateDebts(currentExpensesList);
                             }
                             @Override
                             public void onError(String error) {
