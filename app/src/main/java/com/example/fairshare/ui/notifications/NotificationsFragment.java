@@ -2,6 +2,7 @@ package com.example.fairshare.ui.notifications;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -75,53 +76,51 @@ public class NotificationsFragment extends Fragment implements com.example.fairs
     }
 
     private void loadNotifications() {
-        // Load nudges
+        // Check if currentUserId is valid
+        if (currentUserId == null || currentUserId.isEmpty()) {
+            Toast.makeText(requireContext(), "User not authenticated", Toast.LENGTH_SHORT).show();
+            return;
+        }
+        
+        Log.d("NOTIFICATIONS", "Loading notifications for user: " + currentUserId);
+        
+        // Load all notifications for current user (simplified query to avoid index requirements)
         db.collection("notifications")
             .whereEqualTo("recipientUid", currentUserId)
-            .whereEqualTo("type", "nudge")
             .orderBy("timestamp", Query.Direction.DESCENDING)
             .addSnapshotListener((value, error) -> {
                 if (error != null) {
-                    Toast.makeText(requireContext(), "Error loading nudges", Toast.LENGTH_SHORT).show();
+                    Log.e("NOTIFICATIONS", "Error loading notifications: " + error.getMessage(), error);
+                    Toast.makeText(requireContext(), "Error loading notifications: " + error.getMessage(), Toast.LENGTH_LONG).show();
                     return;
                 }
                 
                 List<Notification> nudges = new ArrayList<>();
-                if (value != null) {
-                    for (com.google.firebase.firestore.DocumentSnapshot doc : value.getDocuments()) {
-                        Notification notification = doc.toObject(Notification.class);
-                        if (notification != null) {
-                            notification.setId(doc.getId());
-                            nudges.add(notification);
-                        }
-                    }
-                }
-                
-                updateNudgesUI(nudges);
-            });
-
-        // Load payment confirmations
-        db.collection("notifications")
-            .whereEqualTo("recipientUid", currentUserId)
-            .whereEqualTo("type", "payment_confirmed")
-            .orderBy("timestamp", Query.Direction.DESCENDING)
-            .addSnapshotListener((value, error) -> {
-                if (error != null) {
-                    Toast.makeText(requireContext(), "Error loading payment history", Toast.LENGTH_SHORT).show();
-                    return;
-                }
-                
                 List<Notification> paymentConfirmations = new ArrayList<>();
+                
                 if (value != null) {
+                    Log.d("NOTIFICATIONS", "Found " + value.getDocuments().size() + " total notification documents");
                     for (com.google.firebase.firestore.DocumentSnapshot doc : value.getDocuments()) {
                         Notification notification = doc.toObject(Notification.class);
                         if (notification != null) {
                             notification.setId(doc.getId());
-                            paymentConfirmations.add(notification);
+                            
+                            // Filter by type in the app
+                            if ("nudge".equals(notification.getType())) {
+                                nudges.add(notification);
+                                Log.d("NOTIFICATIONS", "Loaded nudge: " + notification.getMessage());
+                            } else if ("payment_confirmed".equals(notification.getType())) {
+                                paymentConfirmations.add(notification);
+                                Log.d("NOTIFICATIONS", "Loaded payment confirmation: " + notification.getMessage());
+                            }
                         }
                     }
+                } else {
+                    Log.d("NOTIFICATIONS", "No notification documents found");
                 }
                 
+                Log.d("NOTIFICATIONS", "Updating UI - Nudges: " + nudges.size() + ", Payments: " + paymentConfirmations.size());
+                updateNudgesUI(nudges);
                 updatePaymentHistoryUI(paymentConfirmations);
             });
     }

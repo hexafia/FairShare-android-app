@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 
+  Firestore indexes for the notifications collection
+  These indexes are required for queries with multiple where clauses and orderBy
+-->
+<resources>
+    <string name="firestore_index_message">
+        The IOU Pinger feature requires Firestore indexes. Please create the following indexes in your Firebase Console:
+        
+        1. Go to Firebase Console -> Firestore Database -> Indexes
+        2. Create these composite indexes:
+        
+        Index 1:
+        - Collection: notifications
+        - Fields: recipientUid (Ascending), type (Ascending), timestamp (Descending)
+        
+        Index 2:
+        - Collection: notifications  
+        - Fields: recipientUid (Ascending), type (Ascending), timestamp (Descending)
+        
+        Or click the link in the error message to auto-create the indexes.
+    </string>
+</resources>
