@@ -84,34 +84,23 @@ public class NotificationsFragment extends Fragment implements com.example.fairs
         
         Log.d("NOTIFICATIONS", "Loading notifications for user: " + currentUserId);
         
-        // Test: Try a simple collection read first to check permissions
-        db.collection("notifications")
-            .limit(1)
-            .get()
-            .addOnSuccessListener(querySnapshot -> {
-                Log.d("NOTIFICATIONS", "Collection access test successful. Found " + querySnapshot.size() + " documents");
-                
-                // Now proceed with the actual query
-                loadNotificationsQuery();
-            })
-            .addOnFailureListener(e -> {
-                Log.e("NOTIFICATIONS", "Collection access test failed: " + e.getMessage(), e);
-                Toast.makeText(requireContext(), "Cannot access notifications collection. Check Firestore permissions.", Toast.LENGTH_LONG).show();
-                
-                // Fallback: Show empty state with instructions
-                showFallbackUI();
-            });
-    }
-    
-    private void loadNotificationsQuery() {
-        
-        // Load all notifications for current user (simplified query to avoid index requirements)
+        // Load all notifications for current user
         db.collection("notifications")
             .whereEqualTo("recipientUid", currentUserId)
             .orderBy("timestamp", Query.Direction.DESCENDING)
             .addSnapshotListener((value, error) -> {
                 if (error != null) {
                     Log.e("NOTIFICATIONS", "Error loading notifications: " + error.getMessage(), error);
+                    
+                    // Check if it's a permission error
+                    if (error.getMessage() != null && 
+                        (error.getMessage().contains("PERMISSION_DENIED") || 
+                         error.getMessage().contains("PRE_CONDITION"))) {
+                        Toast.makeText(requireContext(), "Firestore permissions not configured. Please deploy security rules.", Toast.LENGTH_LONG).show();
+                        showFallbackUI();
+                        return;
+                    }
+                    
                     Toast.makeText(requireContext(), "Error loading notifications: " + error.getMessage(), Toast.LENGTH_LONG).show();
                     showFallbackUI();
                     return;
@@ -127,7 +116,7 @@ public class NotificationsFragment extends Fragment implements com.example.fairs
                         if (notification != null) {
                             notification.setId(doc.getId());
                             
-                            // Filter by type in the app
+                            // Filter by type in app
                             if ("nudge".equals(notification.getType())) {
                                 nudges.add(notification);
                                 Log.d("NOTIFICATIONS", "Loaded nudge: " + notification.getMessage());
