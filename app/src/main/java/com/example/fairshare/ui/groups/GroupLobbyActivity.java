@@ -223,6 +223,10 @@ public class GroupLobbyActivity extends AppCompatActivity {
                             @Override
                             public void onSuccess(String message) {
                                 Toast.makeText(GroupLobbyActivity.this, message, Toast.LENGTH_SHORT).show();
+                                // Force immediate adapter refresh to show visual changes
+                                toPayAdapter.notifyDataSetChanged();
+                                paidAdapter.notifyDataSetChanged();
+                                updateDebts();
                             }
                             @Override
                             public void onError(String error) {
