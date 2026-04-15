@@ -49,6 +49,7 @@ import com.example.fairshare.R;
 import com.example.fairshare.UserProfile;
 import com.example.fairshare.UserRepository;
 import com.example.fairshare.SettlementCalculator;
+import com.example.fairshare.ui.dashboard.AddGroupExpenseDialog;
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.tabs.TabLayout;
 import com.google.android.material.textfield.TextInputEditText;
@@ -89,10 +90,7 @@ public class GroupLobbyActivity extends AppCompatActivity {
     // Maps UID ΓåÆ display name for the Settle Up tab
     private final Map<String, String> memberNames = new HashMap<>();
     
-    // Track selected participants for expense splitting
-    private final Map<String, Boolean> selectedParticipants = new HashMap<>();
-    private boolean isEqualSplit = true;
-    
+        
     // Store current expenses list for tab refresh
     private List<GroupExpense> currentExpensesList = new ArrayList<>();
 
@@ -269,11 +267,26 @@ public class GroupLobbyActivity extends AppCompatActivity {
         fabAddExpense.setOnClickListener(v -> {
             Log.d("FAB_DEBUG", "FAB clicked!");
             try {
-                Log.d("TEST_DEBUG", "About to call showAddGroupExpenseDialog");
-                showAddGroupExpenseDialog();
-                Log.d("TEST_DEBUG", "Returned from showAddGroupExpenseDialog");
+                // Create list with current group for AddGroupExpenseDialog
+                List<Group> currentGroupList = new ArrayList<>();
+                if (currentGroup != null) {
+                    currentGroupList.add(currentGroup);
+                }
+                
+                // Create dialog with proper constructor
+                AddGroupExpenseDialog dialog = new AddGroupExpenseDialog(
+                        this,
+                        currentGroupList,
+                        null, // DashboardViewModel - not needed in GroupLobbyActivity
+                        groupRepository,
+                        () -> {
+                            // Callback to refresh ledger after expense saved
+                            Log.d("FAB_DEBUG", "Expense saved, refreshing expenses");
+                            // The expense observer will automatically refresh the ledger
+                        });
+                dialog.show();
             } catch (Exception e) {
-                Log.e("FAB_ERROR", "Error in showAddGroupExpenseDialog: " + e.getMessage());
+                Log.e("FAB_ERROR", "Error in AddGroupExpenseDialog: " + e.getMessage());
                 e.printStackTrace();
             }
         });
@@ -546,319 +559,6 @@ public class GroupLobbyActivity extends AppCompatActivity {
         });
     }
     
-    private void showAddGroupExpenseDialog() {
-        try {
-            LayoutInflater inflater = getLayoutInflater();
-            View dialogView = inflater.inflate(R.layout.dialog_add_group_expense, null);
-            
-            AlertDialog.Builder builder = new AlertDialog.Builder(this);
-            builder.setView(dialogView);
-            AlertDialog dialog = builder.create();
-            Log.d("FAB_DEBUG", "Dialog created, about to show");
-            dialog.show();
-            Log.d("FAB_DEBUG", "Dialog show() called");
-            
-            // Declare views
-            TextInputEditText etTitle = dialogView.findViewById(R.id.etTitle);
-            TextInputEditText etAmount = dialogView.findViewById(R.id.etAmount);
-            TextInputEditText etNotes = dialogView.findViewById(R.id.etNotes);
-            TextView tvParticipatedHeader = dialogView.findViewById(R.id.tvParticipatedHeader);
-            MaterialButton btnAddExpense = dialogView.findViewById(R.id.btnAddExpense);
-            ImageView btnClose = dialogView.findViewById(R.id.btnClose);
-            
-            // Spinner components
-            Spinner spinnerSelectGroup = dialogView.findViewById(R.id.spinnerSelectGroup);
-            Spinner spinnerWhoPaid = dialogView.findViewById(R.id.spinnerWhoPaid);
-            Spinner spinnerCategory = dialogView.findViewById(R.id.spinnerCategory);
-            LinearLayout containerParticipants = dialogView.findViewById(R.id.containerParticipants);
-            
-            // Track selected group ID for expense creation
-            final String[] selectedGroupId = {groupId}; // Default to current group
-            
-            // Split method buttons
-            Button btnEqualSplit = dialogView.findViewById(R.id.btnEqualSplit);
-            Button btnUnequalSplit = dialogView.findViewById(R.id.btnUnequalSplit);
-            
-            // 0. SPINNER SELECT GROUP INITIALIZATION
-            groupRepository.getGroups().observe(this, groups -> {
-                if (groups != null) {
-                    java.util.ArrayList<String> activeGroupNames = new java.util.ArrayList<>();
-                    java.util.ArrayList<String> activeGroupIds = new java.util.ArrayList<>();
-                    for (Group group : groups) {
-                        if (group.isActive()) {
-                            activeGroupNames.add(group.getName());
-                            activeGroupIds.add(group.getId());
-                        }
-                    }
-                    ArrayAdapter<String> groupAdapter = new ArrayAdapter<>(GroupLobbyActivity.this,
-                        android.R.layout.simple_spinner_item, activeGroupNames);
-                    groupAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-                    spinnerSelectGroup.setAdapter(groupAdapter);
-                    spinnerSelectGroup.setClickable(true);
-                    spinnerSelectGroup.setEnabled(true);
-                    
-                    int currentPosition = activeGroupIds.indexOf(groupId);
-                    if (currentPosition >= 0) {
-                        spinnerSelectGroup.setSelection(currentPosition);
-                    }
-                    
-                    // We don't implement full re-rendering for other groups yet since our 
-                    // authoritative UI relies heavily on the active lobby's stream. We just 
-                    // track the ID so the expense saves to the chosen group.
-                    spinnerSelectGroup.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
-                        @Override
-                        public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-                            selectedGroupId[0] = activeGroupIds.get(position);
-                        }
-                        @Override
-                        public void onNothingSelected(AdapterView<?> parent) {}
-                    });
-                }
-            });
-            spinnerSelectGroup.setOnTouchListener((v, event) -> {
-                v.getParent().requestDisallowInterceptTouchEvent(true);
-                return false;
-            });
-            
-            // 1. SPINNER INITIALIZATION
-            // Build the full ordered member list from currentGroup (authoritative source)
-            List<String> allMemberUids = (currentGroup != null && currentGroup.getMembers() != null)
-                    ? currentGroup.getMembers() : new ArrayList<>(memberNames.keySet());
-
-            // Build parallel lists for the spinner: uid -> display name (fallback to short uid)
-            final List<String> whoPaidUids = new ArrayList<>(allMemberUids);
-            ArrayList<String> memberNamesList = new ArrayList<>();
-            for (String uid : whoPaidUids) {
-                memberNamesList.add(memberNames.containsKey(uid) ? memberNames.get(uid) : uid.substring(0, Math.min(6, uid.length())));
-            }
-
-            ArrayAdapter<String> whoPaidAdapter = new ArrayAdapter<>(this,
-                android.R.layout.simple_spinner_item, memberNamesList);
-            whoPaidAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-            spinnerWhoPaid.setAdapter(whoPaidAdapter);
-            spinnerWhoPaid.setClickable(true);
-            spinnerWhoPaid.setEnabled(true);
-            
-            // Category Spinner - populate with predefined categories
-            String[] categories = {"Food", "Transport", "Bills", "Others"};
-            ArrayAdapter<String> categoryAdapter = new ArrayAdapter<>(this,
-                android.R.layout.simple_spinner_item, categories);
-            categoryAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-            spinnerCategory.setAdapter(categoryAdapter);
-            spinnerCategory.setClickable(true);
-            spinnerCategory.setEnabled(true);
-            
-            // 2. TOUCH EVENT FIX FOR NESTEDSCROLLVIEW
-            spinnerWhoPaid.setOnTouchListener((v, event) -> {
-                v.getParent().requestDisallowInterceptTouchEvent(true);
-                return false;
-            });
-            
-            spinnerCategory.setOnTouchListener((v, event) -> {
-                v.getParent().requestDisallowInterceptTouchEvent(true);
-                return false;
-            });
-            
-            // 3. PARTICIPANT CHECKLIST (Dynamic Inflation)
-            selectedParticipants.clear();
-            updateParticipantChecklist(containerParticipants, tvParticipatedHeader, true, allMemberUids);
-            
-            // 4. EQUAL/UNEQUAL SPLIT TOGGLE
-            isEqualSplit = true;
-            btnEqualSplit.setOnClickListener(v -> {
-                isEqualSplit = true;
-                btnEqualSplit.setBackgroundColor(Color.parseColor("#38BDB0"));
-                btnEqualSplit.setTextColor(Color.WHITE);
-                btnUnequalSplit.setBackgroundColor(Color.parseColor("#EFFFFD"));
-                btnUnequalSplit.setTextColor(Color.parseColor("#2D3142"));
-                updateParticipantChecklist(containerParticipants, tvParticipatedHeader, true, allMemberUids);
-            });
-            
-            btnUnequalSplit.setOnClickListener(v -> {
-                isEqualSplit = false;
-                btnUnequalSplit.setBackgroundColor(Color.parseColor("#38BDB0"));
-                btnUnequalSplit.setTextColor(Color.WHITE);
-                btnEqualSplit.setBackgroundColor(Color.parseColor("#EFFFFD"));
-                btnEqualSplit.setTextColor(Color.parseColor("#2D3142"));
-                updateParticipantChecklist(containerParticipants, tvParticipatedHeader, false, allMemberUids);
-            });
-            
-            // Close button
-            btnClose.setOnClickListener(v -> dialog.dismiss());
-            
-            // Clear window flags and set soft input mode
-            if (dialog.getWindow() != null) {
-                int width = (int) (350 * getResources().getDisplayMetrics().density);
-                dialog.getWindow().setLayout(width, ViewGroup.LayoutParams.WRAP_CONTENT);
-                dialog.getWindow().clearFlags(WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE | WindowManager.LayoutParams.FLAG_ALT_FOCUSABLE_IM);
-                dialog.getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_VISIBLE);
-            }
-
-            // OCR Camera Scan button
-            Button btnScanReceipt = dialogView.findViewById(R.id.btnScanReceipt);
-            if (btnScanReceipt != null) {
-                btnScanReceipt.setOnClickListener(v -> {
-                    activeAmountEditText = etAmount;
-                    launchCamera();
-                });
-            }
-
-            btnAddExpense.setOnClickListener(v -> {
-                // FIX: Move totalPercentage declaration to prevent stacking values
-                double totalPercentage = 0.0;
-                
-                String title = etTitle.getText() != null ? etTitle.getText().toString().trim() : "";
-                String amountStr = etAmount.getText() != null ? etAmount.getText().toString().trim() : "";
-                String notes = etNotes.getText() != null ? etNotes.getText().toString().trim() : "";
-
-                // HARD VALIDATION GUARD - Check all conditions before any logic
-                List<String> selectedUids = new ArrayList<>();
-                for (Map.Entry<String, Boolean> entry : selectedParticipants.entrySet()) {
-                    if (entry.getValue() != null && entry.getValue()) {
-                        selectedUids.add(entry.getKey());
-                    }
-                }
-                
-                if (title.isEmpty() || amountStr.isEmpty() || amountStr.equals("0") || selectedUids.isEmpty()) {
-                    Toast.makeText(this, "Error: Please provide a name, amount, and select at least one participant.", Toast.LENGTH_SHORT).show();
-                    return;
-                }
-
-                // Validate inputs
-                if (title.isEmpty()) {
-                    etTitle.setError("Title is required");
-                    return;
-                }
-                if (amountStr.isEmpty()) {
-                    etAmount.setError("Amount is required");
-                    return;
-                }
-
-                double amount;
-                try {
-                    amount = Double.parseDouble(amountStr);
-                } catch (NumberFormatException e) {
-                    etAmount.setError("Invalid amount");
-                    return;
-                }
-
-                // Get selected payer ΓÇö use the parallel uid list (safe even if name is a short UID fallback)
-                int selectedPayerPos = spinnerWhoPaid.getSelectedItemPosition();
-                String payerUid = (selectedPayerPos >= 0 && selectedPayerPos < whoPaidUids.size())
-                        ? whoPaidUids.get(selectedPayerPos) : null;
-                String selectedPayerName = (payerUid != null && memberNames.containsKey(payerUid))
-                        ? memberNames.get(payerUid) : (String) spinnerWhoPaid.getSelectedItem();
-
-                if (payerUid == null) {
-                    Toast.makeText(this, "Please select who paid", Toast.LENGTH_SHORT).show();
-                    return;
-                }
-
-                // Get selected participants
-                List<String> participants = new ArrayList<>();
-                for (Map.Entry<String, Boolean> entry : selectedParticipants.entrySet()) {
-                    if (entry.getValue() != null && entry.getValue()) {
-                        participants.add(entry.getKey());
-                    }
-                }
-                
-                // Get selected category
-                String selectedCategory = spinnerCategory.getSelectedItem().toString();
-                
-                // Create expense object
-                GroupExpense expense = new GroupExpense(
-                    selectedGroupId[0], title, payerUid, selectedPayerName, amount
-                );
-                
-                // Set additional properties
-                expense.setParticipants(participants);
-                expense.setSplitType(isEqualSplit ? "EQUAL" : "SELECTIVE");
-                
-                // Calculate and set split amounts for proper debt aggregation
-                Map<String, Double> splitAmounts = new HashMap<>();
-                if (isEqualSplit) {
-                    // Equal split among all participants
-                    double shareAmount = amount / participants.size();
-                    shareAmount = Math.round(shareAmount * 100.0) / 100.0; // Round to 2 decimal places
-                    
-                    for (String participantUid : participants) {
-                        splitAmounts.put(participantUid, shareAmount);
-                    }
-                } else {
-                    // UNEQUAL SPLIT - Use percentage math from EditText fields
-                    Map<String, Double> percentageInputs = new HashMap<>();
-                    
-                    // Find EditText percentage fields for each checked participant
-                    for (int i = 0; i < containerParticipants.getChildCount(); i++) {
-                        View child = containerParticipants.getChildAt(i);
-                        if (child instanceof LinearLayout) {
-                            LinearLayout row = (LinearLayout) child;
-                            
-                            // Find checkbox and EditText in this row
-                            CheckBox checkBox = null;
-                            EditText etPercent = null;
-                            String participantUid = null;
-                            
-                            for (int j = 0; j < row.getChildCount(); j++) {
-                                View rowChild = row.getChildAt(j);
-                                if (rowChild instanceof CheckBox) {
-                                    checkBox = (CheckBox) rowChild;
-                                } else if (rowChild instanceof EditText) {
-                                    etPercent = (EditText) rowChild;
-                                } else if (rowChild instanceof TextView) {
-                                    // Get participant UID from tag or find another way
-                                    Object tag = rowChild.getTag();
-                                    if (tag != null) {
-                                        participantUid = tag.toString();
-                                    }
-                                }
-                            }
-                            
-                            // If checkbox is checked and we have percentage input
-                            if (checkBox != null && checkBox.isChecked() && etPercent != null && participantUid != null) {
-                                String percentStr = etPercent.getText().toString().trim();
-                                if (!percentStr.isEmpty()) {
-                                    try {
-                                        double percentage = Double.parseDouble(percentStr);
-                                        totalPercentage += percentage;
-                                        percentageInputs.put(participantUid, percentage);
-                                    } catch (NumberFormatException e) {
-                                        // Invalid percentage, skip
-                                    }
-                                }
-                            }
-                        }
-                    }
-                    
-                    // Validate total percentage equals 100%
-                    if (Math.abs(totalPercentage - 100.0) > 0.01) {
-                        Toast.makeText(this, "Percentages must total 100%", Toast.LENGTH_SHORT).show();
-                        return;
-                    }
-                    
-                    // Calculate individual shares using percentage math
-                    for (Map.Entry<String, Double> entry : percentageInputs.entrySet()) {
-                        String uid = entry.getKey();
-                        double percentage = entry.getValue();
-                        double individualShare = amount * (percentage / 100.0);
-                        individualShare = Math.round(individualShare * 100.0) / 100.0; // Round to 2 decimal places
-                        splitAmounts.put(uid, individualShare);
-                    }
-                }
-                expense.setSplitAmounts(splitAmounts);
-                
-                // Add expense to repository
-                groupRepository.addGroupExpense(selectedGroupId[0], expense);
-                
-                Toast.makeText(this, "Expense added!", Toast.LENGTH_SHORT).show();
-                dialog.dismiss();
-            });
-        } catch (Exception e) {
-            Log.e("FAB_ERROR", "Crash in showAddExpenseDialog: " + e.getMessage());
-            e.printStackTrace();
-        }
-    }
-    
     private void launchCamera() {
         Intent takePictureIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
         File photoFile = null;
@@ -883,63 +583,7 @@ public class GroupLobbyActivity extends AppCompatActivity {
         }
     }
 
-    private void updateParticipantChecklist(LinearLayout container, TextView header, boolean isEqualSplit, List<String> memberUids) {
-        container.removeAllViews();
-        selectedParticipants.clear();
-
-        for (String memberUid : memberUids) {
-            String memberName = memberNames.containsKey(memberUid)
-                    ? memberNames.get(memberUid)
-                    : memberUid.substring(0, Math.min(6, memberUid.length()));
-            
-            LinearLayout participantLayout = new LinearLayout(this);
-            participantLayout.setOrientation(LinearLayout.HORIZONTAL);
-            participantLayout.setPadding(8, 8, 8, 8);
-            participantLayout.setLayoutParams(new LinearLayout.LayoutParams(
-                LinearLayout.LayoutParams.MATCH_PARENT, 
-                LinearLayout.LayoutParams.WRAP_CONTENT));
-            
-            CheckBox checkBox = new CheckBox(this);
-            checkBox.setText(memberName);
-            checkBox.setLayoutParams(new LinearLayout.LayoutParams(
-                0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f));
-            
-            selectedParticipants.put(memberUid, false);
-            
-            checkBox.setOnCheckedChangeListener((buttonView, isChecked) -> {
-                selectedParticipants.put(memberUid, isChecked);
-                updateParticipatedHeader(header);
-            });
-            
-            participantLayout.addView(checkBox);
-            
-            // Add percentage input for unequal split
-            if (!isEqualSplit) {
-                TextInputEditText percentageInput = new TextInputEditText(this);
-                percentageInput.setHint("0%");
-                percentageInput.setInputType(InputType.TYPE_CLASS_NUMBER | InputType.TYPE_NUMBER_FLAG_DECIMAL);
-                percentageInput.setLayoutParams(new LinearLayout.LayoutParams(
-                    120, LinearLayout.LayoutParams.WRAP_CONTENT));
-                percentageInput.setTag(memberUid + "_percentage");
-                participantLayout.addView(percentageInput);
-            }
-            
-            container.addView(participantLayout);
-        }
-        
-        updateParticipatedHeader(header);
-    }
     
-    private void updateParticipatedHeader(TextView header) {
-        int selectedCount = 0;
-        for (Boolean isSelected : selectedParticipants.values()) {
-            if (isSelected != null && isSelected) {
-                selectedCount++;
-            }
-        }
-        header.setText("Who Participated? (" + selectedCount + " selected)");
-    }
-
     private void loadGroupData() {
         // Load group data to check status and creator
         groupRepository.getGroups().observe(this, groups -> {
