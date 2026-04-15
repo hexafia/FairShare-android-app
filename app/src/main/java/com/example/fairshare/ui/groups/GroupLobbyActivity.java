@@ -656,11 +656,14 @@ public class GroupLobbyActivity extends AppCompatActivity {
         if (currentCategoryFilter != null && !currentCategoryFilter.isEmpty()) {
             List<GroupExpense> categoryFiltered = new ArrayList<>();
             for (GroupExpense expense : tempList) {
-                if (currentCategoryFilter.equals(expense.getCategory())) {
+                String expenseCategory = expense.getCategory();
+                Log.d("CATEGORY_FILTER", "Expense: " + expense.getTitle() + ", Category: " + expenseCategory + ", Filter: " + currentCategoryFilter);
+                if (currentCategoryFilter.equals(expenseCategory)) {
                     categoryFiltered.add(expense);
                 }
             }
             tempList = categoryFiltered;
+            Log.d("CATEGORY_FILTER", "Filtered to " + categoryFiltered.size() + " expenses out of " + tempList.size());
         }
         
         // Apply payer filter
