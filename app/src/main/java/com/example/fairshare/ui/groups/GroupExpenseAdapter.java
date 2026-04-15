@@ -20,8 +20,14 @@ import java.util.Objects;
 
 public class GroupExpenseAdapter extends ListAdapter<GroupExpense, GroupExpenseAdapter.ViewHolder> {
 
+    private Map<String, String> memberNames = new HashMap<>();
+
     public GroupExpenseAdapter() {
         super(DIFF_CALLBACK);
+    }
+
+    public void setMemberNames(Map<String, String> names) {
+        this.memberNames = names;
     }
 
     private static final DiffUtil.ItemCallback<GroupExpense> DIFF_CALLBACK =
@@ -43,7 +49,7 @@ public class GroupExpenseAdapter extends ListAdapter<GroupExpense, GroupExpenseA
     public ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
         View view = LayoutInflater.from(parent.getContext())
                 .inflate(R.layout.item_group_expense, parent, false);
-        return new ViewHolder(view);
+        return new ViewHolder(view, memberNames);
     }
 
     @Override
@@ -51,11 +57,13 @@ public class GroupExpenseAdapter extends ListAdapter<GroupExpense, GroupExpenseA
         holder.bind(getItem(position));
     }
 
-    static class ViewHolder extends RecyclerView.ViewHolder {
+    class ViewHolder extends RecyclerView.ViewHolder {
         private final TextView tvExpenseTitle, tvPaidBy, tvSplitInfo, tvAmount;
+        private final Map<String, String> memberNames;
 
-        ViewHolder(@NonNull View itemView) {
+        ViewHolder(@NonNull View itemView, Map<String, String> memberNames) {
             super(itemView);
+            this.memberNames = memberNames;
             tvExpenseTitle = itemView.findViewById(R.id.tvExpenseTitle);
             tvPaidBy = itemView.findViewById(R.id.tvPaidBy);
             tvSplitInfo = itemView.findViewById(R.id.tvSplitInfo);
