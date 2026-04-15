@@ -9,8 +9,11 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
+import android.widget.CheckBox;
 import android.widget.EditText;
+import android.widget.LinearLayout;
 import android.widget.Spinner;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.appcompat.app.AlertDialog;
@@ -145,41 +148,22 @@ public class AddGroupExpenseDialog {
                 containerParticipants.removeAllViews();
                 spinnerWhoPaid.setAdapter(null);
 
-                // Fetch group members
-                viewModel.getGroupMembers(selectedGroup[0].getId(), uids -> {
-                    for (String uid : uids) {
-                        FirebaseFirestore.getInstance()
-                                .collection("users").document(uid).get()
-                                .addOnSuccessListener(doc -> {
-                                    if (doc.exists() && dialog.isShowing()) {
-                                        String name = doc.getString("displayName");
-                                        if (name == null) name = "User";
-
-                                        FirebaseUser currentUser = FirebaseAuth.getInstance().getCurrentUser();
-                                        if (currentUser != null && currentUser.getUid().equals(uid)) {
-                                            name = "You";
-                                        }
-
-                                        memberUids.add(uid);
-                                        memberNames.add(name);
-
-                                        // Update payer spinner
-                                        ArrayAdapter<String> payerAdapter = new ArrayAdapter<>(
-                                                context, android.R.layout.simple_spinner_item, new ArrayList<>(memberNames));
-                                        payerAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-                                        spinnerWhoPaid.setAdapter(payerAdapter);
-
-                                        // Refresh participant UI
-                                        updateParticipantUI(containerParticipants, checkboxes, memberUids, memberNames, tvParticipatedHeader, etAmount, currentSplitType, customSplits);
-
-                                        // Set current user as payer
-                                        if (name.equals("You")) {
-                                            spinnerWhoPaid.setSelection(memberNames.size() - 1);
-                                        }
-                                    }
-                                });
+                // Fetch group members - handle null viewModel case
+                if (viewModel != null) {
+                    viewModel.getGroupMembers(selectedGroup[0].getId(), uids -> {
+                        loadGroupMembers(uids, dialog, memberUids, memberNames, spinnerWhoPaid, 
+                                containerParticipants, checkboxes, tvParticipatedHeader, etAmount, 
+                                currentSplitType, customSplits);
+                    });
+                } else {
+                    // Fallback: get members directly from group object
+                    Group group = selectedGroup[0];
+                    if (group != null && group.getMembers() != null) {
+                        loadGroupMembers(group.getMembers(), dialog, memberUids, memberNames, spinnerWhoPaid, 
+                                containerParticipants, checkboxes, tvParticipatedHeader, etAmount, 
+                                currentSplitType, customSplits);
                     }
-                });
+                }
             }
 
             @Override
@@ -308,7 +292,14 @@ public class AddGroupExpenseDialog {
             expense.setSplitType(currentSplitType);
             expense.setSplitAmounts(splitAmounts);
 
-            viewModel.addGroupExpense(selectedGroup[0].getId(), expense);
+            // Handle expense saving - support both viewModel and fallback cases
+            if (viewModel != null) {
+                viewModel.addGroupExpense(selectedGroup[0].getId(), expense);
+            } else {
+                // Fallback: use groupRepository directly
+                groupRepository.addGroupExpense(selectedGroup[0].getId(), expense);
+            }
+            
             Toast.makeText(context, "Group Expense added!", Toast.LENGTH_SHORT).show();
             dialog.dismiss();
 
@@ -443,6 +434,46 @@ public class AddGroupExpenseDialog {
                 container.addView(rowLayout);
                 customSplits.put(uid, 0.0);
             }
+        }
+    }
+
+    /**
+     * Helper method to load group members and update UI
+     */
+    private void loadGroupMembers(List<String> uids, Dialog dialog, List<String> memberUids, List<String> memberNames,
+                                Spinner spinnerWhoPaid, LinearLayout containerParticipants, Map<String, CheckBox> checkboxes,
+                                TextView tvParticipatedHeader, TextInputEditText etAmount, String splitType, Map<String, Double> customSplits) {
+        for (String uid : uids) {
+            FirebaseFirestore.getInstance()
+                    .collection("users").document(uid).get()
+                    .addOnSuccessListener(doc -> {
+                        if (doc.exists() && dialog.isShowing()) {
+                            String name = doc.getString("displayName");
+                            if (name == null) name = "User";
+
+                            FirebaseUser currentUser = FirebaseAuth.getInstance().getCurrentUser();
+                            if (currentUser != null && currentUser.getUid().equals(uid)) {
+                                name = "You";
+                            }
+
+                            memberUids.add(uid);
+                            memberNames.add(name);
+
+                            // Update payer spinner
+                            ArrayAdapter<String> payerAdapter = new ArrayAdapter<>(
+                                    context, android.R.layout.simple_spinner_item, new ArrayList<>(memberNames));
+                            payerAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+                            spinnerWhoPaid.setAdapter(payerAdapter);
+
+                            // Refresh participant UI
+                            updateParticipantUI(containerParticipants, checkboxes, memberUids, memberNames, tvParticipatedHeader, etAmount, splitType, customSplits);
+
+                            // Set current user as payer
+                            if (name.equals("You")) {
+                                spinnerWhoPaid.setSelection(memberNames.size() - 1);
+                            }
+                        }
+                    });
         }
     }
 }
