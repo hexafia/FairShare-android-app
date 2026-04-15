@@ -253,6 +253,15 @@ public class GroupLobbyActivity extends AppCompatActivity {
         
         // Settle click listener for "To Pay" section
         toPayAdapter.setOnSettleClickListener(settlement -> {
+            // Check if current user is the original payer (can confirm settlements)
+            String currentUserId = FirebaseAuth.getInstance().getCurrentUser() != null ? 
+                                  FirebaseAuth.getInstance().getCurrentUser().getUid() : "";
+            
+            if (!currentUserId.equals(settlement.payerUid)) {
+                Toast.makeText(this, "Only the original payer can confirm this settlement", Toast.LENGTH_SHORT).show();
+                return;
+            }
+            
             new android.app.AlertDialog.Builder(this)
                 .setTitle("Confirm Settlement")
                 .setMessage("Mark this debt as settled?")

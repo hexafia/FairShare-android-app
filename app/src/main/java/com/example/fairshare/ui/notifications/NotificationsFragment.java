@@ -15,6 +15,9 @@ import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.google.android.material.chip.Chip;
+import com.google.android.material.chip.ChipGroup;
+
 import com.example.fairshare.GroupExpense;
 import com.example.fairshare.Notification;
 import com.example.fairshare.R;
@@ -34,6 +37,14 @@ public class NotificationsFragment extends Fragment implements com.example.fairs
     private NotificationAdapter nudgeAdapter, paymentHistoryAdapter;
     private FirebaseFirestore db;
     private String currentUserId;
+    
+    // Filter chips
+    private Chip chipUnread, chipRead, chipUnreadPayments, chipReadPayments;
+    private TextView btnViewAllNudges, btnViewAllPayments;
+    
+    // Notification lists
+    private List<Notification> allNudges = new ArrayList<>();
+    private List<Notification> allPayments = new ArrayList<>();
 
     @Nullable
     @Override
@@ -56,9 +67,22 @@ public class NotificationsFragment extends Fragment implements com.example.fairs
         tvNudgesEmpty = view.findViewById(R.id.tvNudgesEmpty);
         tvPaymentHistoryEmpty = view.findViewById(R.id.tvPaymentHistoryEmpty);
         
+        // Filter chips
+        chipUnread = view.findViewById(R.id.chipUnread);
+        chipRead = view.findViewById(R.id.chipRead);
+        chipUnreadPayments = view.findViewById(R.id.chipUnreadPayments);
+        chipReadPayments = view.findViewById(R.id.chipReadPayments);
+        
+        // View all buttons
+        btnViewAllNudges = view.findViewById(R.id.btnViewAllNudges);
+        btnViewAllPayments = view.findViewById(R.id.btnViewAllPayments);
+        
         db = FirebaseFirestore.getInstance();
         currentUserId = FirebaseAuth.getInstance().getCurrentUser() != null ? 
                        FirebaseAuth.getInstance().getCurrentUser().getUid() : "";
+                       
+        setupFilterChips();
+        setupViewAllButtons();
     }
 
     private void setupRecyclerViews() {
@@ -73,6 +97,76 @@ public class NotificationsFragment extends Fragment implements com.example.fairs
             this::onPaymentHistoryClick);
         rvPaymentHistory.setLayoutManager(new LinearLayoutManager(requireContext()));
         rvPaymentHistory.setAdapter(paymentHistoryAdapter);
+    }
+    
+    private void setupFilterChips() {
+        // Set default filter states
+        chipUnread.setChecked(true);
+        chipUnreadPayments.setChecked(true);
+        
+        // Nudges filter listeners
+        chipUnread.setOnCheckedChangeListener((buttonView, isChecked) -> {
+            if (isChecked) chipRead.setChecked(false);
+            updateNudgesUI(getFilteredNudges());
+        });
+        
+        chipRead.setOnCheckedChangeListener((buttonView, isChecked) -> {
+            if (isChecked) chipUnread.setChecked(false);
+            updateNudgesUI(getFilteredNudges());
+        });
+        
+        // Payment history filter listeners
+        chipUnreadPayments.setOnCheckedChangeListener((buttonView, isChecked) -> {
+            if (isChecked) chipReadPayments.setChecked(false);
+            updatePaymentHistoryUI(getFilteredPayments());
+        });
+        
+        chipReadPayments.setOnCheckedChangeListener((buttonView, isChecked) -> {
+            if (isChecked) chipUnreadPayments.setChecked(false);
+            updatePaymentHistoryUI(getFilteredPayments());
+        });
+    }
+    
+    private void setupViewAllButtons() {
+        btnViewAllNudges.setOnClickListener(v -> {
+            // TODO: Navigate to NudgeHistoryActivity
+            Toast.makeText(requireContext(), "View all nudges - coming soon", Toast.LENGTH_SHORT).show();
+        });
+        
+        btnViewAllPayments.setOnClickListener(v -> {
+            // TODO: Navigate to PaymentHistoryActivity
+            Toast.makeText(requireContext(), "View all payments - coming soon", Toast.LENGTH_SHORT).show();
+        });
+    }
+    
+    private List<Notification> getFilteredNudges() {
+        List<Notification> filtered = new ArrayList<>();
+        boolean showUnread = chipUnread.isChecked();
+        boolean showRead = chipRead.isChecked();
+        
+        for (Notification nudge : allNudges) {
+            if ((showUnread && !nudge.isRead()) || (showRead && nudge.isRead())) {
+                filtered.add(nudge);
+            }
+        }
+        
+        // Limit to 5 items
+        return filtered.size() > 5 ? filtered.subList(0, 5) : filtered;
+    }
+    
+    private List<Notification> getFilteredPayments() {
+        List<Notification> filtered = new ArrayList<>();
+        boolean showUnread = chipUnreadPayments.isChecked();
+        boolean showRead = chipReadPayments.isChecked();
+        
+        for (Notification payment : allPayments) {
+            if ((showUnread && !payment.isRead()) || (showRead && payment.isRead())) {
+                filtered.add(payment);
+            }
+        }
+        
+        // Limit to 5 items
+        return filtered.size() > 5 ? filtered.subList(0, 5) : filtered;
     }
 
     private void loadNotifications() {
@@ -165,25 +259,28 @@ public class NotificationsFragment extends Fragment implements com.example.fairs
                 }
                 
                 // Sort notifications by timestamp (newest first)
-                allNotifications.sort((n1, n2) -> Long.compare(n2.getTimestamp(), n1.getTimestamp()));
+                allNotifications.sort((n1, n2) -> Long.compare(
+                    n2.getTimestamp() != null ? n2.getTimestamp().getTime() : 0,
+                    n1.getTimestamp() != null ? n1.getTimestamp().getTime() : 0
+                ));
                 
                 // Separate into nudges and payment confirmations
-                List<Notification> nudges = new ArrayList<>();
-                List<Notification> paymentConfirmations = new ArrayList<>();
+                allNudges.clear();
+                allPayments.clear();
                 
                 for (Notification notification : allNotifications) {
                     if ("nudge".equals(notification.getType())) {
-                        nudges.add(notification);
+                        allNudges.add(notification);
                         Log.d("NOTIFICATIONS", "Loaded nudge: " + notification.getMessage());
                     } else if ("payment_confirmed".equals(notification.getType())) {
-                        paymentConfirmations.add(notification);
+                        allPayments.add(notification);
                         Log.d("NOTIFICATIONS", "Loaded payment confirmation: " + notification.getMessage());
                     }
                 }
                 
-                Log.d("NOTIFICATIONS", "Updating UI - Nudges: " + nudges.size() + ", Payments: " + paymentConfirmations.size());
-                updateNudgesUI(nudges);
-                updatePaymentHistoryUI(paymentConfirmations);
+                Log.d("NOTIFICATIONS", "Updating UI - Nudges: " + allNudges.size() + ", Payments: " + allPayments.size());
+                updateNudgesUI(getFilteredNudges());
+                updatePaymentHistoryUI(getFilteredPayments());
             });
     }
 
@@ -210,32 +307,58 @@ public class NotificationsFragment extends Fragment implements com.example.fairs
     }
 
     private void onNudgeClick(Notification notification) {
+        // Mark notification as read first
+        markNotificationAsRead(notification.getId());
+        
         // Navigate to Group Lobby's Settle Up tab
         Intent intent = new Intent(requireContext(), GroupLobbyActivity.class);
         intent.putExtra("groupId", notification.getGroupId());
         intent.putExtra("groupName", notification.getGroupName());
         intent.putExtra("openSettleUpTab", true);
         startActivity(intent);
-        
-        // Mark notification as read
-        markNotificationAsRead(notification.getId());
     }
 
     private void onPaymentHistoryClick(Notification notification) {
+        // Mark notification as read first
+        markNotificationAsRead(notification.getId());
+        
         // Navigate to Group Lobby's Ledger tab
         Intent intent = new Intent(requireContext(), GroupLobbyActivity.class);
         intent.putExtra("groupId", notification.getGroupId());
         intent.putExtra("groupName", notification.getGroupName());
         startActivity(intent);
-        
-        // Mark notification as read
-        markNotificationAsRead(notification.getId());
     }
 
     private void markNotificationAsRead(String notificationId) {
         db.collection("notifications")
             .document(notificationId)
-            .update("isRead", true);
+            .update("isRead", true)
+            .addOnSuccessListener(aVoid -> {
+                // Update local notification lists and refresh UI
+                updateNotificationReadStatus(notificationId, true);
+            });
+    }
+    
+    private void updateNotificationReadStatus(String notificationId, boolean isRead) {
+        // Update in allNudges list
+        for (Notification nudge : allNudges) {
+            if (notificationId.equals(nudge.getId())) {
+                nudge.setRead(isRead);
+                break;
+            }
+        }
+        
+        // Update in allPayments list
+        for (Notification payment : allPayments) {
+            if (notificationId.equals(payment.getId())) {
+                payment.setRead(isRead);
+                break;
+            }
+        }
+        
+        // Refresh UI with filtered results
+        updateNudgesUI(getFilteredNudges());
+        updatePaymentHistoryUI(getFilteredPayments());
     }
 
     @Override

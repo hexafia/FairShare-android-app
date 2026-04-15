@@ -83,13 +83,53 @@
                 android:orientation="vertical"
                 android:layout_marginBottom="24dp">
 
-                <TextView
-                    style="@style/TextAppearance.MyApp.Heading3"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginBottom="12dp"
-                    android:text="Nudges"
-                    android:textColor="@color/text_primary" />
+                <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        android:gravity="center_vertical"
+                        android:layout_marginBottom="12dp">
+                        
+                        <TextView
+                            style="@style/TextAppearance.MyApp.Heading3"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:text="Nudges"
+                            android:textColor="@color/text_primary" />
+                            
+                        <com.google.android.material.chip.ChipGroup
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginStart="8dp">
+                            
+                            <com.google.android.material.chip.Chip
+                                android:id="@+id/chipUnread"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="Unread"
+                                android:checkable="true"
+                                style="@style/Widget.MaterialComponents.Chip.Filter" />
+                                
+                            <com.google.android.material.chip.Chip
+                                android:id="@+id/chipRead"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="Read"
+                                style="@style/Widget.MaterialComponents.Chip.Filter" />
+                                
+                        </com.google.android.material.chip.ChipGroup>
+                        
+                        <TextView
+                            android:id="@+id/btnViewAllNudges"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="View All"
+                            android:textColor="@color/primary"
+                            android:background="?attr/selectableItemBackground"
+                            android:padding="8dp"
+                            android:layout_marginStart="8dp" />
+                    </LinearLayout>
 
                 <com.google.android.material.card.MaterialCardView
                     android:layout_width="match_parent"
@@ -131,13 +171,53 @@
                 android:layout_height="wrap_content"
                 android:orientation="vertical">
 
-                <TextView
-                    style="@style/TextAppearance.MyApp.Heading3"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginBottom="12dp"
-                    android:text="Payment History"
-                    android:textColor="@color/text_primary" />
+                <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        android:gravity="center_vertical"
+                        android:layout_marginBottom="12dp">
+                        
+                        <TextView
+                            style="@style/TextAppearance.MyApp.Heading3"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:text="Payment History"
+                            android:textColor="@color/text_primary" />
+                            
+                        <com.google.android.material.chip.ChipGroup
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginStart="8dp">
+                            
+                            <com.google.android.material.chip.Chip
+                                android:id="@+id/chipUnreadPayments"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="Unread"
+                                android:checkable="true"
+                                style="@style/Widget.MaterialComponents.Chip.Filter" />
+                                
+                            <com.google.android.material.chip.Chip
+                                android:id="@+id/chipReadPayments"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="Read"
+                                style="@style/Widget.MaterialComponents.Chip.Filter" />
+                                
+                        </com.google.android.material.chip.ChipGroup>
+                        
+                        <TextView
+                            android:id="@+id/btnViewAllPayments"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="View All"
+                            android:textColor="@color/primary"
+                            android:background="?attr/selectableItemBackground"
+                            android:padding="8dp"
+                            android:layout_marginStart="8dp" />
+                    </LinearLayout>
 
                 <com.google.android.material.card.MaterialCardView
                     android:layout_width="match_parent"
