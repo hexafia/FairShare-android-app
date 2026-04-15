@@ -129,13 +129,13 @@ public class NotificationsFragment extends Fragment implements com.example.fairs
     
     private void setupViewAllButtons() {
         btnViewAllNudges.setOnClickListener(v -> {
-            // TODO: Navigate to NudgeHistoryActivity
-            Toast.makeText(requireContext(), "View all nudges - coming soon", Toast.LENGTH_SHORT).show();
+            Intent intent = new Intent(requireContext(), NudgesActivity.class);
+            startActivity(intent);
         });
         
         btnViewAllPayments.setOnClickListener(v -> {
-            // TODO: Navigate to PaymentHistoryActivity
-            Toast.makeText(requireContext(), "View all payments - coming soon", Toast.LENGTH_SHORT).show();
+            Intent intent = new Intent(requireContext(), PaymentHistoryActivity.class);
+            startActivity(intent);
         });
     }
     
