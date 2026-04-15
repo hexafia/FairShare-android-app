@@ -35,7 +35,6 @@ public class ProfileFragment extends Fragment implements com.example.fairshare.F
 
     // Views
     private TextView tvDisplayName, tvTagline, tvUserEmail, tvUserPhone, tvUserLocation;
-    private TextView tvTotalExpenses;
 
     @Nullable
     @Override
@@ -53,13 +52,6 @@ public class ProfileFragment extends Fragment implements com.example.fairshare.F
         tvUserEmail = view.findViewById(R.id.tvUserEmail);
         tvUserPhone = view.findViewById(R.id.tvUserPhone);
         tvUserLocation = view.findViewById(R.id.tvUserLocation);
-        tvTotalExpenses = view.findViewById(R.id.tvTotalExpenses);
-
-        // Settings gear button → opens SettingsActivity
-        view.findViewById(R.id.btnSettings).setOnClickListener(v -> {
-            Intent intent = new Intent(requireContext(), SettingsActivity.class);
-            startActivity(intent);
-        });
 
         // Edit Profile button
         view.findViewById(R.id.btnEditProfile).setOnClickListener(v -> showEditProfileDialog());
