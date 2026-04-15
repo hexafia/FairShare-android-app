@@ -13,11 +13,6 @@
         app:showAsAction="never" />
         
     <item
-        android:id="@+id/action_filter_category"
-        android:title="Filter by Category"
-        app:showAsAction="never" />
-        
-    <item
         android:id="@+id/action_filter_payer"
         android:title="Filter by Payer"
         app:showAsAction="never" />

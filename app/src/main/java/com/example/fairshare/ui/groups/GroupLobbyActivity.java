@@ -735,23 +735,6 @@ public class GroupLobbyActivity extends AppCompatActivity {
             if (itemId == R.id.action_sort_date_newest) {
                 currentSortOption = "date_newest";
                 applyFilters();
-                return true;
-            } else if (itemId == R.id.action_sort_date_oldest) {
-                currentSortOption = "date_oldest";
-                applyFilters();
-                return true;
-            } else if (itemId == R.id.action_filter_category) {
-                showCategoryFilterDialog();
-                return true;
-            } else if (itemId == R.id.action_filter_payer) {
-                showPayerFilterDialog();
-                return true;
-            } else if (itemId == R.id.action_clear_filters) {
-                clearAllFilters();
-                return true;
-            }
-            return false;
-        });
 
         popup.show();
     }
