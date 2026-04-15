@@ -739,34 +739,7 @@ public class GroupLobbyActivity extends AppCompatActivity {
         popup.show();
     }
 
-    private void showCategoryFilterDialog() {
-        // Use global categories from Constants
-        String[] categories = Constants.EXPENSE_CATEGORIES.toArray(new String[0]);
-        
-        androidx.appcompat.app.AlertDialog.Builder builder = new androidx.appcompat.app.AlertDialog.Builder(this);
-        builder.setTitle("Filter by Category");
-        
-        // Add "All Categories" option at the top
-        String[] optionsWithAll = new String[categories.length + 1];
-        optionsWithAll[0] = "All Categories";
-        System.arraycopy(categories, 0, optionsWithAll, 1, categories.length);
-        
-        builder.setItems(optionsWithAll, (dialog, which) -> {
-            if (which == 0) {
-                // "All Categories" selected - clear filter
-                currentCategoryFilter = null;
-            } else {
-                // Specific category selected
-                currentCategoryFilter = optionsWithAll[which];
-            }
-            currentSortOption = "category";
-            applyFilters();
-        });
-        
-        builder.setNegativeButton("Cancel", null);
-        builder.show();
-    }
-
+    
     private void showPayerFilterDialog() {
         // Get unique payers from expenses
         Set<String> payers = new HashSet<>();
