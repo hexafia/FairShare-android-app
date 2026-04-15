@@ -345,6 +345,13 @@ public class GroupLobbyActivity extends AppCompatActivity {
             } else {
                 filterExpenses(currentQuery);
             }
+            
+            // Always apply filters when new expenses arrive
+            if (currentCategoryFilter != null && !currentCategoryFilter.isEmpty()) {
+                filterExpenses(""); // Re-apply category filter
+            } else if (currentPayerFilter != null && !currentPayerFilter.isEmpty()) {
+                filterExpenses(""); // Re-apply payer filter
+            }
 
             // Always call updateDebts to ensure real-time sync for Settle Up tab
             if (expenses == null || expenses.isEmpty()) {
