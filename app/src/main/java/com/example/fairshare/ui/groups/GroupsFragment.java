@@ -9,6 +9,8 @@ import android.view.ViewGroup;
 import android.view.Window;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
+import android.widget.ImageButton;
+import android.widget.PopupMenu;
 import android.widget.Spinner;
 import android.widget.Toast;
 
@@ -174,11 +176,9 @@ public class GroupsFragment extends Fragment implements FastActionHandler {
                 displaySettledGroups = new ArrayList<>();
                 break;
             case 2: // Show Recent (5)
-                // Sort by timestamp (newest first) and take first 5
-                List<Group> sortedGroups = new ArrayList<>(allSettledGroups);
-                sortedGroups.sort((a, b) -> Long.compare(b.getTimestamp(), a.getTimestamp()));
-                int limit = Math.min(5, sortedGroups.size());
-                displaySettledGroups = sortedGroups.subList(0, limit);
+                // Take first 5 settled groups (no timestamp available in Group class)
+                int limit = Math.min(5, allSettledGroups.size());
+                displaySettledGroups = allSettledGroups.subList(0, limit);
                 break;
         }
         
