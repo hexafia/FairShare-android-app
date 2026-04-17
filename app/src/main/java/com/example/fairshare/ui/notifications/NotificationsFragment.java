@@ -189,21 +189,9 @@ public class NotificationsFragment extends Fragment implements com.example.fairs
         }
         
         Log.d("NOTIFICATIONS", "Loading notifications for user: " + currentUserId);
-        
-        // Try ultra-simple query first to test basic access
-        db.collection("notifications")
-            .limit(10)
-            .addSnapshotListener((value, error) -> {
-                if (error != null) {
-                    Log.e("NOTIFICATIONS", "Basic query failed: " + error.getMessage(), error);
-                    Toast.makeText(requireContext(), "Cannot access notifications. Check Firestore rules.", Toast.LENGTH_LONG).show();
-                    showFallbackUI();
-                    return;
-                }
-                
-                // If basic query works, try the filtered query
-                loadFilteredNotifications();
-            });
+
+        // Query must include recipient filter to satisfy Firestore rules.
+        loadFilteredNotifications();
     }
     
     
