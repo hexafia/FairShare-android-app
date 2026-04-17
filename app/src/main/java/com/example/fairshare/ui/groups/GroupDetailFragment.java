@@ -105,6 +105,8 @@ public class GroupDetailFragment extends Fragment {
             new TabLayoutMediator(tabLayout, viewPager, (tab, position) -> {
                 if (position == 0) {
                     tab.setText("Expenses");
+                } else if (position == 1) {
+                    tab.setText("Settle Up");
                 } else {
                     tab.setText("Members");
                 }
@@ -218,6 +220,8 @@ public class GroupDetailFragment extends Fragment {
 
             if (position == 0) {
                 fragment = new GroupExpensesFragment();
+            } else if (position == 1) {
+                fragment = new GroupSettleUpFragment();
             } else {
                 fragment = new GroupMembersFragment();
             }
@@ -228,7 +232,7 @@ public class GroupDetailFragment extends Fragment {
 
         @Override
         public int getItemCount() {
-            return 2; // Expenses and Members tabs
+            return 3; // Expenses, Settle Up, and Members tabs
         }
     }
 }

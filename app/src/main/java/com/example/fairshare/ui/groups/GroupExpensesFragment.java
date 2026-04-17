@@ -45,18 +45,43 @@ public class GroupExpensesFragment extends Fragment {
         RecyclerView rvExpenses = view.findViewById(R.id.rvExpenses);
         View layoutEmptyExpenses = view.findViewById(R.id.layoutEmptyExpenses);
 
-        // Setup RecyclerView
+        // Setup RecyclerView with adapter for expenses
         rvExpenses.setLayoutManager(new LinearLayoutManager(requireContext()));
-        // TODO: Create and set adapter for expenses
+        GroupExpenseAdapter expenseAdapter = new GroupExpenseAdapter();
+        rvExpenses.setAdapter(expenseAdapter);
 
-        // Setup add expense button
+        // Setup add expense button to show dialog
         btnAddExpense.setOnClickListener(v -> {
-            // TODO: Navigate to add expense activity/fragment
+            if (currentGroup != null) {
+                java.util.List<com.example.fairshare.Group> groupList = new java.util.ArrayList<>();
+                groupList.add(currentGroup);
+                new com.example.fairshare.ui.dashboard.AddGroupExpenseDialog(
+                        requireContext(),
+                        groupList,
+                        null,
+                        groupRepository,
+                        () -> {
+                            // Expenses will auto-refresh via observer
+                        }
+                ).show();
+            }
         });
 
-        // Load group data to check if settled
+        // Load group data and expenses
         if (groupId != null) {
             loadGroupData();
+            
+            // Observe expenses for this group
+            groupRepository.getGroupExpenses(groupId).observe(getViewLifecycleOwner(), expenses -> {
+                if (expenses == null || expenses.isEmpty()) {
+                    layoutEmptyExpenses.setVisibility(View.VISIBLE);
+                    rvExpenses.setVisibility(View.GONE);
+                } else {
+                    layoutEmptyExpenses.setVisibility(View.GONE);
+                    rvExpenses.setVisibility(View.VISIBLE);
+                    expenseAdapter.submitList(expenses);
+                }
+            });
         }
     }
 
