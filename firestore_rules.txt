@@ -1,35 +1,118 @@
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
-    // Users can read their own data
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isSelf(uid) {
+      return isSignedIn() && request.auth.uid == uid;
+    }
+
+    function isGroupMember(groupId) {
+      return isSignedIn()
+        && exists(/databases/$(database)/documents/groups/$(groupId))
+        && get(/databases/$(database)/documents/groups/$(groupId)).data.members.hasAny([request.auth.uid]);
+    }
+
+    function validNotificationType(type) {
+      return type == 'nudge' || type == 'payment_confirmed';
+    }
+
+    // Users can read/write only their own profile.
     match /users/{userId} {
-      allow read, write: if request.auth != null && request.auth.uid == userId;
+      allow read, write: if isSelf(userId);
     }
-    
-    // Users can read group data if they are members
+
+    // Group access is restricted to members; creator owns privileged updates.
     match /groups/{groupId} {
-      allow read: if request.auth != null && 
-        resource.data.members[request.auth.uid] == true;
-      allow write: if request.auth != null && 
-        resource.data.creator == request.auth.uid;
+      allow read: if isSignedIn() && resource.data.members.hasAny([request.auth.uid]);
+
+      allow create: if isSignedIn()
+        && request.resource.data.createdBy == request.auth.uid
+        && request.resource.data.members is list
+        && request.resource.data.members.size() == 1
+        && request.resource.data.members.hasAny([request.auth.uid]);
+
+      allow update: if isSignedIn() && (
+        // Creator-controlled updates (status/name/admin operations).
+        (resource.data.createdBy == request.auth.uid
+          && request.resource.data.createdBy == resource.data.createdBy)
+        ||
+        // Join-by-code flow: user may only add self to members list.
+        (!resource.data.members.hasAny([request.auth.uid])
+          && request.resource.data.createdBy == resource.data.createdBy
+          && request.resource.data.name == resource.data.name
+          && request.resource.data.shareCode == resource.data.shareCode
+          && request.resource.data.status == resource.data.status
+          && request.resource.data.members is list
+          && request.resource.data.members.hasAll(resource.data.members)
+          && request.resource.data.members.hasAny([request.auth.uid])
+          && request.resource.data.members.size() == resource.data.members.size() + 1)
+      );
+
+      allow delete: if false;
     }
-    
-    // Users can read group expenses if they are involved
+
+    // Group expenses can be created by payer (who must be group member) and read by involved users.
     match /group_expenses/{expenseId} {
-      allow read: if request.auth != null && 
-        resource.data.involvedUsers[request.auth.uid] == true;
-      allow write: if request.auth != null && 
-        resource.data.payerUid == request.auth.uid;
+      allow read: if isSignedIn() && resource.data.involvedUsers.hasAny([request.auth.uid]);
+
+      allow create: if isSignedIn()
+        && request.resource.data.payerUid == request.auth.uid
+        && request.resource.data.groupId is string
+        && isGroupMember(request.resource.data.groupId)
+        && request.resource.data.involvedUsers is list
+        && request.resource.data.involvedUsers.hasAny([request.auth.uid]);
+
+      // Temporary guard: only original payer can update expense documents.
+      allow update: if isSignedIn()
+        && resource.data.payerUid == request.auth.uid
+        && isGroupMember(resource.data.groupId);
+
+      allow delete: if isSignedIn()
+        && resource.data.payerUid == request.auth.uid
+        && isGroupMember(resource.data.groupId);
     }
-    
-    // Users can read notifications sent to them
+
+    // Notification visibility and sender integrity checks.
     match /notifications/{notificationId} {
-      allow read: if request.auth != null && 
-        resource.data.recipientUid == request.auth.uid;
-      allow create: if request.auth != null;
+      allow read: if isSignedIn() && resource.data.recipientUid == request.auth.uid;
+
+      allow create: if isSignedIn()
+        && request.resource.data.senderUid == request.auth.uid
+        && request.resource.data.recipientUid is string
+        && request.resource.data.recipientUid != request.auth.uid
+        && request.resource.data.groupId is string
+        && isGroupMember(request.resource.data.groupId)
+        && request.resource.data.type is string
+        && validNotificationType(request.resource.data.type)
+        && request.resource.data.isRead == false;
+
+      // Recipient can mark only read state; all other fields are immutable client-side.
+      allow update: if isSignedIn()
+        && resource.data.recipientUid == request.auth.uid
+        && request.resource.data.recipientUid == resource.data.recipientUid
+        && request.resource.data.senderUid == resource.data.senderUid
+        && request.resource.data.groupId == resource.data.groupId
+        && request.resource.data.expenseId == resource.data.expenseId
+        && request.resource.data.amount == resource.data.amount
+        && request.resource.data.type == resource.data.type
+        && request.resource.data.message == resource.data.message
+        && request.resource.data.groupName == resource.data.groupName
+        && request.resource.data.expenseName == resource.data.expenseName
+        && request.resource.data.senderName == resource.data.senderName
+        && request.resource.data.diff(resource.data).changedKeys().hasOnly(['isRead']);
+
+      allow delete: if false;
     }
-    
-    // Deny all other reads/writes
+
+    // Client writes are denied for audit trail; backend/admin SDK bypasses these rules.
+    match /audit_events/{eventId} {
+      allow read, write: if false;
+    }
+
+    // Deny all other paths by default.
     match /{document=**} {
       allow read, write: if false;
     }

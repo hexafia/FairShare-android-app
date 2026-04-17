@@ -23,6 +23,14 @@
           }
         },
         {
+          "client_id": "951097836925-iqfc10jkgt01ib628apg21rvh8kujhrr.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.fairshare",
+            "certificate_hash": "992e23beba881588ea5106aa435afde32b564957"
+          }
+        },
+        {
           "client_id": "951097836925-jf8purh704p16ojuu27ars3321eta0oe.apps.googleusercontent.com",
           "client_type": 1,
           "android_info": {

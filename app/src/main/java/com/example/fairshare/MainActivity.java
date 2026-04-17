@@ -19,7 +19,6 @@ import androidx.navigation.fragment.NavHostFragment;
 import androidx.navigation.ui.NavigationUI;
 
 import com.example.fairshare.databinding.ActivityMainBinding;
-import com.example.fairshare.utils.NotificationCleanup;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.firestore.DocumentChange;
@@ -56,9 +55,6 @@ public class MainActivity extends AppCompatActivity {
             NavController navController = navHostFragment.getNavController();
             NavigationUI.setupWithNavController(binding.bottomNav, navController);
         }
-
-        // Clean up old FCM test notifications
-        NotificationCleanup.cleanupOldNotifications();
 
         // Setup notification observer
         setupNotificationObserver();

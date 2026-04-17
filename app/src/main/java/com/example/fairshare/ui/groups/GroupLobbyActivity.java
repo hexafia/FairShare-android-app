@@ -55,7 +55,6 @@ import com.example.fairshare.SettlementCalculator;
 import com.example.fairshare.ui.dashboard.AddGroupExpenseDialog;
 import com.example.fairshare.Constants;
 import com.example.fairshare.FastActionHandler;
-import com.example.fairshare.Notification;
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.tabs.TabLayout;
 import com.google.android.material.textfield.TextInputEditText;
@@ -85,6 +84,8 @@ public class GroupLobbyActivity extends AppCompatActivity {
     private SettlementDetailAdapter paidAdapter; // "Paid" section adapter
     private MembersAdapter membersAdapter;
 
+    private TextView tvGroupNameHeader;
+    private TextView tvShareCodeHeader;
     private TextView tvGroupTotal, tvMemberCount, tvMyBalance;
     private View layoutLedger, layoutSettleUp, layoutMembers;
     private TextView tvLedgerEmpty, tvSettleEmpty, tvMembersEmpty;
@@ -147,19 +148,31 @@ public class GroupLobbyActivity extends AppCompatActivity {
         groupId = getIntent().getStringExtra("GROUP_ID");
         groupName = getIntent().getStringExtra("GROUP_NAME");
         shareCode = getIntent().getStringExtra("SHARE_CODE");
+
+        FirebaseUser authenticatedUser = FirebaseAuth.getInstance().getCurrentUser();
+        if (authenticatedUser == null) {
+            Toast.makeText(this, "Please log in to access groups", Toast.LENGTH_SHORT).show();
+            finish();
+            return;
+        }
+        if (groupId == null || groupId.trim().isEmpty()) {
+            Toast.makeText(this, "Invalid group link", Toast.LENGTH_SHORT).show();
+            finish();
+            return;
+        }
         
         // Handle openSettleUpTab intent from notifications
         boolean openSettleUpTab = getIntent().getBooleanExtra("openSettleUpTab", false);
 
         // Bind header views
-        TextView tvGroupName = findViewById(R.id.tvGroupName);
-        TextView tvShareCode = findViewById(R.id.tvShareCode);
+        tvGroupNameHeader = findViewById(R.id.tvGroupName);
+        tvShareCodeHeader = findViewById(R.id.tvShareCode);
         tvGroupTotal = findViewById(R.id.tvGroupTotal);
         tvMemberCount = findViewById(R.id.tvMemberCount);
         tvMyBalance = findViewById(R.id.tvMyBalance);
 
-        tvGroupName.setText(groupName);
-        tvShareCode.setText(shareCode);
+        tvGroupNameHeader.setText(groupName != null ? groupName : "Group");
+        tvShareCodeHeader.setText(shareCode != null ? shareCode : "");
 
         // Copy code functionality
         View layoutShareCode = findViewById(R.id.layoutShareCode);
@@ -251,52 +264,6 @@ public class GroupLobbyActivity extends AppCompatActivity {
         toPayAdapter.setCurrentUserId(currentUserId);
         paidAdapter.setCurrentUserId(currentUserId);
         
-        // Settle click listener for "To Pay" section
-        toPayAdapter.setOnSettleClickListener(settlement -> {
-            // Check if current user is the original payer (can confirm settlements)
-            if (!currentUserId.equals(settlement.payerUid)) {
-                Toast.makeText(this, "Only the original payer can confirm this settlement", Toast.LENGTH_SHORT).show();
-                return;
-            }
-            
-            new android.app.AlertDialog.Builder(this)
-                .setTitle("Confirm Settlement")
-                .setMessage("Mark this debt as settled?")
-                .setPositiveButton("Yes", (d, which) -> {
-                    groupRepository.markSettled(settlement.expenseId, settlement.debtorUid,
-                        new GroupRepository.OnCompleteCallback() {
-                            @Override
-                            public void onSuccess(String message) {
-                                Toast.makeText(GroupLobbyActivity.this, message, Toast.LENGTH_SHORT).show();
-                                // Force immediate adapter refresh to show visual changes
-                                toPayAdapter.notifyDataSetChanged();
-                                paidAdapter.notifyDataSetChanged();
-                                updateDebts(currentExpensesList);
-                                
-                                // Create payment confirmation notification
-                                createPaymentConfirmationNotification(settlement);
-                            }
-                            @Override
-                            public void onError(String error) {
-                                Toast.makeText(GroupLobbyActivity.this, "Error: " + error, Toast.LENGTH_SHORT).show();
-                            }
-                        });
-                })
-                .setNegativeButton("Cancel", null)
-                .show();
-        });
-        
-        // Nudge click listener for "To Pay" section
-        toPayAdapter.setOnNudgeClickListener(settlement -> {
-            // Only the original payer (who is owed money) can nudge the debtor
-            if (!currentUserId.equals(settlement.payerUid)) {
-                Toast.makeText(this, "Only the person who is owed money can send a nudge", Toast.LENGTH_SHORT).show();
-                return;
-            }
-            
-            sendNudge(settlement.debtorUid, settlement.settlementAmount, settlement.expenseTitle, groupName);
-        });
-        
         // Set up RecyclerViews for two sections
         rvToPay.setLayoutManager(new LinearLayoutManager(this));
         rvToPay.setAdapter(toPayAdapter);
@@ -357,12 +324,52 @@ public class GroupLobbyActivity extends AppCompatActivity {
         groupRepository = new GroupRepository();
         userRepository = new UserRepository();
 
-        // Load group data
-        loadGroupData();
-        
-        // Global Observer Setup - MOVED TO END OF onCreate FOR ACTIVITY LIFECYCLE
-        // This ensures real-time sync even when Settle Up tab isn't visible
-        setupExpenseObserver();
+        // Validate deep-link/auth access before loading sensitive group data.
+        validateGroupAccessAndInitialize();
+    }
+
+    private void validateGroupAccessAndInitialize() {
+        FirebaseUser currentUser = FirebaseAuth.getInstance().getCurrentUser();
+        if (currentUser == null) {
+            Toast.makeText(this, "Please log in to access groups", Toast.LENGTH_SHORT).show();
+            finish();
+            return;
+        }
+
+        FirebaseFirestore.getInstance().collection("groups").document(groupId)
+                .get()
+                .addOnSuccessListener(doc -> {
+                    if (!doc.exists()) {
+                        Toast.makeText(this, "Group not found", Toast.LENGTH_SHORT).show();
+                        finish();
+                        return;
+                    }
+
+                    Group fetchedGroup = doc.toObject(Group.class);
+                    if (fetchedGroup == null || fetchedGroup.getMembers() == null
+                            || !fetchedGroup.getMembers().contains(currentUser.getUid())) {
+                        Toast.makeText(this, "Access denied for this group", Toast.LENGTH_SHORT).show();
+                        finish();
+                        return;
+                    }
+
+                    if (fetchedGroup.getName() != null) {
+                        groupName = fetchedGroup.getName();
+                    }
+                    if (fetchedGroup.getShareCode() != null) {
+                        shareCode = fetchedGroup.getShareCode();
+                    }
+                    tvGroupNameHeader.setText(groupName != null ? groupName : "Group");
+                    tvShareCodeHeader.setText(shareCode != null ? shareCode : "");
+
+                    // Load group data and attach observers only after authorization check.
+                    loadGroupData();
+                    setupExpenseObserver();
+                })
+                .addOnFailureListener(e -> {
+                    Toast.makeText(this, "Unable to verify group access", Toast.LENGTH_SHORT).show();
+                    finish();
+                });
     }
     
     private void setupExpenseObserver() {
@@ -860,102 +867,6 @@ public class GroupLobbyActivity extends AppCompatActivity {
         }
     }
 
-    private void sendNudge(String debtorUid, double amount, String expenseName, String groupName) {
-        String currentUserId = FirebaseAuth.getInstance().getCurrentUser() != null ? 
-                              FirebaseAuth.getInstance().getCurrentUser().getUid() : "";
-        String currentUserName = FirebaseAuth.getInstance().getCurrentUser() != null ? 
-                               FirebaseAuth.getInstance().getCurrentUser().getDisplayName() : "Someone";
-        
-        if (currentUserId.isEmpty() || debtorUid.equals(currentUserId)) {
-            Toast.makeText(this, "Cannot send nudge to yourself", Toast.LENGTH_SHORT).show();
-            return;
-        }
-
-        // Create notification document in Firestore with proper text format
-        FirebaseFirestore db = FirebaseFirestore.getInstance();
-        Map<String, Object> notificationData = new HashMap<>();
-        notificationData.put("recipientUid", debtorUid);
-        notificationData.put("senderName", currentUserName);
-        notificationData.put("senderUid", currentUserId);
-        notificationData.put("amount", amount);
-        notificationData.put("expenseName", expenseName);
-        notificationData.put("groupName", groupName);
-        notificationData.put("groupId", groupId);
-        notificationData.put("timestamp", com.google.firebase.firestore.FieldValue.serverTimestamp());
-        notificationData.put("type", "nudge");
-        notificationData.put("isRead", false);
-        // Create message with required format: <Name> nudged you. You still have a balance of Php<Amount> for <Expense> in <Group>
-        String message = currentUserName + " nudged you. You still have a balance of Php" + 
-                         String.format("%.2f", amount) + " for " + expenseName + " in " + groupName;
-        notificationData.put("message", message);
-
-        db.collection("notifications")
-            .add(notificationData)
-            .addOnSuccessListener(documentReference -> {
-                Toast.makeText(this, "Nudge sent successfully!", Toast.LENGTH_SHORT).show();
-                Log.d("NOTIFICATION", "Nudge notification created with ID: " + documentReference.getId());
-            })
-            .addOnFailureListener(e -> {
-                Toast.makeText(this, "Failed to send nudge: " + e.getMessage(), Toast.LENGTH_SHORT).show();
-                Log.e("NOTIFICATION", "Failed to create nudge notification", e);
-            });
-    }
-
-    private void createPaymentConfirmationNotification(SettlementCalculator.SettlementDetail settlement) {
-        String currentUserId = FirebaseAuth.getInstance().getCurrentUser() != null ? 
-                              FirebaseAuth.getInstance().getCurrentUser().getUid() : "";
-        String currentUserName = FirebaseAuth.getInstance().getCurrentUser() != null ? 
-                               FirebaseAuth.getInstance().getCurrentUser().getDisplayName() : "Someone";
-        
-        if (currentUserId.isEmpty()) {
-            return;
-        }
-
-        // Only the original Payer can confirm/settle the debt
-        // The sender is the Payer (person who is owed money and confirms payment)
-        // The recipient is the debtor (person who paid)
-        if (!currentUserId.equals(settlement.payerUid)) {
-            Log.d("NOTIFICATION", "Only the original Payer can confirm this settlement");
-            return;
-        }
-        
-        String recipientUid = settlement.debtorUid;
-        
-        // Don't send notification to yourself (shouldn't happen but just in case)
-        if (recipientUid.equals(currentUserId)) {
-            return;
-        }
-
-        // Create payment confirmation notification document in Firestore with proper text format
-        FirebaseFirestore db = FirebaseFirestore.getInstance();
-        Map<String, Object> notificationData = new HashMap<>();
-        notificationData.put("recipientUid", recipientUid);
-        notificationData.put("senderName", currentUserName);
-        notificationData.put("senderUid", currentUserId);
-        notificationData.put("amount", settlement.settlementAmount);
-        notificationData.put("expenseName", settlement.expenseTitle);
-        notificationData.put("expenseId", settlement.expenseId);
-        notificationData.put("groupName", groupName);
-        notificationData.put("groupId", groupId);
-        notificationData.put("timestamp", com.google.firebase.firestore.FieldValue.serverTimestamp());
-        notificationData.put("type", "payment_confirmed");
-        notificationData.put("isRead", false);
-        // Create message with required format: <Name> has confirmed your payment for <Expense> in <Group> worth Php<Amount>
-        String message = currentUserName + " has confirmed your payment for " + 
-                         settlement.expenseTitle + " in " + groupName + " worth Php" + String.format("%.2f", settlement.settlementAmount);
-        notificationData.put("message", message);
-
-        db.collection("notifications")
-            .add(notificationData)
-            .addOnSuccessListener(documentReference -> {
-                Log.d("NOTIFICATION", "Payment confirmation notification created with ID: " + documentReference.getId());
-            })
-            .addOnFailureListener(e -> {
-                Log.e("NOTIFICATION", "Failed to create payment confirmation notification", e);
-            });
-    }
-
-    
     private void loadGroupData() {
         // Load group data to check status and creator
         groupRepository.getGroups().observe(this, groups -> {

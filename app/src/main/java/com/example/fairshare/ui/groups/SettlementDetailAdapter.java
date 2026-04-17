@@ -30,18 +30,8 @@ import java.util.Objects;
 public class SettlementDetailAdapter extends ListAdapter<SettlementCalculator.SettlementDetail, SettlementDetailAdapter.ViewHolder> {
 
     private Map<String, String> memberNames = new HashMap<>();
-    private OnSettleClickListener settleClickListener;
-    private OnNudgeClickListener nudgeClickListener;
     private boolean isGroupAccomplished = false;
     private String currentUserId;
-
-    public interface OnSettleClickListener {
-        void onSettleClick(SettlementCalculator.SettlementDetail settlement);
-    }
-
-    public interface OnNudgeClickListener {
-        void onNudgeClick(SettlementCalculator.SettlementDetail settlement);
-    }
 
     public SettlementDetailAdapter() {
         super(DIFF_CALLBACK);
@@ -49,14 +39,6 @@ public class SettlementDetailAdapter extends ListAdapter<SettlementCalculator.Se
 
     public void setMemberNames(Map<String, String> names) {
         this.memberNames = names;
-    }
-
-    public void setOnSettleClickListener(OnSettleClickListener listener) {
-        this.settleClickListener = listener;
-    }
-
-    public void setOnNudgeClickListener(OnNudgeClickListener listener) {
-        this.nudgeClickListener = listener;
     }
 
     public void setCurrentUserId(String userId) {
@@ -167,26 +149,12 @@ public class SettlementDetailAdapter extends ListAdapter<SettlementCalculator.Se
                     tvSettledLabel.setTextColor(itemView.getContext().getResources().getColor(android.R.color.darker_gray));
                 }
             } else {
-                btnSettle.setVisibility(View.VISIBLE);
-                tvSettledLabel.setVisibility(View.GONE);
-                itemView.setAlpha(1.0f);
-
-                // Show nudge button only if current user is the original payer (expense.payerUid)
-                // Only the person who is owed money can nudge
-                boolean isCurrentUserPayer = currentUserId != null && currentUserId.equals(settlement.payerUid);
-                btnNudge.setVisibility(isCurrentUserPayer ? View.VISIBLE : View.GONE);
-
-                btnSettle.setOnClickListener(v -> {
-                    if (settleClickListener != null) {
-                        settleClickListener.onSettleClick(settlement);
-                    }
-                });
-
-                btnNudge.setOnClickListener(v -> {
-                    if (nudgeClickListener != null) {
-                        nudgeClickListener.onNudgeClick(settlement);
-                    }
-                });
+                btnSettle.setVisibility(View.GONE);
+                btnNudge.setVisibility(View.GONE);
+                tvSettledLabel.setVisibility(View.VISIBLE);
+                tvSettledLabel.setText("Actions unavailable");
+                tvSettledLabel.setTextColor(itemView.getContext().getResources().getColor(android.R.color.darker_gray));
+                itemView.setAlpha(0.85f);
             }
         }
 
