@@ -78,6 +78,8 @@ public class NudgeHistoryActivity extends AppCompatActivity {
         chipUnread.setOnCheckedChangeListener((buttonView, isChecked) -> {
             if (isChecked) {
                 chipRead.setChecked(false);
+            } else if (!chipRead.isChecked()) {
+                chipRead.setChecked(true);
             }
             updateNudgesUI(getFilteredNudges());
         });
@@ -85,6 +87,8 @@ public class NudgeHistoryActivity extends AppCompatActivity {
         chipRead.setOnCheckedChangeListener((buttonView, isChecked) -> {
             if (isChecked) {
                 chipUnread.setChecked(false);
+            } else if (!chipUnread.isChecked()) {
+                chipUnread.setChecked(true);
             }
             updateNudgesUI(getFilteredNudges());
         });
@@ -117,6 +121,9 @@ public class NudgeHistoryActivity extends AppCompatActivity {
                     for (com.google.firebase.firestore.DocumentSnapshot doc : value.getDocuments()) {
                         Notification notification = doc.toObject(Notification.class);
                         if (notification != null) {
+                            if (isTestNotification(notification)) {
+                                continue;
+                            }
                             notification.setId(doc.getId());
                             allNudges.add(notification);
                         }
@@ -197,6 +204,16 @@ public class NudgeHistoryActivity extends AppCompatActivity {
         
         // Refresh UI with filtered results
         updateNudgesUI(getFilteredNudges());
+    }
+
+    private boolean isTestNotification(Notification notification) {
+        String senderUid = notification.getSenderUid();
+        if ("test_user_123".equals(senderUid) || "debug_user".equals(senderUid)) {
+            return true;
+        }
+
+        String message = notification.getMessage();
+        return message != null && message.toLowerCase().contains("test notification");
     }
 
     @Override

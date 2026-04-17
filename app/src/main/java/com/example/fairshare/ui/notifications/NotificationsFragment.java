@@ -26,6 +26,7 @@ import com.example.fairshare.ui.groups.GroupLobbyActivity;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.Query;
+import com.google.firebase.firestore.WriteBatch;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -114,27 +115,45 @@ public class NotificationsFragment extends Fragment implements com.example.fairs
     private void setupFilterChips() {
         // Set default filter states
         chipUnread.setChecked(true);
+        chipRead.setChecked(false);
         chipUnreadPayments.setChecked(true);
+        chipReadPayments.setChecked(false);
         
         // Nudges filter listeners
         chipUnread.setOnCheckedChangeListener((buttonView, isChecked) -> {
-            if (isChecked) chipRead.setChecked(false);
+            if (isChecked) {
+                chipRead.setChecked(false);
+            } else if (!chipRead.isChecked()) {
+                chipRead.setChecked(true);
+            }
             updateNudgesUI(getFilteredNudges());
         });
         
         chipRead.setOnCheckedChangeListener((buttonView, isChecked) -> {
-            if (isChecked) chipUnread.setChecked(false);
+            if (isChecked) {
+                chipUnread.setChecked(false);
+            } else if (!chipUnread.isChecked()) {
+                chipUnread.setChecked(true);
+            }
             updateNudgesUI(getFilteredNudges());
         });
         
         // Payment history filter listeners
         chipUnreadPayments.setOnCheckedChangeListener((buttonView, isChecked) -> {
-            if (isChecked) chipReadPayments.setChecked(false);
+            if (isChecked) {
+                chipReadPayments.setChecked(false);
+            } else if (!chipReadPayments.isChecked()) {
+                chipReadPayments.setChecked(true);
+            }
             updatePaymentHistoryUI(getFilteredPayments());
         });
         
         chipReadPayments.setOnCheckedChangeListener((buttonView, isChecked) -> {
-            if (isChecked) chipUnreadPayments.setChecked(false);
+            if (isChecked) {
+                chipUnreadPayments.setChecked(false);
+            } else if (!chipUnreadPayments.isChecked()) {
+                chipUnreadPayments.setChecked(true);
+            }
             updatePaymentHistoryUI(getFilteredPayments());
         });
     }
@@ -229,7 +248,7 @@ public class NotificationsFragment extends Fragment implements com.example.fairs
                                     if (notification != null) {
                                         notification.setId(doc.getId());
                                         // Skip test/dummy notifications
-                                        if ("test_user_123".equals(notification.getSenderUid())) {
+                                        if (isTestNotification(notification)) {
                                             Log.d("NOTIFICATIONS", "Skipping test notification: " + doc.getId());
                                             continue;
                                         }
@@ -379,6 +398,62 @@ public class NotificationsFragment extends Fragment implements com.example.fairs
     @Override
     public void onFastAction() {
         Toast.makeText(requireContext(), "No fast action available here", Toast.LENGTH_SHORT).show();
+    }
+
+    @Override
+    public void onPause() {
+        super.onPause();
+        markUnreadNotificationsAsRead();
+    }
+
+    private boolean isTestNotification(Notification notification) {
+        if (notification == null) {
+            return true;
+        }
+
+        String senderUid = notification.getSenderUid();
+        if ("test_user_123".equals(senderUid) || "debug_user".equals(senderUid)) {
+            return true;
+        }
+
+        String message = notification.getMessage();
+        return message != null && message.toLowerCase().contains("test notification");
+    }
+
+    private void markUnreadNotificationsAsRead() {
+        if (db == null) {
+            return;
+        }
+
+        List<String> idsToMarkRead = new ArrayList<>();
+        for (Notification nudge : allNudges) {
+            if (nudge != null && nudge.getId() != null && !nudge.isRead()) {
+                idsToMarkRead.add(nudge.getId());
+                nudge.setRead(true);
+            }
+        }
+        for (Notification payment : allPayments) {
+            if (payment != null && payment.getId() != null && !payment.isRead()) {
+                idsToMarkRead.add(payment.getId());
+                payment.setRead(true);
+            }
+        }
+
+        if (idsToMarkRead.isEmpty()) {
+            return;
+        }
+
+        WriteBatch batch = db.batch();
+        for (String id : idsToMarkRead) {
+            batch.update(db.collection("notifications").document(id), "isRead", true);
+        }
+
+        batch.commit()
+                .addOnSuccessListener(unused -> {
+                    updateNudgesUI(getFilteredNudges());
+                    updatePaymentHistoryUI(getFilteredPayments());
+                })
+                .addOnFailureListener(e -> Log.e("NOTIFICATIONS", "Failed to mark notifications read", e));
     }
     
     private void showFallbackUI() {

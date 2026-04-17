@@ -79,6 +79,7 @@
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
                                 android:text="Read"
+                                android:checkable="true"
                                 style="@style/Widget.MaterialComponents.Chip.Filter" />
                                 
                         </com.google.android.material.chip.ChipGroup>
@@ -167,6 +168,7 @@
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
                                 android:text="Read"
+                                android:checkable="true"
                                 style="@style/Widget.MaterialComponents.Chip.Filter" />
                                 
                         </com.google.android.material.chip.ChipGroup>
