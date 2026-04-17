@@ -90,13 +90,21 @@ public class AddGroupExpenseDialog {
         Spinner spinnerSelectGroup = dialogView.findViewById(R.id.spinnerSelectGroup);
         TextInputEditText etTitle = dialogView.findViewById(R.id.etTitle);
         TextInputEditText etAmount = dialogView.findViewById(R.id.etAmount);
-        Spinner spinnerWhoPaid = dialogView.findViewById(R.id.spinnerWhoPaid);
         Spinner spinnerCategory = dialogView.findViewById(R.id.spinnerCategory);
         android.widget.LinearLayout containerParticipants = dialogView.findViewById(R.id.containerParticipants);
         MaterialButton btnAddExpense = dialogView.findViewById(R.id.btnAddExpense);
         android.widget.TextView tvParticipatedHeader = dialogView.findViewById(R.id.tvParticipatedHeader);
         MaterialButton btnEqualSplit = dialogView.findViewById(R.id.btnEqualSplit);
         MaterialButton btnUnequalSplit = dialogView.findViewById(R.id.btnUnequalSplit);
+
+        // Get current user as the payer (always the one adding the expense)
+        FirebaseUser currentUser = FirebaseAuth.getInstance().getCurrentUser();
+        final String currentUid = currentUser != null ? currentUser.getUid() : "";
+        String userDisplayName = currentUser != null ? currentUser.getDisplayName() : "You";
+        if (userDisplayName == null || userDisplayName.isEmpty()) {
+            userDisplayName = "You";
+        }
+        final String currentUserName = userDisplayName;
 
         // Setup group spinner
         String[] groupNames = new String[availableGroups.size()];
@@ -146,12 +154,11 @@ public class AddGroupExpenseDialog {
                 checkboxes.clear();
                 customSplits.clear();
                 containerParticipants.removeAllViews();
-                spinnerWhoPaid.setAdapter(null);
 
                 // Fetch group members - handle null viewModel case
                 if (viewModel != null) {
                     viewModel.getGroupMembers(selectedGroup[0].getId(), uids -> {
-                        loadGroupMembers(uids, dialog, memberUids, memberNames, spinnerWhoPaid, 
+                        loadGroupMembers(uids, dialog, memberUids, memberNames, 
                                 containerParticipants, checkboxes, tvParticipatedHeader, etAmount, 
                                 currentSplitType, customSplits);
                     });
@@ -159,7 +166,7 @@ public class AddGroupExpenseDialog {
                     // Fallback: get members directly from group object
                     Group group = selectedGroup[0];
                     if (group != null && group.getMembers() != null) {
-                        loadGroupMembers(group.getMembers(), dialog, memberUids, memberNames, spinnerWhoPaid, 
+                        loadGroupMembers(group.getMembers(), dialog, memberUids, memberNames, 
                                 containerParticipants, checkboxes, tvParticipatedHeader, etAmount, 
                                 currentSplitType, customSplits);
                     }
@@ -225,14 +232,9 @@ public class AddGroupExpenseDialog {
                 return;
             }
 
-            int selectedPayerIndex = spinnerWhoPaid.getSelectedItemPosition();
-            if (selectedPayerIndex < 0) {
-                Toast.makeText(context, "Please select who paid", Toast.LENGTH_SHORT).show();
-                return;
-            }
-
-            String payerUid = memberUids.get(selectedPayerIndex);
-            String payerName = memberNames.get(selectedPayerIndex);
+            // Use current user as payer (only the current user can add expenses)
+            String payerUid = currentUid;
+            String payerName = currentUserName;
 
             // Collect selected participants and split amounts based on mode
             List<String> selectedParticipants = new ArrayList<>();
@@ -441,7 +443,7 @@ public class AddGroupExpenseDialog {
      * Helper method to load group members and update UI
      */
     private void loadGroupMembers(List<String> uids, Dialog dialog, List<String> memberUids, List<String> memberNames,
-                                Spinner spinnerWhoPaid, LinearLayout containerParticipants, Map<String, CheckBox> checkboxes,
+                                LinearLayout containerParticipants, Map<String, CheckBox> checkboxes,
                                 TextView tvParticipatedHeader, TextInputEditText etAmount, String splitType, Map<String, Double> customSplits) {
         memberUids.clear();
         memberNames.clear();
@@ -459,18 +461,7 @@ public class AddGroupExpenseDialog {
             }
         }
 
-        ArrayAdapter<String> initialPayerAdapter = new ArrayAdapter<>(
-                context, android.R.layout.simple_spinner_item, new ArrayList<>(memberNames));
-        initialPayerAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-        spinnerWhoPaid.setAdapter(initialPayerAdapter);
         updateParticipantUI(containerParticipants, checkboxes, memberUids, memberNames, tvParticipatedHeader, etAmount, splitType, customSplits);
-
-        if (currentUid != null) {
-            int selfIndex = memberUids.indexOf(currentUid);
-            if (selfIndex >= 0) {
-                spinnerWhoPaid.setSelection(selfIndex);
-            }
-        }
 
         for (int i = 0; i < uids.size(); i++) {
             final int index = i;
@@ -489,12 +480,6 @@ public class AddGroupExpenseDialog {
                             }
 
                             memberNames.set(index, name);
-
-                            // Update payer spinner
-                            ArrayAdapter<String> payerAdapter = new ArrayAdapter<>(
-                                    context, android.R.layout.simple_spinner_item, new ArrayList<>(memberNames));
-                            payerAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-                            spinnerWhoPaid.setAdapter(payerAdapter);
 
                             // Refresh participant UI
                             updateParticipantUI(containerParticipants, checkboxes, memberUids, memberNames, tvParticipatedHeader, etAmount, splitType, customSplits);

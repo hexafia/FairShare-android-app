@@ -304,8 +304,15 @@ public class GroupLobbyActivity extends AppCompatActivity {
                         groupRepository,
                         () -> {
                             // Callback to refresh ledger after expense saved
-                            Log.d("FAB_DEBUG", "Expense saved, refreshing expenses");
-                            // The expense observer will automatically refresh the ledger
+                            Log.d("FAB_DEBUG", "Expense saved, triggering UI refresh");
+                            // Force refresh by re-querying expenses to ensure UI updates immediately
+                            if (groupId != null) {
+                                // Small delay to ensure Firestore has propagated the write
+                                new android.os.Handler(android.os.Looper.getMainLooper()).postDelayed(() -> {
+                                    Log.d("FAB_DEBUG", "Forcing expense refresh after 500ms delay");
+                                    setupExpenseObserver();
+                                }, 500);
+                            }
                         });
                 dialog.show();
             } catch (Exception e) {

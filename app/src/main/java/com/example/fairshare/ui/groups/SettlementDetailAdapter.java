@@ -148,7 +148,14 @@ public class SettlementDetailAdapter extends ListAdapter<SettlementCalculator.Se
                     tvSettledLabel.setText("Settled");
                     tvSettledLabel.setTextColor(itemView.getContext().getResources().getColor(android.R.color.darker_gray));
                 }
+            } else if (currentUserId != null && currentUserId.equals(settlement.payerUid)) {
+                // Only show settle/nudge buttons to the payer (creditor)
+                btnSettle.setVisibility(View.VISIBLE);
+                btnNudge.setVisibility(View.VISIBLE);
+                tvSettledLabel.setVisibility(View.GONE);
+                itemView.setAlpha(1.0f);
             } else {
+                // Debtor or observer: no actions available
                 btnSettle.setVisibility(View.GONE);
                 btnNudge.setVisibility(View.GONE);
                 tvSettledLabel.setVisibility(View.VISIBLE);

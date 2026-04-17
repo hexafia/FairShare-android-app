@@ -94,6 +94,22 @@ public class SettlementCalculator {
                 continue;
             }
             
+            // Skip single-participant expenses (user paid only for themselves)
+            // Filter out entries where debtor == payer or where there are no actual debtors
+            List<String> actualDebtors = new ArrayList<>();
+            for (Map.Entry<String, Double> entry : splitAmounts.entrySet()) {
+                String debtorUid = entry.getKey();
+                Double amountOwed = entry.getValue();
+                if (amountOwed != null && amountOwed > 0 && !debtorUid.equals(payerUid)) {
+                    actualDebtors.add(debtorUid);
+                }
+            }
+            
+            // Skip if no actual debtors (self-paid only)
+            if (actualDebtors.isEmpty()) {
+                continue;
+            }
+            
             // Create Settlement Objects: For every entry in the breakdown map
             for (Map.Entry<String, Double> entry : splitAmounts.entrySet()) {
                 String debtorUid = entry.getKey();

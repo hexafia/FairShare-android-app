@@ -119,23 +119,6 @@
                 android:focusableInTouchMode="true"
                 android:clickable="true" />
 
-            <!-- Who Paid? -->
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Who Paid?"
-                android:textColor="#2D3142"
-                android:textStyle="bold"
-                android:layout_marginBottom="8dp" />
-            <Spinner
-                android:id="@+id/spinnerWhoPaid"
-                android:layout_width="match_parent"
-                android:layout_height="56dp"
-                android:background="#EFFFFD"
-                android:paddingStart="12dp"
-                android:paddingEnd="12dp"
-                android:layout_marginBottom="24dp" />
-
             <!-- Split Method -->
             <TextView
                 android:layout_width="wrap_content"
