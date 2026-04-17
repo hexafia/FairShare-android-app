@@ -229,9 +229,7 @@ public class DashboardFragment extends Fragment implements com.example.fairshare
 
         double personalSpent = 0;
         for (Transaction t : masterPersonalExpenses) {
-            if (isCurrentMonth(t.getDate())) {
-                personalSpent += t.getAmount();
-            }
+            personalSpent += t.getAmount();
         }
 
         List<GroupExpense> monthGroupExpenses = new ArrayList<>();
@@ -263,9 +261,7 @@ public class DashboardFragment extends Fragment implements com.example.fairshare
 
         double personalSpent = 0;
         for (Transaction t : masterPersonalExpenses) {
-            if (isCurrentMonth(t.getDate())) {
-                personalSpent += t.getAmount();
-            }
+            personalSpent += t.getAmount();
         }
         
         android.util.Log.d("DASHBOARD", "updateSummary() - personalSpent: " + personalSpent + ", masterPersonalExpenses size: " + masterPersonalExpenses.size());

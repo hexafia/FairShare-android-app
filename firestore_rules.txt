@@ -84,6 +84,24 @@ service cloud.firestore {
         && isGroupMember(resource.data.groupId);
     }
 
+    // Personal expenses belong to the authenticated user only.
+    match /expenses/{expenseId} {
+      allow read: if isSignedIn() && resource.data.uid == request.auth.uid;
+
+      allow create: if isSignedIn()
+        && request.resource.data.uid == request.auth.uid
+        && request.resource.data.title is string
+        && request.resource.data.amount is number
+        && request.resource.data.category is string;
+
+      allow update: if isSignedIn()
+        && resource.data.uid == request.auth.uid
+        && request.resource.data.uid == resource.data.uid;
+
+      allow delete: if isSignedIn()
+        && resource.data.uid == request.auth.uid;
+    }
+
     // Notification visibility and sender integrity checks.
     match /notifications/{notificationId} {
       allow read: if isSignedIn() && resource.data.recipientUid == request.auth.uid;
