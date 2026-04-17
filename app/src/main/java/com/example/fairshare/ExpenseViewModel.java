@@ -22,6 +22,10 @@ public class ExpenseViewModel extends ViewModel {
         return expenses;
     }
 
+    public LiveData<Double> getExpenseTotal() {
+        return repository.getExpenseTotal();
+    }
+
     public void addExpense(Transaction transaction) {
         repository.addExpense(transaction);
     }

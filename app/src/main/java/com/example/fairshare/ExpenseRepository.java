@@ -32,6 +32,7 @@ public class ExpenseRepository {
 
     private static final CollectionReference expensesRef = FirebaseFirestore.getInstance().collection(COLLECTION);
     private static final MutableLiveData<List<Transaction>> expensesLiveData = new MutableLiveData<>(new ArrayList<>());
+    private static final MutableLiveData<Double> expenseTotalLiveData = new MutableLiveData<>(0.0);
     private static ListenerRegistration listenerRegistration;
 
     public ExpenseRepository() {
@@ -55,17 +56,24 @@ public class ExpenseRepository {
                         }
                         if (snapshots != null) {
                             List<Transaction> list = new ArrayList<>();
+                            double total = 0.0;
                             for (QueryDocumentSnapshot doc : snapshots) {
                                 Transaction t = doc.toObject(Transaction.class);
                                 list.add(t);
+                                total += t.getAmount();
                                 Log.d(TAG, "Loaded expense: " + t.getTitle() + " - " + t.getAmount());
                             }
                             Log.d(TAG, "Expense listener update: " + list.size() + " transactions");
                             expensesLiveData.setValue(list);
+                            expenseTotalLiveData.setValue(total);
                         }
                     });
         }
         return expensesLiveData;
+    }
+
+    public LiveData<Double> getExpenseTotal() {
+        return expenseTotalLiveData;
     }
 
     /**
@@ -92,6 +100,10 @@ public class ExpenseRepository {
                     }
                     updated.add(0, transaction);
                     expensesLiveData.setValue(updated);
+
+                    Double currentTotal = expenseTotalLiveData.getValue();
+                    double nextTotal = (currentTotal != null ? currentTotal : 0.0) + transaction.getAmount();
+                    expenseTotalLiveData.setValue(nextTotal);
 
                     if (callback != null) {
                         callback.onSuccess(transaction);

@@ -41,6 +41,7 @@ public class LedgerFragment extends Fragment implements com.example.fairshare.Fa
     private ExpenseAdapter adapter;
 
     private List<Transaction> allExpenses = new ArrayList<>();
+    private double currentTotalExpense = 0.0;
     
     private TextInputEditText etSearch;
     private Spinner spinnerFilterCategory;
@@ -154,19 +155,13 @@ public class LedgerFragment extends Fragment implements com.example.fairshare.Fa
         viewModel = new ViewModelProvider(requireActivity()).get(ExpenseViewModel.class);
         viewModel.getExpenses().observe(getViewLifecycleOwner(), transactions -> {
             allExpenses = transactions != null ? transactions : new ArrayList<>();
-            
-            // Update total expense only from Firestore observer
-            updateTotalExpense();
             applyFilters();
         });
-    }
-    
-    private void updateTotalExpense() {
-        double totalExpense = 0;
-        for (Transaction t : allExpenses) {
-            totalExpense += t.getAmount();
-        }
-        tvTotalExpense.setText(CurrencyHelper.format(totalExpense));
+
+        viewModel.getExpenseTotal().observe(getViewLifecycleOwner(), total -> {
+            currentTotalExpense = total != null ? total : 0.0;
+            tvTotalExpense.setText(CurrencyHelper.format(currentTotalExpense));
+        });
     }
 
     @Override
