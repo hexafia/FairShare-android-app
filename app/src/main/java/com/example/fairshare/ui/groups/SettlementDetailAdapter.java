@@ -1,5 +1,6 @@
 package com.example.fairshare.ui.groups;
 
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -12,8 +13,11 @@ import androidx.recyclerview.widget.ListAdapter;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.fairshare.CurrencyHelper;
+import com.example.fairshare.Notification;
 import com.example.fairshare.R;
 import com.example.fairshare.SettlementCalculator;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.android.material.button.MaterialButton;
 
 import java.text.SimpleDateFormat;
@@ -82,7 +86,6 @@ public class SettlementDetailAdapter extends ListAdapter<SettlementCalculator.Se
     }
 
     class ViewHolder extends RecyclerView.ViewHolder {
-        private final TextView tvDebtorInitial, tvCreditorInitial;
         private final TextView tvSettlementDescription, tvSettlementAmount;
         private final TextView tvExpenseName, tvDateAdded, tvSettledDate;
         private final MaterialButton btnSettle;
@@ -91,8 +94,6 @@ public class SettlementDetailAdapter extends ListAdapter<SettlementCalculator.Se
 
         ViewHolder(@NonNull View itemView) {
             super(itemView);
-            tvDebtorInitial = itemView.findViewById(R.id.tvDebtorInitial);
-            tvCreditorInitial = itemView.findViewById(R.id.tvCreditorInitial);
             tvSettlementDescription = itemView.findViewById(R.id.tvSettlementDescription);
             tvSettlementAmount = itemView.findViewById(R.id.tvSettlementAmount);
             tvExpenseName = itemView.findViewById(R.id.tvExpenseName);
@@ -104,12 +105,6 @@ public class SettlementDetailAdapter extends ListAdapter<SettlementCalculator.Se
         }
 
         void bind(SettlementCalculator.SettlementDetail settlement) {
-            String debtorName = memberNames.getOrDefault(settlement.debtorUid, shortenUid(settlement.debtorUid));
-            String creditorName = memberNames.getOrDefault(settlement.creditorUid, shortenUid(settlement.creditorUid));
-
-            tvDebtorInitial.setText(String.valueOf(debtorName.charAt(0)).toUpperCase());
-            tvCreditorInitial.setText(String.valueOf(creditorName.charAt(0)).toUpperCase());
-            
             // Settlement Description: Use perspective text from SettlementDetail
             tvSettlementDescription.setText(settlement.perspectiveText + " " + CurrencyHelper.format(settlement.settlementAmount));
             tvSettlementAmount.setText(CurrencyHelper.format(settlement.settlementAmount));
@@ -154,6 +149,12 @@ public class SettlementDetailAdapter extends ListAdapter<SettlementCalculator.Se
                 btnNudge.setVisibility(View.VISIBLE);
                 tvSettledLabel.setVisibility(View.GONE);
                 itemView.setAlpha(1.0f);
+                
+                // Setup settle button
+                btnSettle.setOnClickListener(v -> handleSettle(settlement));
+                
+                // Setup nudge button
+                btnNudge.setOnClickListener(v -> handleNudge(settlement));
             } else {
                 // Debtor or observer: no actions available
                 btnSettle.setVisibility(View.GONE);
@@ -164,9 +165,52 @@ public class SettlementDetailAdapter extends ListAdapter<SettlementCalculator.Se
                 itemView.setAlpha(0.85f);
             }
         }
-
-        private String shortenUid(String uid) {
-            return uid != null && uid.length() > 6 ? uid.substring(0, 6) : (uid != null ? uid : "?");
+        
+        private void handleSettle(SettlementCalculator.SettlementDetail settlement) {
+            // Mark expense as settled for this debtor
+            FirebaseFirestore db = FirebaseFirestore.getInstance();
+            db.collection("group_expenses").document(settlement.expenseId)
+                    .update("settledStatus." + settlement.debtorUid, true,
+                            "settledDates." + settlement.debtorUid, System.currentTimeMillis())
+                    .addOnSuccessListener(aVoid -> {
+                        Log.d("Settle", "Marked settled for " + settlement.debtorUid);
+                        // Create payment confirmation notification
+                        Notification notification = Notification.createPaymentConfirmationNotification(
+                                settlement.debtorUid,
+                                currentUserId,
+                                memberNames.getOrDefault(currentUserId, "Unknown"),
+                                settlement.payerUid, // Use payerUid as groupId for now
+                                "Group",
+                                settlement.expenseId,
+                                settlement.expenseTitle,
+                                settlement.settlementAmount
+                        );
+                        saveNotification(notification);
+                    })
+                    .addOnFailureListener(e -> Log.e("Settle", "Error marking settled", e));
+        }
+        
+        private void handleNudge(SettlementCalculator.SettlementDetail settlement) {
+            // Send nudge notification
+            Notification notification = Notification.createNudgeNotification(
+                    settlement.debtorUid,
+                    currentUserId,
+                    memberNames.getOrDefault(currentUserId, "Unknown"),
+                    settlement.payerUid, // Use payerUid as groupId for now
+                    "Group",
+                    settlement.expenseId,
+                    settlement.expenseTitle,
+                    settlement.settlementAmount
+            );
+            saveNotification(notification);
+        }
+        
+        private void saveNotification(Notification notification) {
+            FirebaseFirestore db = FirebaseFirestore.getInstance();
+            db.collection("notifications")
+                    .add(notification)
+                    .addOnSuccessListener(docRef -> Log.d("Notification", "Notification created: " + docRef.getId()))
+                    .addOnFailureListener(e -> Log.e("Notification", "Error creating notification", e));
         }
     }
 }
