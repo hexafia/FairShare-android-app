@@ -48,6 +48,7 @@ import com.example.fairshare.DebtSimplifier;
 import com.example.fairshare.GroupExpense;
 import com.example.fairshare.Group;
 import com.example.fairshare.GroupRepository;
+import com.example.fairshare.Notification;
 import com.example.fairshare.R;
 import com.example.fairshare.UserProfile;
 import com.example.fairshare.UserRepository;
@@ -263,6 +264,40 @@ public class GroupLobbyActivity extends AppCompatActivity {
                               FirebaseAuth.getInstance().getCurrentUser().getUid() : "";
         toPayAdapter.setCurrentUserId(currentUserId);
         paidAdapter.setCurrentUserId(currentUserId);
+
+        toPayAdapter.setOnSettlementActionListener(new SettlementDetailAdapter.OnSettlementActionListener() {
+            @Override
+            public void onSettle(SettlementCalculator.SettlementDetail settlement) {
+                handleSettleAction(settlement);
+            }
+
+            @Override
+            public void onNudge(SettlementCalculator.SettlementDetail settlement) {
+                handleNudgeAction(settlement);
+            }
+        });
+        paidAdapter.setOnSettlementActionListener(new SettlementDetailAdapter.OnSettlementActionListener() {
+            @Override
+            public void onSettle(SettlementCalculator.SettlementDetail settlement) {
+                handleSettleAction(settlement);
+            }
+
+            @Override
+            public void onNudge(SettlementCalculator.SettlementDetail settlement) {
+                handleNudgeAction(settlement);
+            }
+        });
+        settlementAdapter.setOnSettlementActionListener(new SettlementDetailAdapter.OnSettlementActionListener() {
+            @Override
+            public void onSettle(SettlementCalculator.SettlementDetail settlement) {
+                handleSettleAction(settlement);
+            }
+
+            @Override
+            public void onNudge(SettlementCalculator.SettlementDetail settlement) {
+                handleNudgeAction(settlement);
+            }
+        });
         
         // Set up RecyclerViews for two sections
         rvToPay.setLayoutManager(new LinearLayoutManager(this));
@@ -808,6 +843,83 @@ public class GroupLobbyActivity extends AppCompatActivity {
                 rvLedger.setVisibility(View.VISIBLE);
             }
         }
+    }
+
+    private void handleSettleAction(SettlementCalculator.SettlementDetail settlement) {
+        if (settlement == null || settlement.expenseId == null || settlement.debtorUid == null) {
+            return;
+        }
+
+        FirebaseUser currentUser = FirebaseAuth.getInstance().getCurrentUser();
+        if (currentUser == null) {
+            Toast.makeText(this, "Please log in again", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        String senderName = memberNames.getOrDefault(currentUser.getUid(), "You");
+        String groupLabel = groupName != null && !groupName.trim().isEmpty() ? groupName : groupId;
+
+        groupRepository.markSettled(settlement.expenseId, settlement.debtorUid, new GroupRepository.OnCompleteCallback() {
+            @Override
+            public void onSuccess(String message) {
+                sendNotification(Notification.createPaymentConfirmationNotification(
+                        settlement.debtorUid,
+                        currentUser.getUid(),
+                        senderName,
+                        groupId,
+                        groupLabel,
+                        settlement.expenseId,
+                        settlement.expenseTitle,
+                        settlement.settlementAmount));
+
+                Toast.makeText(GroupLobbyActivity.this, "Marked as settled", Toast.LENGTH_SHORT).show();
+                if (expenseAdapter != null && expenseAdapter.getCurrentList() != null) {
+                    updateDebts(expenseAdapter.getCurrentList());
+                }
+            }
+
+            @Override
+            public void onError(String error) {
+                Toast.makeText(GroupLobbyActivity.this, "Unable to settle: " + error, Toast.LENGTH_SHORT).show();
+            }
+        });
+    }
+
+    private void handleNudgeAction(SettlementCalculator.SettlementDetail settlement) {
+        if (settlement == null || settlement.debtorUid == null) {
+            return;
+        }
+
+        FirebaseUser currentUser = FirebaseAuth.getInstance().getCurrentUser();
+        if (currentUser == null) {
+            Toast.makeText(this, "Please log in again", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        String senderName = memberNames.getOrDefault(currentUser.getUid(), "You");
+        String groupLabel = groupName != null && !groupName.trim().isEmpty() ? groupName : groupId;
+
+        sendNotification(Notification.createNudgeNotification(
+                settlement.debtorUid,
+                currentUser.getUid(),
+                senderName,
+                groupId,
+                groupLabel,
+                settlement.expenseId,
+                settlement.expenseTitle,
+                settlement.settlementAmount));
+
+        Toast.makeText(this, "Nudge sent", Toast.LENGTH_SHORT).show();
+    }
+
+    private void sendNotification(Notification notification) {
+        if (notification == null) {
+            return;
+        }
+
+        FirebaseFirestore.getInstance().collection("notifications")
+                .add(notification)
+                .addOnFailureListener(e -> Log.e("NOTIFICATIONS", "Unable to create notification", e));
     }
 
     private void setupFilterDropdown() {

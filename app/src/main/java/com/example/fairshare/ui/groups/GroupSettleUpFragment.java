@@ -4,6 +4,7 @@ import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -13,12 +14,14 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.fairshare.GroupRepository;
 import com.example.fairshare.GroupExpense;
+import com.example.fairshare.Notification;
 import com.example.fairshare.SettlementCalculator;
 import com.example.fairshare.SettlementCalculator.SettlementDetail;
 import com.example.fairshare.R;
 import com.google.android.material.textview.MaterialTextView;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.firestore.FirebaseFirestore;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -35,6 +38,7 @@ public class GroupSettleUpFragment extends Fragment {
     private MaterialTextView tvSettleUpEmpty;
     private View layoutEmptySettlements;
     private Map<String, String> memberNames = new HashMap<>();
+    private final FirebaseFirestore db = FirebaseFirestore.getInstance();
 
     @Nullable
     @Override
@@ -67,12 +71,99 @@ public class GroupSettleUpFragment extends Fragment {
         if (currentUserId != null) {
             settlementAdapter.setCurrentUserId(currentUserId);
         }
+        settlementAdapter.setOnSettlementActionListener(new SettlementDetailAdapter.OnSettlementActionListener() {
+            @Override
+            public void onSettle(SettlementDetail settlement) {
+                handleSettleAction(settlement);
+            }
+
+            @Override
+            public void onNudge(SettlementDetail settlement) {
+                handleNudgeAction(settlement);
+            }
+        });
         rvSettlements.setAdapter(settlementAdapter);
 
         // Load expenses and calculate settlements
         if (groupId != null) {
             loadSettlements();
         }
+    }
+
+    private void handleSettleAction(SettlementDetail settlement) {
+        if (settlement == null || settlement.expenseId == null || settlement.debtorUid == null) {
+            return;
+        }
+
+        String payerName = memberNames.getOrDefault(currentUserId, "You");
+        String debtorName = memberNames.getOrDefault(settlement.debtorUid, "Member");
+
+        groupRepository.markSettled(settlement.expenseId, settlement.debtorUid, new GroupRepository.OnCompleteCallback() {
+            @Override
+            public void onSuccess(String message) {
+                sendNotification(
+                        Notification.createPaymentConfirmationNotification(
+                                settlement.debtorUid,
+                                currentUserId,
+                                payerName,
+                        groupId,
+                        groupId,
+                                settlement.expenseId,
+                                settlement.expenseTitle,
+                                settlement.settlementAmount
+                        )
+                );
+
+                Toast.makeText(requireContext(), debtorName + " marked as settled", Toast.LENGTH_SHORT).show();
+                refreshSettlements();
+            }
+
+            @Override
+            public void onError(String error) {
+                Toast.makeText(requireContext(), "Unable to settle: " + error, Toast.LENGTH_SHORT).show();
+            }
+        });
+    }
+
+    private void handleNudgeAction(SettlementDetail settlement) {
+        if (settlement == null || settlement.debtorUid == null) {
+            return;
+        }
+
+        String senderName = memberNames.getOrDefault(currentUserId, "You");
+        sendNotification(
+                Notification.createNudgeNotification(
+                        settlement.debtorUid,
+                        currentUserId,
+                        senderName,
+                groupId,
+                groupId,
+                        settlement.expenseId,
+                        settlement.expenseTitle,
+                        settlement.settlementAmount
+                )
+        );
+
+        Toast.makeText(requireContext(), "Nudge sent", Toast.LENGTH_SHORT).show();
+    }
+
+    private void sendNotification(Notification notification) {
+        if (notification == null) {
+            return;
+        }
+
+        db.collection("notifications")
+                .add(notification)
+                .addOnFailureListener(e -> Toast.makeText(requireContext(), "Unable to send notification", Toast.LENGTH_SHORT).show());
+    }
+
+    private void refreshSettlements() {
+        if (groupId == null) {
+            return;
+        }
+
+        groupRepository.removeListeners();
+        loadSettlements();
     }
 
     private void loadSettlements() {
