@@ -443,21 +443,52 @@ public class AddGroupExpenseDialog {
     private void loadGroupMembers(List<String> uids, Dialog dialog, List<String> memberUids, List<String> memberNames,
                                 Spinner spinnerWhoPaid, LinearLayout containerParticipants, Map<String, CheckBox> checkboxes,
                                 TextView tvParticipatedHeader, TextInputEditText etAmount, String splitType, Map<String, Double> customSplits) {
+        memberUids.clear();
+        memberNames.clear();
+
+        FirebaseUser currentUser = FirebaseAuth.getInstance().getCurrentUser();
+        String currentUid = currentUser != null ? currentUser.getUid() : null;
+
+        // Always include all group members immediately, even if profile reads are restricted.
         for (String uid : uids) {
+            memberUids.add(uid);
+            if (currentUid != null && currentUid.equals(uid)) {
+                memberNames.add("You");
+            } else {
+                memberNames.add(getFallbackMemberName(uid));
+            }
+        }
+
+        ArrayAdapter<String> initialPayerAdapter = new ArrayAdapter<>(
+                context, android.R.layout.simple_spinner_item, new ArrayList<>(memberNames));
+        initialPayerAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        spinnerWhoPaid.setAdapter(initialPayerAdapter);
+        updateParticipantUI(containerParticipants, checkboxes, memberUids, memberNames, tvParticipatedHeader, etAmount, splitType, customSplits);
+
+        if (currentUid != null) {
+            int selfIndex = memberUids.indexOf(currentUid);
+            if (selfIndex >= 0) {
+                spinnerWhoPaid.setSelection(selfIndex);
+            }
+        }
+
+        for (int i = 0; i < uids.size(); i++) {
+            final int index = i;
+            final String uid = uids.get(i);
             FirebaseFirestore.getInstance()
                     .collection("users").document(uid).get()
                     .addOnSuccessListener(doc -> {
-                        if (doc.exists() && dialog.isShowing()) {
+                        if (doc.exists() && dialog.isShowing() && index < memberNames.size()) {
                             String name = doc.getString("displayName");
-                            if (name == null) name = "User";
+                            if (name == null || name.trim().isEmpty()) {
+                                name = getFallbackMemberName(uid);
+                            }
 
-                            FirebaseUser currentUser = FirebaseAuth.getInstance().getCurrentUser();
-                            if (currentUser != null && currentUser.getUid().equals(uid)) {
+                            if (currentUid != null && currentUid.equals(uid)) {
                                 name = "You";
                             }
 
-                            memberUids.add(uid);
-                            memberNames.add(name);
+                            memberNames.set(index, name);
 
                             // Update payer spinner
                             ArrayAdapter<String> payerAdapter = new ArrayAdapter<>(
@@ -467,13 +498,21 @@ public class AddGroupExpenseDialog {
 
                             // Refresh participant UI
                             updateParticipantUI(containerParticipants, checkboxes, memberUids, memberNames, tvParticipatedHeader, etAmount, splitType, customSplits);
-
-                            // Set current user as payer
-                            if (name.equals("You")) {
-                                spinnerWhoPaid.setSelection(memberNames.size() - 1);
-                            }
                         }
+                    })
+                    .addOnFailureListener(e -> {
+                        // Keep placeholder names if user profile is not readable.
                     });
         }
+    }
+
+    private String getFallbackMemberName(String uid) {
+        if (uid == null || uid.isEmpty()) {
+            return "Member";
+        }
+        if (uid.length() <= 4) {
+            return "Member " + uid;
+        }
+        return "Member " + uid.substring(uid.length() - 4);
     }
 }

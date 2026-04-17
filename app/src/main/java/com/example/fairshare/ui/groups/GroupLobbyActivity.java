@@ -422,16 +422,38 @@ public class GroupLobbyActivity extends AppCompatActivity {
         if (memberUids == null) return;
         tvMemberCount.setText(String.valueOf(memberUids.size()));
 
+        FirebaseUser currentUser = FirebaseAuth.getInstance().getCurrentUser();
+        String currentUid = currentUser != null ? currentUser.getUid() : null;
+
+        // Pre-populate all members so tabs and selectors never hide members on profile read failures.
+        for (String uid : memberUids) {
+            if (memberNames.containsKey(uid)) continue;
+            if (currentUid != null && currentUid.equals(uid)) {
+                memberNames.put(uid, "You");
+            } else {
+                memberNames.put(uid, getFallbackMemberName(uid));
+            }
+        }
+
+        settlementAdapter.setMemberNames(memberNames);
+        toPayAdapter.setMemberNames(memberNames);
+        paidAdapter.setMemberNames(memberNames);
+        if (expenseAdapter != null) {
+            expenseAdapter.setMemberNames(memberNames);
+        }
+        populateMembersTab();
+
         // For each member UID, look up their display name from the users Firestore collection
         for (String uid : memberUids) {
-            if (memberNames.containsKey(uid)) continue; // Avoid redundant queries
-
             com.google.firebase.firestore.FirebaseFirestore.getInstance()
                     .collection("users").document(uid).get()
                     .addOnSuccessListener(doc -> {
                         if (doc.exists()) {
                             String name = doc.getString("displayName");
-                            if (name != null) {
+                            if (name != null && !name.trim().isEmpty()) {
+                                if (currentUid != null && currentUid.equals(uid)) {
+                                    name = "You";
+                                }
                                 memberNames.put(uid, name);
                                 // Refresh settlement display with new names
                                 settlementAdapter.setMemberNames(memberNames);
@@ -449,12 +471,15 @@ public class GroupLobbyActivity extends AppCompatActivity {
                                 populateMembersTab();
                             }
                         }
+                    })
+                    .addOnFailureListener(e -> {
+                        // Keep placeholder name when profile read is restricted.
                     });
         }
     }
 
     private void populateMembersTab() {
-        if (memberNames.isEmpty()) {
+        if (currentGroup == null || currentGroup.getMembers() == null || currentGroup.getMembers().isEmpty()) {
             tvMembersEmpty.setVisibility(View.VISIBLE);
             rvMembers.setVisibility(View.GONE);
         } else {
@@ -468,11 +493,21 @@ public class GroupLobbyActivity extends AppCompatActivity {
                 
                 // Set up member click listener
                 membersAdapter.setOnMemberClickListener(this::showMemberProfileDialog);
-                
-                java.util.List<String> memberList = new java.util.ArrayList<>(memberNames.keySet());
+
+                java.util.List<String> memberList = new java.util.ArrayList<>(currentGroup.getMembers());
                 membersAdapter.updateMembers(memberList);
             }
         }
+    }
+
+    private String getFallbackMemberName(String uid) {
+        if (uid == null || uid.isEmpty()) {
+            return "Member";
+        }
+        if (uid.length() <= 4) {
+            return "Member " + uid;
+        }
+        return "Member " + uid.substring(uid.length() - 4);
     }
 
     private void showMemberProfileDialog(String memberUid) {
