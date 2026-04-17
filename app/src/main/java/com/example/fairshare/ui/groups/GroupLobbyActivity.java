@@ -61,6 +61,7 @@ import com.google.android.material.tabs.TabLayout;
 import com.google.android.material.textfield.TextInputEditText;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.firestore.FieldValue;
 import com.google.firebase.firestore.FirebaseFirestore;
 
 import android.widget.ArrayAdapter;
@@ -876,7 +877,8 @@ public class GroupLobbyActivity extends AppCompatActivity {
                         groupLabel,
                         settlement.expenseId,
                         settlement.expenseTitle,
-                        settlement.settlementAmount));
+                    settlement.settlementAmount),
+                    () -> Log.d("NOTIFICATIONS", "Payment confirmation delivered"));
 
                 Toast.makeText(GroupLobbyActivity.this, "Marked as settled", Toast.LENGTH_SHORT).show();
             }
@@ -915,19 +917,41 @@ public class GroupLobbyActivity extends AppCompatActivity {
                 groupLabel,
                 settlement.expenseId,
                 settlement.expenseTitle,
-                settlement.settlementAmount));
-
-        Toast.makeText(this, "Nudge sent", Toast.LENGTH_SHORT).show();
+                settlement.settlementAmount),
+                () -> Toast.makeText(this, "Nudge sent", Toast.LENGTH_SHORT).show());
     }
 
     private void sendNotification(Notification notification) {
+        sendNotification(notification, null);
+    }
+
+    private void sendNotification(Notification notification, Runnable onSuccess) {
         if (notification == null) {
             return;
         }
 
+        Map<String, Object> payload = new HashMap<>();
+        payload.put("type", notification.getType());
+        payload.put("recipientUid", notification.getRecipientUid());
+        payload.put("senderUid", notification.getSenderUid());
+        payload.put("senderName", notification.getSenderName());
+        payload.put("groupId", notification.getGroupId());
+        payload.put("groupName", notification.getGroupName());
+        payload.put("expenseId", notification.getExpenseId());
+        payload.put("expenseName", notification.getExpenseName());
+        payload.put("amount", notification.getAmount());
+        payload.put("message", notification.getMessage());
+        payload.put("isRead", false);
+        payload.put("timestamp", FieldValue.serverTimestamp());
+
         FirebaseFirestore.getInstance().collection("notifications")
-                .add(notification)
-                .addOnSuccessListener(ref -> Log.d("NOTIFICATIONS", "Notification created: " + ref.getId()))
+                .add(payload)
+                .addOnSuccessListener(ref -> {
+                    Log.d("NOTIFICATIONS", "Notification created: " + ref.getId());
+                    if (onSuccess != null) {
+                        onSuccess.run();
+                    }
+                })
                 .addOnFailureListener(e -> {
                     Log.e("NOTIFICATIONS", "Unable to create notification", e);
                     Toast.makeText(GroupLobbyActivity.this, "Unable to send notification", Toast.LENGTH_SHORT).show();
