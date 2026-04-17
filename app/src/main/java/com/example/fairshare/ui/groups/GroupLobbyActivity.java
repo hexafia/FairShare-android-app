@@ -524,28 +524,31 @@ public class GroupLobbyActivity extends AppCompatActivity {
         TextInputEditText etTagline = dialogView.findViewById(R.id.etTagline);
         MaterialButton btnClose = dialogView.findViewById(R.id.btnClose);
         
-        // Fetch member data from Firestore
+        // Pre-fill from known member map, then enrich from Firestore.
+        String fallbackName = memberNames.get(memberUid);
+        if (fallbackName == null || fallbackName.trim().isEmpty()) {
+            fallbackName = getFallbackMemberName(memberUid);
+        }
+        etDisplayName.setText(fallbackName);
+        etTagline.setText("No tagline set");
+
         com.google.firebase.firestore.FirebaseFirestore.getInstance()
                 .collection("users").document(memberUid).get()
                 .addOnSuccessListener(doc -> {
                     if (doc.exists()) {
                         String displayName = doc.getString("displayName");
                         String tagline = doc.getString("tagline");
-                        
-                        // Set the data in the dialog
-                        if (displayName != null) {
+
+                        if (displayName != null && !displayName.trim().isEmpty()) {
                             etDisplayName.setText(displayName);
                         }
-                        if (tagline != null) {
+                        if (tagline != null && !tagline.trim().isEmpty()) {
                             etTagline.setText(tagline);
-                        } else {
-                            etTagline.setText("No tagline set");
                         }
                     }
                 })
                 .addOnFailureListener(e -> {
-                    etDisplayName.setText("Error loading profile");
-                    etTagline.setText("Please try again");
+                    // Keep pre-filled values rather than showing error text.
                 });
         
         // Set up close button

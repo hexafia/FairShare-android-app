@@ -19,9 +19,11 @@ service cloud.firestore {
       return type == 'nudge' || type == 'payment_confirmed';
     }
 
-    // Users can read/write only their own profile.
+    // Authenticated users may read profile documents for in-app member identity display.
+    // Writes remain self-only.
     match /users/{userId} {
-      allow read, write: if isSelf(userId);
+      allow read: if isSignedIn();
+      allow write: if isSelf(userId);
     }
 
     // Group access is restricted to members; creator owns privileged updates.
