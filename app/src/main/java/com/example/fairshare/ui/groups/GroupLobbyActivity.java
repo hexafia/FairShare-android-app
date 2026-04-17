@@ -960,9 +960,24 @@ public class GroupLobbyActivity extends AppCompatActivity {
 
     private String resolveSenderName(String uid) {
         FirebaseUser currentUser = FirebaseAuth.getInstance().getCurrentUser();
-        if (currentUser != null && currentUser.getDisplayName() != null
-                && !currentUser.getDisplayName().trim().isEmpty()) {
-            return currentUser.getDisplayName().trim();
+        if (currentUser != null) {
+            String displayName = currentUser.getDisplayName() != null
+                    ? currentUser.getDisplayName().trim() : null;
+            String accountName = extractAccountName(currentUser.getEmail());
+
+            if (displayName != null && !displayName.isEmpty()
+                    && accountName != null && !accountName.isEmpty()
+                    && !displayName.equalsIgnoreCase(accountName)) {
+                return displayName + " (" + accountName + ")";
+            }
+
+            if (displayName != null && !displayName.isEmpty()) {
+                return displayName;
+            }
+
+            if (accountName != null && !accountName.isEmpty()) {
+                return accountName;
+            }
         }
 
         String fromMap = memberNames.get(uid);
@@ -970,6 +985,22 @@ public class GroupLobbyActivity extends AppCompatActivity {
             return "A group member";
         }
         return fromMap.trim();
+    }
+
+    private String extractAccountName(String email) {
+        if (email == null) {
+            return null;
+        }
+        String trimmed = email.trim();
+        if (trimmed.isEmpty()) {
+            return null;
+        }
+
+        int atIndex = trimmed.indexOf('@');
+        if (atIndex > 0) {
+            return trimmed.substring(0, atIndex);
+        }
+        return trimmed;
     }
 
     private void applyLocalSettlement(String expenseId, String debtorUid) {
