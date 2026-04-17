@@ -45,7 +45,7 @@ public class SettledPaymentsActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_payment_history);
+        setContentView(R.layout.activity_settled_payments);
 
         initViews();
         setupRecyclerView();
@@ -54,7 +54,7 @@ public class SettledPaymentsActivity extends AppCompatActivity {
     }
 
     private void initViews() {
-        rvPayments = findViewById(R.id.rvPayments);
+        rvPayments = findViewById(R.id.rvSettledPayments);
         tvEmpty = findViewById(R.id.tvEmpty);
 
         // Filter chips

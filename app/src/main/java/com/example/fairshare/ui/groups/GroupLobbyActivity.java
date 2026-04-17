@@ -855,16 +855,19 @@ public class GroupLobbyActivity extends AppCompatActivity {
             Toast.makeText(this, "Please log in again", Toast.LENGTH_SHORT).show();
             return;
         }
+        if (currentUser.getUid().equals(settlement.debtorUid)) {
+            return;
+        }
 
         String senderName = resolveSenderName(currentUser.getUid());
         String groupLabel = groupName != null && !groupName.trim().isEmpty() ? groupName : groupId;
 
+        // Optimistic local update so the row greys out and moves immediately.
+        applyLocalSettlement(settlement.expenseId, settlement.debtorUid);
+
         groupRepository.markSettled(settlement.expenseId, settlement.debtorUid, new GroupRepository.OnCompleteCallback() {
             @Override
             public void onSuccess(String message) {
-            // Optimistic local update so UI moves item to Paid immediately.
-            applyLocalSettlement(settlement.expenseId, settlement.debtorUid);
-
                 sendNotification(Notification.createPaymentConfirmationNotification(
                         settlement.debtorUid,
                         currentUser.getUid(),
@@ -880,6 +883,8 @@ public class GroupLobbyActivity extends AppCompatActivity {
 
             @Override
             public void onError(String error) {
+                // Roll back optimistic change by reloading from Firestore source of truth.
+                setupExpenseObserver();
                 Toast.makeText(GroupLobbyActivity.this, "Unable to settle: " + error, Toast.LENGTH_SHORT).show();
             }
         });
@@ -893,6 +898,9 @@ public class GroupLobbyActivity extends AppCompatActivity {
         FirebaseUser currentUser = FirebaseAuth.getInstance().getCurrentUser();
         if (currentUser == null) {
             Toast.makeText(this, "Please log in again", Toast.LENGTH_SHORT).show();
+            return;
+        }
+        if (currentUser.getUid().equals(settlement.debtorUid)) {
             return;
         }
 
@@ -920,7 +928,10 @@ public class GroupLobbyActivity extends AppCompatActivity {
         FirebaseFirestore.getInstance().collection("notifications")
                 .add(notification)
                 .addOnSuccessListener(ref -> Log.d("NOTIFICATIONS", "Notification created: " + ref.getId()))
-                .addOnFailureListener(e -> Log.e("NOTIFICATIONS", "Unable to create notification", e));
+                .addOnFailureListener(e -> {
+                    Log.e("NOTIFICATIONS", "Unable to create notification", e);
+                    Toast.makeText(GroupLobbyActivity.this, "Unable to send notification", Toast.LENGTH_SHORT).show();
+                });
     }
 
     private String resolveSenderName(String uid) {
