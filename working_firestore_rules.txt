@@ -24,7 +24,13 @@ service cloud.firestore {
     }
 
     match /groups/{groupId} {
-      allow read: if isSignedIn() && resource.data.members.hasAny([request.auth.uid]);
+      allow read: if isSignedIn() && (
+        resource.data.members.hasAny([request.auth.uid])
+        || (
+          resource.data.status == 'active'
+          && resource.data.shareCode is string
+        )
+      );
 
       allow create: if isSignedIn()
         && request.resource.data.createdBy == request.auth.uid

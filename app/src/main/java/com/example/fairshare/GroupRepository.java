@@ -211,9 +211,19 @@ public class GroupRepository {
         String codeUpper = shareCode.trim().toUpperCase();
         db.collection(GROUPS_COLLECTION)
                 .whereEqualTo("shareCode", codeUpper)
+                .limit(1)
                 .get()
                 .addOnCompleteListener(task -> {
-                    if (task.isSuccessful() && task.getResult() != null && !task.getResult().isEmpty()) {
+                    if (!task.isSuccessful()) {
+                        String errorMessage = task.getException() != null
+                                ? task.getException().getMessage()
+                                : "Unknown error";
+                        Log.w(TAG, "Join by code failed", task.getException());
+                        callback.onError("Unable to validate code right now: " + errorMessage);
+                        return;
+                    }
+
+                    if (task.getResult() != null && !task.getResult().isEmpty()) {
                         DocumentSnapshot doc = task.getResult().getDocuments().get(0);
                         String groupId = doc.getId();
                         

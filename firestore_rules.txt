@@ -26,7 +26,14 @@ service cloud.firestore {
 
     // Group access is restricted to members; creator owns privileged updates.
     match /groups/{groupId} {
-      allow read: if isSignedIn() && resource.data.members.hasAny([request.auth.uid]);
+      // Allow member reads, plus active-group discovery by share code for join flow.
+      allow read: if isSignedIn() && (
+        resource.data.members.hasAny([request.auth.uid])
+        || (
+          resource.data.status == 'active'
+          && resource.data.shareCode is string
+        )
+      );
 
       allow create: if isSignedIn()
         && request.resource.data.createdBy == request.auth.uid
