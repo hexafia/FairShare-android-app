@@ -211,45 +211,52 @@ public class GroupRepository {
         String codeUpper = shareCode.trim().toUpperCase();
         db.collection(GROUPS_COLLECTION)
                 .whereEqualTo("shareCode", codeUpper)
+                .whereEqualTo("status", "active")
                 .limit(1)
                 .get()
-                .addOnCompleteListener(task -> {
-                    if (!task.isSuccessful()) {
-                        String errorMessage = task.getException() != null
-                                ? task.getException().getMessage()
-                                : "Unknown error";
-                        Log.w(TAG, "Join by code failed", task.getException());
-                        callback.onError("Unable to validate code right now: " + errorMessage);
+                .addOnSuccessListener(activeResult -> {
+                    if (activeResult != null && !activeResult.isEmpty()) {
+                        DocumentSnapshot doc = activeResult.getDocuments().get(0);
+                        addUserToGroup(doc, user.getUid(), callback);
                         return;
                     }
 
-                    if (task.getResult() != null && !task.getResult().isEmpty()) {
-                        DocumentSnapshot doc = task.getResult().getDocuments().get(0);
-                        String groupId = doc.getId();
-                        
-                        // Check group status before allowing join
-                        String status = doc.getString("status");
-                        if (status == null) {
-                            status = "active"; // Default to active if status field is missing
-                        }
-                        
-                        if ("settled".equals(status)) {
-                            callback.onError("This group has been archived and is no longer accepting new members.");
-                            return;
-                        }
-                        
-                        db.collection(GROUPS_COLLECTION).document(groupId)
-                                .update("members", FieldValue.arrayUnion(user.getUid()))
-                                .addOnSuccessListener(aVoid -> {
-                                    Group g = doc.toObject(Group.class);
-                                    String gName = g != null ? g.getName() : "Group";
-                                    callback.onSuccess("Joined: " + gName);
-                                })
-                                .addOnFailureListener(e -> callback.onError(e.getMessage()));
-                    } else {
-                        callback.onError("No group found with that code");
-                    }
+                    // Fallback for legacy groups created before status field existed.
+                    db.collection(GROUPS_COLLECTION)
+                            .whereEqualTo("shareCode", codeUpper)
+                            .whereEqualTo("status", null)
+                            .limit(1)
+                            .get()
+                            .addOnSuccessListener(legacyResult -> {
+                                if (legacyResult != null && !legacyResult.isEmpty()) {
+                                    DocumentSnapshot doc = legacyResult.getDocuments().get(0);
+                                    addUserToGroup(doc, user.getUid(), callback);
+                                } else {
+                                    callback.onError("No group found with that code");
+                                }
+                            })
+                            .addOnFailureListener(e -> {
+                                Log.w(TAG, "Join by code legacy lookup failed", e);
+                                callback.onError("Unable to validate code right now: " + e.getMessage());
+                            });
+                })
+                .addOnFailureListener(e -> {
+                    Log.w(TAG, "Join by code failed", e);
+                    callback.onError("Unable to validate code right now: " + e.getMessage());
                 });
+    }
+
+    private void addUserToGroup(@NonNull DocumentSnapshot doc, @NonNull String uid, @NonNull OnCompleteCallback callback) {
+        String groupId = doc.getId();
+
+        db.collection(GROUPS_COLLECTION).document(groupId)
+                .update("members", FieldValue.arrayUnion(uid))
+                .addOnSuccessListener(aVoid -> {
+                    Group g = doc.toObject(Group.class);
+                    String gName = g != null ? g.getName() : "Group";
+                    callback.onSuccess("Joined: " + gName);
+                })
+                .addOnFailureListener(e -> callback.onError(e.getMessage()));
     }
 
     public void updateGroupStatus(String groupId, String status, OnCompleteCallback callback) {

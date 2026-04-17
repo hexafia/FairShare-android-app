@@ -27,7 +27,7 @@ service cloud.firestore {
       allow read: if isSignedIn() && (
         resource.data.members.hasAny([request.auth.uid])
         || (
-          resource.data.status == 'active'
+          (resource.data.status == 'active' || !('status' in resource.data))
           && resource.data.shareCode is string
         )
       );
