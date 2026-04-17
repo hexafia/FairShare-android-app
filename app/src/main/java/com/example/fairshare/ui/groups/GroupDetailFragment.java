@@ -20,9 +20,9 @@ import com.example.fairshare.R;
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.tabs.TabLayout;
 import com.google.android.material.tabs.TabLayoutMediator;
-import com.google.android.material.textview.MaterialTextView;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
+import android.widget.TextView;
 
 public class GroupDetailFragment extends Fragment {
 
@@ -32,10 +32,10 @@ public class GroupDetailFragment extends Fragment {
     private Group currentGroup;
 
     // UI elements
-    private MaterialTextView tvGroupName;
-    private MaterialTextView tvGroupCode;
-    private MaterialTextView tvGroupStatus;
-    private MaterialTextView tvMemberCount;
+    private TextView tvGroupName;
+    private TextView tvGroupCode;
+    private TextView tvGroupStatus;
+    private TextView tvMemberCount;
     private MaterialButton btnMarkAsAccomplished;
     private TabLayout tabLayout;
     private ViewPager2 viewPager;
