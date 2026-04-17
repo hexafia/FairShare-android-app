@@ -41,6 +41,10 @@ public class DashboardViewModel extends ViewModel {
         return groups;
     }
 
+    public LiveData<Double> getExpenseTotal() {
+        return expenseRepository.getExpenseTotal();
+    }
+
     public void addPersonalExpense(Transaction transaction) {
         expenseRepository.addExpense(transaction);
     }

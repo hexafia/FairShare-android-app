@@ -93,14 +93,6 @@ public class ExpenseRepository {
                     transaction.setId(docRef.getId());
                     Log.d(TAG, "Added with ID: " + docRef.getId());
 
-                    List<Transaction> updated = new ArrayList<>();
-                    List<Transaction> current = expensesLiveData.getValue();
-                    if (current != null) {
-                        updated.addAll(current);
-                    }
-                    updated.add(0, transaction);
-                    expensesLiveData.setValue(updated);
-
                     Double currentTotal = expenseTotalLiveData.getValue();
                     double nextTotal = (currentTotal != null ? currentTotal : 0.0) + transaction.getAmount();
                     expenseTotalLiveData.setValue(nextTotal);

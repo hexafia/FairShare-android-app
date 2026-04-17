@@ -57,6 +57,7 @@ public class DashboardFragment extends Fragment implements com.example.fairshare
     private List<Transaction> currentPersonalExpenses = new ArrayList<>();
     private List<GroupExpense> currentGroupExpenses = new ArrayList<>();
     private List<com.example.fairshare.Group> currentGroups = new ArrayList<>();
+    private double currentPersonalTotal = 0.0;
     
     // Master lists for stats calculation (decoupled from filtered display)
     private List<Transaction> masterPersonalExpenses = new ArrayList<>();
@@ -137,6 +138,13 @@ public class DashboardFragment extends Fragment implements com.example.fairshare
     private void setupViewModel() {
         viewModel = new ViewModelProvider(requireActivity()).get(DashboardViewModel.class);
 
+        viewModel.getExpenseTotal().observe(getViewLifecycleOwner(), total -> {
+            currentPersonalTotal = total != null ? total : 0.0;
+            binding.tvPersonal.setText(CurrencyHelper.format(currentPersonalTotal));
+            updateGrandTotal();
+            binding.tvBalance.setText(CurrencyHelper.format(grandTotal));
+        });
+
         viewModel.getPersonalExpenses().observe(getViewLifecycleOwner(), transactions -> {
             currentPersonalExpenses = transactions != null ? transactions : new ArrayList<>();
             masterPersonalExpenses = transactions != null ? transactions : new ArrayList<>();
@@ -147,12 +155,6 @@ public class DashboardFragment extends Fragment implements com.example.fairshare
             }
             
             adapter.submitList(currentPersonalExpenses);
-            
-            // Update grandTotal only from Firestore LiveData observer
-            updateGrandTotal();
-            // Set UI once during initial data load
-            binding.tvBalance.setText(CurrencyHelper.format(grandTotal));
-            // Restore balance calculations
             updateSummary();
 
             if (currentPersonalExpenses.isEmpty()) {
@@ -184,11 +186,8 @@ public class DashboardFragment extends Fragment implements com.example.fairshare
             currentGroupExpenses = expenses != null ? expenses : new ArrayList<>();
             masterGroupExpenses = expenses != null ? expenses : new ArrayList<>();
             
-            // Update grandTotal only from Firestore LiveData observer
             updateGrandTotal();
-            // Set UI once during initial data load
             binding.tvBalance.setText(CurrencyHelper.format(grandTotal));
-            // Restore balance calculations
             updateSummary();
         });
 
@@ -228,11 +227,6 @@ public class DashboardFragment extends Fragment implements com.example.fairshare
         if (user == null) return;
         String myUid = user.getUid();
 
-        double personalSpent = 0;
-        for (Transaction t : masterPersonalExpenses) {
-            personalSpent += t.getAmount();
-        }
-
         List<GroupExpense> monthGroupExpenses = new ArrayList<>();
         double groupPaid = 0;
         for (GroupExpense ge : masterGroupExpenses) {
@@ -244,7 +238,7 @@ public class DashboardFragment extends Fragment implements com.example.fairshare
             }
         }
 
-        grandTotal = personalSpent + groupPaid;
+        grandTotal = currentPersonalTotal + groupPaid;
     }
 
     private void updateSummary() {
@@ -252,10 +246,7 @@ public class DashboardFragment extends Fragment implements com.example.fairshare
         if (user == null) return;
         String myUid = user.getUid();
 
-        double personalSpent = 0;
-        for (Transaction t : masterPersonalExpenses) {
-            personalSpent += t.getAmount();
-        }
+        double personalSpent = currentPersonalTotal;
         
         android.util.Log.d("DASHBOARD", "updateSummary() - personalSpent: " + personalSpent + ", masterPersonalExpenses size: " + masterPersonalExpenses.size());
 
