@@ -97,15 +97,16 @@ public class SettledPaymentsActivity extends AppCompatActivity {
 
         Log.d(TAG, "Loading settled payments for user: " + currentUserId);
 
-        // Load all payment_confirmed notifications for current user
+        // Query by recipient only (matches Firestore rule) and filter type client-side.
         db.collection("notifications")
             .whereEqualTo("recipientUid", currentUserId)
-            .whereEqualTo("type", "payment_confirmed")
             .orderBy("timestamp", Query.Direction.DESCENDING)
             .addSnapshotListener((value, error) -> {
                 if (error != null) {
                     Log.e(TAG, "Error loading settled payments: " + error.getMessage(), error);
-                    Toast.makeText(this, "Error loading settled payments", Toast.LENGTH_SHORT).show();
+                    if (allPayments.isEmpty()) {
+                        Toast.makeText(this, "Unable to refresh settled payments right now", Toast.LENGTH_SHORT).show();
+                    }
                     return;
                 }
 
@@ -115,6 +116,9 @@ public class SettledPaymentsActivity extends AppCompatActivity {
                     for (com.google.firebase.firestore.DocumentSnapshot doc : value.getDocuments()) {
                         Notification notification = doc.toObject(Notification.class);
                         if (notification != null) {
+                            if (!"payment_confirmed".equals(notification.getType())) {
+                                continue;
+                            }
                             notification.setId(doc.getId());
                             allPayments.add(notification);
                         }

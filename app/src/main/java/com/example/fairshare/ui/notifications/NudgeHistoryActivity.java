@@ -102,15 +102,17 @@ public class NudgeHistoryActivity extends AppCompatActivity {
         
         Log.d(TAG, "Loading nudges for user: " + currentUserId);
         
-        // Load all nudge notifications for current user
+        // Query by recipient only (matches Firestore rule) and filter type client-side.
         db.collection("notifications")
             .whereEqualTo("recipientUid", currentUserId)
-            .whereEqualTo("type", "nudge")
             .orderBy("timestamp", Query.Direction.DESCENDING)
             .addSnapshotListener((value, error) -> {
                 if (error != null) {
                     Log.e(TAG, "Error loading nudges: " + error.getMessage(), error);
-                    Toast.makeText(this, "Error loading nudges: " + error.getMessage(), Toast.LENGTH_LONG).show();
+                    // Avoid noisy toasts for transient permission hiccups if UI already has data.
+                    if (allNudges.isEmpty()) {
+                        Toast.makeText(this, "Unable to refresh nudges right now", Toast.LENGTH_SHORT).show();
+                    }
                     return;
                 }
                 
@@ -121,6 +123,9 @@ public class NudgeHistoryActivity extends AppCompatActivity {
                     for (com.google.firebase.firestore.DocumentSnapshot doc : value.getDocuments()) {
                         Notification notification = doc.toObject(Notification.class);
                         if (notification != null) {
+                            if (!"nudge".equals(notification.getType())) {
+                                continue;
+                            }
                             if (isTestNotification(notification)) {
                                 continue;
                             }
