@@ -856,12 +856,15 @@ public class GroupLobbyActivity extends AppCompatActivity {
             return;
         }
 
-        String senderName = memberNames.getOrDefault(currentUser.getUid(), "You");
+        String senderName = resolveSenderName(currentUser.getUid());
         String groupLabel = groupName != null && !groupName.trim().isEmpty() ? groupName : groupId;
 
         groupRepository.markSettled(settlement.expenseId, settlement.debtorUid, new GroupRepository.OnCompleteCallback() {
             @Override
             public void onSuccess(String message) {
+            // Optimistic local update so UI moves item to Paid immediately.
+            applyLocalSettlement(settlement.expenseId, settlement.debtorUid);
+
                 sendNotification(Notification.createPaymentConfirmationNotification(
                         settlement.debtorUid,
                         currentUser.getUid(),
@@ -873,9 +876,6 @@ public class GroupLobbyActivity extends AppCompatActivity {
                         settlement.settlementAmount));
 
                 Toast.makeText(GroupLobbyActivity.this, "Marked as settled", Toast.LENGTH_SHORT).show();
-                if (expenseAdapter != null && expenseAdapter.getCurrentList() != null) {
-                    updateDebts(expenseAdapter.getCurrentList());
-                }
             }
 
             @Override
@@ -896,7 +896,7 @@ public class GroupLobbyActivity extends AppCompatActivity {
             return;
         }
 
-        String senderName = memberNames.getOrDefault(currentUser.getUid(), "You");
+        String senderName = resolveSenderName(currentUser.getUid());
         String groupLabel = groupName != null && !groupName.trim().isEmpty() ? groupName : groupId;
 
         sendNotification(Notification.createNudgeNotification(
@@ -919,7 +919,55 @@ public class GroupLobbyActivity extends AppCompatActivity {
 
         FirebaseFirestore.getInstance().collection("notifications")
                 .add(notification)
+                .addOnSuccessListener(ref -> Log.d("NOTIFICATIONS", "Notification created: " + ref.getId()))
                 .addOnFailureListener(e -> Log.e("NOTIFICATIONS", "Unable to create notification", e));
+    }
+
+    private String resolveSenderName(String uid) {
+        FirebaseUser currentUser = FirebaseAuth.getInstance().getCurrentUser();
+        if (currentUser != null && currentUser.getDisplayName() != null
+                && !currentUser.getDisplayName().trim().isEmpty()) {
+            return currentUser.getDisplayName().trim();
+        }
+
+        String fromMap = memberNames.get(uid);
+        if (fromMap == null || fromMap.trim().isEmpty() || "You".equalsIgnoreCase(fromMap.trim())) {
+            return "A group member";
+        }
+        return fromMap.trim();
+    }
+
+    private void applyLocalSettlement(String expenseId, String debtorUid) {
+        if (expenseId == null || debtorUid == null || currentExpensesList == null) {
+            return;
+        }
+
+        long settledAt = System.currentTimeMillis();
+        List<GroupExpense> updated = new ArrayList<>();
+
+        for (GroupExpense expense : currentExpensesList) {
+            if (expense != null && expenseId.equals(expense.getId())) {
+                Map<String, Boolean> settledStatus = expense.getSettledStatus();
+                if (settledStatus == null) {
+                    settledStatus = new HashMap<>();
+                }
+                settledStatus.put(debtorUid, true);
+                expense.setSettledStatus(settledStatus);
+
+                Map<String, Long> settledDates = expense.getSettledDates();
+                if (settledDates == null) {
+                    settledDates = new HashMap<>();
+                }
+                settledDates.put(debtorUid, settledAt);
+                expense.setSettledDates(settledDates);
+            }
+            updated.add(expense);
+        }
+
+        currentExpensesList = updated;
+        filteredExpensesList = new ArrayList<>(updated);
+        updateDebts(updated);
+        updateStats(updated);
     }
 
     private void setupFilterDropdown() {
