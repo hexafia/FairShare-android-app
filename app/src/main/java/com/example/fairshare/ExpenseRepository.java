@@ -41,6 +41,7 @@ public class ExpenseRepository {
     public LiveData<List<Transaction>> getExpenses() {
         if (listenerRegistration == null) {
             String uid = FirebaseAuth.getInstance().getCurrentUser().getUid();
+            Log.d(TAG, "Setting up listener for expenses with uid: " + uid);
             listenerRegistration = expensesRef
                     .whereEqualTo("uid", uid)
                     .orderBy("date", Query.Direction.DESCENDING)
@@ -54,7 +55,9 @@ public class ExpenseRepository {
                             for (QueryDocumentSnapshot doc : snapshots) {
                                 Transaction t = doc.toObject(Transaction.class);
                                 list.add(t);
+                                Log.d(TAG, "Loaded expense: " + t.getTitle() + " - " + t.getAmount());
                             }
+                            Log.d(TAG, "Expense listener update: " + list.size() + " transactions");
                             expensesLiveData.setValue(list);
                         }
                     });

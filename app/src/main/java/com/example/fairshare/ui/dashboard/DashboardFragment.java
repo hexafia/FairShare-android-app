@@ -139,6 +139,12 @@ public class DashboardFragment extends Fragment implements com.example.fairshare
         viewModel.getPersonalExpenses().observe(getViewLifecycleOwner(), transactions -> {
             currentPersonalExpenses = transactions != null ? transactions : new ArrayList<>();
             masterPersonalExpenses = transactions != null ? transactions : new ArrayList<>();
+            
+            android.util.Log.d("DASHBOARD", "Personal expenses observer called. Count: " + (transactions != null ? transactions.size() : 0));
+            for (Transaction t : currentPersonalExpenses) {
+                android.util.Log.d("DASHBOARD", "  - " + t.getTitle() + ": " + t.getAmount() + " on " + t.getDate());
+            }
+            
             adapter.submitList(currentPersonalExpenses);
             
             // Update grandTotal only from Firestore LiveData observer
@@ -261,6 +267,8 @@ public class DashboardFragment extends Fragment implements com.example.fairshare
                 personalSpent += t.getAmount();
             }
         }
+        
+        android.util.Log.d("DASHBOARD", "updateSummary() - personalSpent: " + personalSpent + ", masterPersonalExpenses size: " + masterPersonalExpenses.size());
 
         List<GroupExpense> monthGroupExpenses = new ArrayList<>();
         double groupPaid = 0;
@@ -285,6 +293,8 @@ public class DashboardFragment extends Fragment implements com.example.fairshare
         binding.tvPersonal.setText(CurrencyHelper.format(personalSpent));
         binding.tvPaid.setText(CurrencyHelper.format(groupPaid));
         binding.tvRemaining.setText(CurrencyHelper.format(remainingOwed));
+        
+        android.util.Log.d("DASHBOARD", "updateSummary() - Updated UI: Personal=" + personalSpent + ", Paid=" + groupPaid + ", Remaining=" + remainingOwed);
     }
 
     private void showTransactionTypeDialog() {
