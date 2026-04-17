@@ -61,7 +61,7 @@ public class DashboardFragment extends Fragment implements com.example.fairshare
     private List<Transaction> masterPersonalExpenses = new ArrayList<>();
     private List<GroupExpense> masterGroupExpenses = new ArrayList<>();
     
-    // Static total stats - only updated from Firestore LiveData observer
+    // Top card total - reflects all personal expenses loaded from Firestore
     private double grandTotal = 0.0;
 
     // OCR and Camera
@@ -225,33 +225,13 @@ public class DashboardFragment extends Fragment implements com.example.fairshare
     private void updateGrandTotal() {
         FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
         if (user == null) return;
-        String myUid = user.getUid();
 
         double personalSpent = 0;
         for (Transaction t : masterPersonalExpenses) {
             personalSpent += t.getAmount();
         }
 
-        List<GroupExpense> monthGroupExpenses = new ArrayList<>();
-        double groupPaid = 0;
-        for (GroupExpense ge : masterGroupExpenses) {
-            if (isCurrentMonth(ge.getTimestamp())) {
-                monthGroupExpenses.add(ge);
-                if (myUid.equals(ge.getPayerUid())) {
-                    groupPaid += ge.getAmount();
-                }
-            }
-        }
-
-        double remainingOwed = 0;
-        List<DebtSimplifier.Debt> debts = DebtSimplifier.simplify(monthGroupExpenses);
-        for (DebtSimplifier.Debt d : debts) {
-            if (d.debtorUid.equals(myUid)) {
-                remainingOwed += d.amount;
-            }
-        }
-
-        grandTotal = personalSpent + groupPaid + remainingOwed;
+        grandTotal = personalSpent;
     }
 
     private void updateSummary() {
