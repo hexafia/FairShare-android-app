@@ -93,10 +93,6 @@ public class ExpenseRepository {
                     transaction.setId(docRef.getId());
                     Log.d(TAG, "Added with ID: " + docRef.getId());
 
-                    Double currentTotal = expenseTotalLiveData.getValue();
-                    double nextTotal = (currentTotal != null ? currentTotal : 0.0) + transaction.getAmount();
-                    expenseTotalLiveData.setValue(nextTotal);
-
                     if (callback != null) {
                         callback.onSuccess(transaction);
                     }
