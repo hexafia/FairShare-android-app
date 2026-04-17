@@ -30,6 +30,7 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import com.example.fairshare.CurrencyHelper;
 import com.example.fairshare.DebtSimplifier;
 import com.example.fairshare.ExpenseAdapter;
+import com.example.fairshare.ExpenseRepository;
 import com.example.fairshare.GroupExpense;
 import com.example.fairshare.GroupRepository;
 import com.example.fairshare.R;
@@ -355,10 +356,18 @@ public class DashboardFragment extends Fragment implements com.example.fairshare
             String category = spinnerCategory.getSelectedItem().toString();
 
             Transaction transaction = new Transaction(title, amount, category);
-            viewModel.addPersonalExpense(transaction);
+            viewModel.addPersonalExpense(transaction, new ExpenseRepository.ExpenseWriteCallback() {
+                @Override
+                public void onSuccess(Transaction savedTransaction) {
+                    Toast.makeText(requireContext(), "Transaction added!", Toast.LENGTH_SHORT).show();
+                    dialog.dismiss();
+                }
 
-            Toast.makeText(requireContext(), "Transaction added!", Toast.LENGTH_SHORT).show();
-            dialog.dismiss();
+                @Override
+                public void onFailure(Exception error) {
+                    Toast.makeText(requireContext(), "Unable to save transaction", Toast.LENGTH_SHORT).show();
+                }
+            });
         });
 
         dialog.show();

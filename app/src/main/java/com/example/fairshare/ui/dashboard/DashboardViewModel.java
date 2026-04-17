@@ -45,6 +45,10 @@ public class DashboardViewModel extends ViewModel {
         expenseRepository.addExpense(transaction);
     }
 
+    public void addPersonalExpense(Transaction transaction, ExpenseRepository.ExpenseWriteCallback callback) {
+        expenseRepository.addExpense(transaction, callback);
+    }
+
     public void deletePersonalExpense(String id) {
         expenseRepository.deleteExpense(id);
     }

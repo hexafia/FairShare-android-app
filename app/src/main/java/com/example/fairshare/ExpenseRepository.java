@@ -22,6 +22,11 @@ import java.util.List;
  */
 public class ExpenseRepository {
 
+    public interface ExpenseWriteCallback {
+        void onSuccess(Transaction transaction);
+        void onFailure(Exception error);
+    }
+
     private static final String TAG = "ExpenseRepository";
     private static final String COLLECTION = "expenses";
 
@@ -70,12 +75,36 @@ public class ExpenseRepository {
      * Works offline thanks to persistent cache.
      */
     public void addExpense(Transaction transaction) {
+        addExpense(transaction, null);
+    }
+
+    public void addExpense(Transaction transaction, ExpenseWriteCallback callback) {
         if (FirebaseAuth.getInstance().getCurrentUser() != null) {
             transaction.setUid(FirebaseAuth.getInstance().getCurrentUser().getUid());
         }
         expensesRef.add(transaction)
-                .addOnSuccessListener(docRef -> Log.d(TAG, "Added with ID: " + docRef.getId()))
-                .addOnFailureListener(e -> Log.w(TAG, "Error adding document", e));
+                .addOnSuccessListener(docRef -> {
+                    transaction.setId(docRef.getId());
+                    Log.d(TAG, "Added with ID: " + docRef.getId());
+
+                    List<Transaction> updated = new ArrayList<>();
+                    List<Transaction> current = expensesLiveData.getValue();
+                    if (current != null) {
+                        updated.addAll(current);
+                    }
+                    updated.add(0, transaction);
+                    expensesLiveData.setValue(updated);
+
+                    if (callback != null) {
+                        callback.onSuccess(transaction);
+                    }
+                })
+                .addOnFailureListener(e -> {
+                    Log.w(TAG, "Error adding document", e);
+                    if (callback != null) {
+                        callback.onFailure(e);
+                    }
+                });
     }
 
     /**

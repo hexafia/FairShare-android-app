@@ -26,6 +26,10 @@ public class ExpenseViewModel extends ViewModel {
         repository.addExpense(transaction);
     }
 
+    public void addExpense(Transaction transaction, ExpenseRepository.ExpenseWriteCallback callback) {
+        repository.addExpense(transaction, callback);
+    }
+
     public void deleteExpense(String id) {
         repository.deleteExpense(id);
     }
