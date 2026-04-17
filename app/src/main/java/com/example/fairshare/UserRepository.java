@@ -128,4 +128,35 @@ public class UserRepository {
             listenerRegistration = null;
         }
     }
+
+    /**
+     * Fetches a user profile by their UID with a callback.
+     * @param uid The user's Firebase UID
+     * @param callback Called with the UserProfile or null if not found
+     */
+    public void getUserProfileByUid(String uid, UserProfileCallback callback) {
+        if (uid == null || uid.isEmpty()) {
+            callback.onProfileFetched(null);
+            return;
+        }
+
+        db.collection(COLLECTION).document(uid)
+                .get()
+                .addOnSuccessListener(snapshot -> {
+                    if (snapshot.exists()) {
+                        UserProfile profile = snapshot.toObject(UserProfile.class);
+                        callback.onProfileFetched(profile);
+                    } else {
+                        callback.onProfileFetched(null);
+                    }
+                })
+                .addOnFailureListener(e -> {
+                    Log.w(TAG, "Error fetching profile for uid: " + uid, e);
+                    callback.onProfileFetched(null);
+                });
+    }
+
+    public interface UserProfileCallback {
+        void onProfileFetched(UserProfile profile);
+    }
 }

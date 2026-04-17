@@ -80,6 +80,7 @@ public class GroupLobbyActivity extends AppCompatActivity {
 
     private GroupRepository groupRepository;
     private UserRepository userRepository;
+    private UserProfile currentUserProfile;  // Add this to store current user's profile
     private GroupExpenseAdapter expenseAdapter;
     private SettlementDetailAdapter settlementAdapter;
     private SettlementDetailAdapter toPayAdapter; // "To Pay" section adapter
@@ -366,6 +367,14 @@ public class GroupLobbyActivity extends AppCompatActivity {
         // Repositories
         groupRepository = new GroupRepository();
         userRepository = new UserRepository();
+        
+        // Fetch current user's profile to get their app-defined display name
+        userRepository.getUserProfile().observe(this, profile -> {
+            if (profile != null) {
+                currentUserProfile = profile;
+                Log.d("GROUP_LOBBY", "Current user profile loaded: " + profile.getDisplayName());
+            }
+        });
 
         // Validate deep-link/auth access before loading sensitive group data.
         validateGroupAccessAndInitialize();
@@ -959,20 +968,37 @@ public class GroupLobbyActivity extends AppCompatActivity {
     }
 
     private String resolveSenderName(String uid) {
-        FirebaseUser currentUser = FirebaseAuth.getInstance().getCurrentUser();
-        if (currentUser != null) {
-            String displayName = currentUser.getDisplayName() != null
-                    ? currentUser.getDisplayName().trim() : null;
-            String accountName = extractAccountName(currentUser.getEmail());
-
-            if (displayName != null && !displayName.isEmpty()
-                    && accountName != null && !accountName.isEmpty()
+        // Prefer the current user's profile display name (from app)
+        if (currentUserProfile != null && currentUserProfile.getDisplayName() != null) {
+            String displayName = currentUserProfile.getDisplayName().trim();
+            String accountName = extractAccountName(FirebaseAuth.getInstance().getCurrentUser() != null 
+                    ? FirebaseAuth.getInstance().getCurrentUser().getEmail() : null);
+            
+            if (!displayName.isEmpty() && accountName != null && !accountName.isEmpty()
                     && !displayName.equalsIgnoreCase(accountName)) {
                 return displayName + " (" + accountName + ")";
             }
-
-            if (displayName != null && !displayName.isEmpty()) {
+            
+            if (!displayName.isEmpty()) {
                 return displayName;
+            }
+        }
+        
+        // Fallback: try Firebase displayName
+        FirebaseUser currentUser = FirebaseAuth.getInstance().getCurrentUser();
+        if (currentUser != null) {
+            String firebaseDisplayName = currentUser.getDisplayName() != null
+                    ? currentUser.getDisplayName().trim() : null;
+            String accountName = extractAccountName(currentUser.getEmail());
+
+            if (firebaseDisplayName != null && !firebaseDisplayName.isEmpty()
+                    && accountName != null && !accountName.isEmpty()
+                    && !firebaseDisplayName.equalsIgnoreCase(accountName)) {
+                return firebaseDisplayName + " (" + accountName + ")";
+            }
+
+            if (firebaseDisplayName != null && !firebaseDisplayName.isEmpty()) {
+                return firebaseDisplayName;
             }
 
             if (accountName != null && !accountName.isEmpty()) {
