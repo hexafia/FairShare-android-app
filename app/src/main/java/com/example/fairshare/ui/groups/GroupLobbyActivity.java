@@ -258,6 +258,7 @@ public class GroupLobbyActivity extends AppCompatActivity {
         // Setup two-section adapters
         toPayAdapter = new SettlementDetailAdapter();
         paidAdapter = new SettlementDetailAdapter();
+        settlementAdapter = new SettlementDetailAdapter();
         
         // Set current user ID for adapters
         String currentUserId = FirebaseAuth.getInstance().getCurrentUser() != null ? 
@@ -307,7 +308,6 @@ public class GroupLobbyActivity extends AppCompatActivity {
         rvPaid.setAdapter(paidAdapter);
         
         // Legacy adapter (kept for compatibility)
-        settlementAdapter = new SettlementDetailAdapter();
         rvDebts.setLayoutManager(new LinearLayoutManager(this));
         rvDebts.setAdapter(settlementAdapter);
 
