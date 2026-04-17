@@ -57,7 +57,9 @@ public class NotificationsFragment extends Fragment implements com.example.fairs
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
         
+        Log.d("NOTIFICATIONS", "=== onViewCreated called ===");
         initViews(view);
+        Log.d("NOTIFICATIONS", "currentUserId after initViews: " + currentUserId);
         setupRecyclerViews();
         loadNotifications();
     }
@@ -217,10 +219,12 @@ public class NotificationsFragment extends Fragment implements com.example.fairs
     private void loadFilteredNotifications() {
         // Load all notifications for current user
         try {
+            Log.d("NOTIFICATIONS", "Setting up listener for recipientUid: " + currentUserId);
             db.collection("notifications")
                 .whereEqualTo("recipientUid", currentUserId)
                 .addSnapshotListener((value, error) -> {
                     try {
+                        Log.d("NOTIFICATIONS", "Snapshot listener callback triggered. Error: " + error + ", Value: " + value);
                         if (error != null) {
                             Log.e("NOTIFICATIONS", "Filtered query failed: " + error.getMessage(), error);
                             
