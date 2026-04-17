@@ -30,13 +30,11 @@ public class ExpenseRepository {
     private static final String TAG = "ExpenseRepository";
     private static final String COLLECTION = "expenses";
 
-    private final CollectionReference expensesRef;
-    private final MutableLiveData<List<Transaction>> expensesLiveData = new MutableLiveData<>(new ArrayList<>());
-    private ListenerRegistration listenerRegistration;
+    private static final CollectionReference expensesRef = FirebaseFirestore.getInstance().collection(COLLECTION);
+    private static final MutableLiveData<List<Transaction>> expensesLiveData = new MutableLiveData<>(new ArrayList<>());
+    private static ListenerRegistration listenerRegistration;
 
     public ExpenseRepository() {
-        FirebaseFirestore db = FirebaseFirestore.getInstance();
-        expensesRef = db.collection(COLLECTION);
     }
 
     /**
